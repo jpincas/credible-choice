@@ -160,6 +160,11 @@ input {
     flex-direction: column;
 }
 
+.choices .option {
+    text-transform: none;
+    font-size: 1.25rem;
+}
+
 
 .button.selected {
     background-color: green;
