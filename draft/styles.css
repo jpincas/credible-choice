@@ -54,6 +54,8 @@ input {
     border: 1px solid  rgba(228, 228, 228, 0.6);    
     margin: 3px;
     text-transform: uppercase;
+    /* Remove inner shadows on mobile safari */
+    -webkit-appearance: none;
 }
 
 a.button, button.button {
