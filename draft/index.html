@@ -12,14 +12,6 @@
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li class="active"><a href="index.html">Choose</a></li>
-            <li><a href="auth.html">Register / Authenticate</a></li>
-            <li><a href="donate.html">Donate</a></li>
-        </ul>
-    </nav>
-
     <header>
         <div id="presentation">
             <div id="brexit" class="bold">Brexit</div>
@@ -27,197 +19,215 @@
         </div>
     </header>
 
-    <section>
-        <h2>Your Choice Today</h2>
+    <nav>
+        <ul>
+            <li class="active"><a href="index.html">Choose</a></li>
+            <li><a href="auth.html">Register / Login</a></li>
+            <li><a href="donate.html">Donate to Charity</a></li>
+        </ul>
+    </nav>
 
-        <form action="">
-            <div class="option selected">
-                We should accept whatever Theresa May is able to agree with the EU
+    <div class="panels">
+        <div class="panel">
+            <section>
+                <h2>Your Choice Today</h2>
 
-                <div class="chosen-by">
-                    Chosen so far by <span class="bold">210,956</span>
-                </div>
+                <form class="choices">
+                    <div class="option selected button">
+                        We should accept whatever Theresa May is able to agree with the EU
+
+                        <div class="chosen-by">
+                            Chosen so far by <span class="bold">210,956</span>
+                        </div>
+                    </div>
+                    <div class="option button">
+                        We should have a decisive break with the EU an envisaged by Jacob Rees Mogg
+
+                        <div class="chosen-by">
+                            Chosen so far by <span class="bold">210,956</span>
+                        </div>
+                    </div>
+                    <div class="option button">
+                        We should stay in the EU on the current basis
+
+                        <div class="chosen-by">
+                            Chosen so far by <span class="bold">210,956</span>
+                        </div>
+                    </div>
+                </form>
+
+            </section>
+
+            <div id="total-choices">
+                Total choices made so far: 676,879
             </div>
-            <div class="option">
-                We should have a decisive break with the EU an envisaged by Jacob Rees Mogg
+        </div>
 
-                <div class="chosen-by">
-                    Chosen so far by <span class="bold">210,956</span>
-                </div>
-            </div>
-            <div class="option">
-                We should stay in the EU on the current basis
+        <div class="sep"></div>
 
-                <div class="chosen-by">
-                    Chosen so far by <span class="bold">210,956</span>
-                </div>
-            </div>
-        </form>
+        <div class="panel">
+            <section>
+                <h2>Who would you choose to represent your views?</h2>
 
-        <a class="button" href="donate.html">Register Choice</a>
-    </section>
+                <p>Optionally you can select a person who would represent your views to parliament and the government
+                </p>
 
-    <div id="total-choices">
-        Total choices made so far: 676,879
+                <table id="list-of-persons">
+                    <thead>
+                        <th>Person</th>
+                        <th>Profession</th>
+                        <th>Choices</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="button selected">JK Rowling</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Katie Hopkins</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Piers Morgan</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Gary Lineker</td>
+                            <td>Sports Personality</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Jacob Rees Mogg</td>
+                            <td>Politician</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Paula Radcliffe</td>
+                            <td>Sports Personality</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Lawence Dallaglio</td>
+                            <td>Sports Personality</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Ben Ainslie</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Elton John</td>
+                            <td>Musician</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Billy Brag</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Jarvis Cocker</td>
+                            <td>Musician</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Simon Cowell</td>
+                            <td>Businessman</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Bob Geldof</td>
+                            <td>Activist</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Paloma Faith</td>
+                            <td>Musician</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Patrick Stewart</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Daniel Craig</td>
+                            <td>Actor</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Irdris Elba</td>
+                            <td>Actor</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Helena Bonham Carter</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Markus Brigstocke</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Stewart Lee</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Frankie Boyle</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Danny Boyle</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Jack Munro</td>
+                            <td>Writer</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Russell Brand</td>
+                            <td>Presenter</td>
+                            <td>457,365</td>
+                        </tr>
+                        <tr>
+                            <td class="button">Nigel Farage</td>
+                            <td>Politician</td>
+                            <td>457,365</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>Showing top <span class="bold">25</span> of <span class="bold">1,345</span> </p>
+
+                <input type="text" placeholder="Search for person">
+                <a class="button" href="donate.html">Search</a>
+            </section>
+
+            <section id="add-person">
+
+                <input type="text" placeholder="New person">
+                <button class="button" href="donate.html">Add</button>
+
+                <p>Any UK citizen with
+                    a Wikepedia entry. Confirmation may not be immediate.
+                    There is no guarantee
+                    that Parliament will take any notice but if someone chosen by a million people they should be heard.
+                    If you appear on this list and you'd rather not, please contact us at
+                    remove-me@crediblechoice.co.uk.
+                </p>
+            </section>
+        </div>
     </div>
-
-    <section>
-        <h2>Who would you choose to represent your views? (Optional)</h2>
-
-        <p>Optionally you can select a person who would represent your views to parliament and the government</p>
-
-        <table id="list-of-persons">
-            <thead>
-                <th>Person</th>
-                <th>Profession</th>
-                <th>Choices</th>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>JK Rowling</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Katie Hopkins</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Piers Morgan</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Gary Lineker</td>
-                    <td>Sports Personality</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Jacob Rees Mogg</td>
-                    <td>Politician</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Paula Radcliffe</td>
-                    <td>Sports Personality</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Lawence Dallaglio</td>
-                    <td>Sports Personality</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Ben Ainslie</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Elton John</td>
-                    <td>Musician</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Billy Brag</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Jarvis Cocker</td>
-                    <td>Musician</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Simon Cowell</td>
-                    <td>Businessman</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Bob Geldof</td>
-                    <td>Activist</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Paloma Faith</td>
-                    <td>Musician</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Patrick Stewart</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Daniel Craig</td>
-                    <td>Actor</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Irdris Elba</td>
-                    <td>Actor</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Helena Bonham Carter</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Markus Brigstocke</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Stewart Lee</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Frankie Boyle</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Danny Boyle</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Jack Munro</td>
-                    <td>Writer</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Russell Brand</td>
-                    <td>Presenter</td>
-                    <td>457,365</td>
-                </tr>
-                <tr>
-                    <td>Nigel Farage</td>
-                    <td>Politician</td>
-                    <td>457,365</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <p>Showing top <span class="bold">25</span> of <span class="bold">1,345</span> </p>
-
-        <input type="text" placeholder="Search">
-
-        <a class="button" href="donate.html">Register Choice</a>
-    </section>
-
-    <section id="add-person">
-
-        <input type="text" placeholder="New person">
-        <button class="button" href="donate.html">Add</button>
-
-        <p>Any UK citizen with
-            a Wikepedia entry. Confirmation may not be immediate.
-            There is no guarantee
-            that Parliament will take any notice but if someone chosen by a million people they should be heard.</p>
-    </section>
 
     <footer>
         <div id="logo">

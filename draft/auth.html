@@ -14,20 +14,20 @@
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Choose</a></li>
-            <li class="active"><a href="auth.html">Register / Authenticate</a></li>
-            <li><a href="donate.html">Donate</a></li>
-        </ul>
-    </nav>
-
     <header>
         <div id="presentation">
             <div id="brexit" class="bold">Brexit</div>
             <div id="slogan">Make your voice heard right now</div>
         </div>
     </header>
+
+    <nav>
+        <ul>
+            <li class="active"><a href="index.html">Choose</a></li>
+            <li><a href="auth.html">Register / Login</a></li>
+            <li><a href="donate.html">Donate to Charity</a></li>
+        </ul>
+    </nav>
 
     <section id="id-verification">
         <h2>Identity Verification</h2>
@@ -56,6 +56,13 @@
         <input type="text" placeholder="Last Name">
         <input type="text" placeholder="Date of Birth">
         <input type="text" placeholder="Post Code">
+
+        <div class="security-questions">
+            <h4>ID verification questions</h4>
+            <input type="text" placeholder="What was the name of your first pet?">
+            <input type="text" placeholder="What was your mother's maiden name?">
+        </div>
+
         <input type="text" placeholder="UK Mobile Number">
         <a class="button" href="index.html">Get Auth Code By SMS</a>
     </section>
