@@ -13,6 +13,41 @@ body {
     color: var(--black);
 }
 
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+#presentation {
+    background-color: var(--blue);
+    font-size: 2rem;
+    text-transform: uppercase;
+    padding: 8px 10px 5px 10px;
+    margin: 0;
+}
+
+nav {
+    background-color: var(--black);
+    color: white;
+    padding: 5px 15px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    justify-content: space-between;
+}
+
+nav ul li.active {
+    text-decoration: underline;
+}
+
+#slogan {
+    font-size: 1.1rem;
+}
+
 section {
     margin: 10px;
 }
@@ -21,28 +56,31 @@ header {
     color: white;
 }
 
-#logo {
+footer {
     background-color: var(--black);
-    text-transform: uppercase;
-    font-size: 1.5rem;
-    font-weight: bold;
-    padding: 15px 10px 10px 10px;
-    line-height: 1.5rem;
+    color: white;
+    padding: 10px;
 }
 
-#presentation {
-    background-color: var(--blue);
-    font-size: 0.9rem;
+#logo {
     text-transform: uppercase;
-    padding: 8px 10px 5px 10px;
-    margin: 0;
+    font-size: 1.3rem;
+    font-weight: bold;
+    line-height: 1.5rem;
+    margin-bottom: 10px;
 }
+
+
 
 h2 {
-   font-size: 1.1rem;
+   font-size: 1.2rem;
     text-transform: uppercase;
 }
 
+h3 {
+    font-size: 1.1rem;
+     text-transform: uppercase;
+ }
 
 
 input {
@@ -105,11 +143,13 @@ a.button, button.button {
 }
 
 #total-choices {
+    color: white;
     margin-top: 20px;
-    color: rgba(255, 255, 255, 0.8);
     text-align: center;
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    padding: 10px;
+    background-color:  #29a197;
 }
 
 table#list-of-persons {
@@ -139,4 +179,19 @@ table#list-of-persons td {
     margin: 10px;
     font-weight: 100;
     border-radius: 3px;
+}
+
+#donation-options {
+    display: flex;
+    flex-direction: column;
+}
+
+#donation-options {
+    display: flex;
+    flex-direction: column;
+}
+
+#donation-options div {
+    font-size: 0.9rem;
+    margin: 3px;
 }
