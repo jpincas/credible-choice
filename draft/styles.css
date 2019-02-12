@@ -1,0 +1,140 @@
+:root {
+    --black: #0b0c0c;
+    --blue: rgb(0, 94, 165);
+}
+
+body {
+    font-family: "nta", Arial, sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.25;
+    margin: 0;
+    background-color: white;
+    color: var(--black);
+}
+
+section {
+    margin: 10px;
+}
+
+header {
+    color: white;
+}
+
+#logo {
+    background-color: var(--black);
+    text-transform: uppercase;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 15px 10px 10px 10px;
+    line-height: 1.5rem;
+}
+
+#presentation {
+    background-color: var(--blue);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    padding: 8px 10px 5px 10px;
+    margin: 0;
+}
+
+h2 {
+   font-size: 1.1rem;
+    text-transform: uppercase;
+}
+
+
+
+input {
+    font-family: "nta", Arial, sans-serif;
+    font-size: 13px;
+    margin: 0;
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid  rgba(228, 228, 228, 0.6);    
+    margin: 3px;
+    text-transform: uppercase;
+}
+
+a.button, button.button {
+    text-transform: uppercase;
+    font-family: "nta", Arial, sans-serif;
+    font-size: 13px;
+    margin: 0;
+    padding: 5px 15px;
+    border-radius: 3px;
+    border: none;
+    margin: 3px;
+    color: white;
+    background-color: var(--blue);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.explainer {
+    font-style: italic;
+    font-weight: 100;
+    font-size: 0.9rem;
+}
+
+#partners {
+    font-size: 0.8rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.option {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid  rgba(228, 228, 228, 0.6);
+    border-radius: 3px;
+}
+
+.option:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.chosen-by {
+    margin-top: 20px;
+    font-size: 0.70rem;
+    font-weight: 100;
+    text-transform: uppercase;
+    color: var(--blue);
+}
+
+#total-choices {
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+table#list-of-persons {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+table#list-of-persons th,
+table#list-of-persons td {
+    text-align: left;
+}
+
+table#list-of-persons td {
+    font-size: 0.9rem;
+    font-weight: 100;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+#add-person {
+    color: white;
+    padding: 10px;
+    font-size: 0.9rem;
+    background-color:  #29a197;
+    margin: 10px;
+    font-weight: 100;
+    border-radius: 3px;
+}
