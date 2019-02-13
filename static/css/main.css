@@ -1,0 +1,240 @@
+:root {
+    --black: #0b0c0c;
+    --blue: rgb(0, 94, 165);
+    --grey: rgb(243, 243, 243);
+}
+
+body {
+    font-family: "nta", Arial, sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.25;
+    margin: 0;
+    background-color: white;
+    color: var(--black);
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.panels {
+    display: flex;
+}
+
+.panel {
+    flex: 1;
+}
+
+@media only screen and (max-width: 700px) {
+    .panels {
+        flex-direction: column;
+    }
+  }
+
+
+.sep {
+    height: 1px;
+    background-color: var(--black);
+    margin: 10px 5px;
+    opacity: 0.5;
+}
+
+#presentation {
+    background-color: var(--blue);
+    font-size: 2rem;
+    text-transform: uppercase;
+    padding: 8px 10px 5px 10px;
+    margin: 0;
+    text-align: center;
+}
+
+nav {
+    background-color: rgb(243, 243, 243);
+    padding: 5px 15px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    justify-content: space-between;
+}
+
+nav ul li.active {
+    text-decoration: underline;
+}
+
+#slogan {
+    font-size: 1.1rem;
+}
+
+section {
+    margin: 10px;
+}
+
+header {
+    color: white;
+}
+
+footer {
+    background-color: var(--grey);
+    padding: 10px;
+    opacity: 0.8;
+}
+
+#logo {
+    text-transform: uppercase;
+    font-size: 1.3rem;
+    font-weight: bold;
+    line-height: 1.5rem;
+    margin-bottom: 10px;
+}
+
+
+
+h2 {
+   font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+h3 {
+    font-size: 1.1rem;
+    text-transform: uppercase;
+ }
+
+ h4 {
+    text-transform: uppercase;
+ }
+
+
+input {
+    font-family: "nta", Arial, sans-serif;
+    font-size: 13px;
+    margin: 0;
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid  rgba(228, 228, 228, 0.6);
+    margin: 3px;
+    text-transform: uppercase;
+    /* Remove inner shadows on mobile safari */
+    -webkit-appearance: none;
+}
+
+.button {
+    text-transform: uppercase;
+    font-family: "nta", Arial, sans-serif;
+    font-size: 13px;
+    margin: 0;
+    padding: 7px 15px 5px 15px;
+    border-radius: 3px;
+    border: none;
+    margin: 3px;
+    color: white;
+    background-color: var(--blue);
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+
+.explainer {
+    font-style: italic;
+    font-weight: 100;
+    font-size: 0.9rem;
+}
+
+#partners {
+    font-size: 0.8rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.choices {
+    display: flex;
+    flex-direction: column;
+}
+
+.choices .option {
+    text-transform: none;
+    font-size: 1.25rem;
+}
+
+
+.button.selected {
+    background-color: green;
+}
+
+.button.selected:hover {
+    cursor: not-allowed;
+}
+
+.button:hover {
+    background-color: green;
+    opacity: 0.8;
+}
+
+.chosen-by {
+    margin-top: 20px;
+    font-size: 0.70rem;
+    font-weight: 100;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+#total-choices {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+
+table#list-of-persons {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+table#list-of-persons th,
+table#list-of-persons td {
+    text-align: left;
+}
+
+table#list-of-persons td {
+    font-size: 0.9rem;
+}
+
+table#list-of-persons td.button {
+    font-size: 0.8rem;
+    padding: 3px 7px 3px 7px;
+    margin: 2px;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+
+#donation-options {
+    display: flex;
+    flex-direction: column;
+}
+
+#donation-options {
+    display: flex;
+    flex-direction: column;
+}
+
+#donation-options div {
+    font-size: 0.9rem;
+    margin: 3px;
+}
+
+.security-questions {
+    display: flex;
+    flex-direction: column;
+}

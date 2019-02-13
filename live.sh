@@ -1,0 +1,1 @@
+elm-live -p 6002 -s index.html --pushstate -- src/Main.elm --output static/main.js $@
