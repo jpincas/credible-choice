@@ -1,0 +1,5 @@
+To convert the spreadsheet of people into json I had to do the following:
+1. Select the 'ChosenBy' column (I changed the name from 'Chosen By' to ChosenBy to make it easier to decode)
+2. Select 'Format->Number->Plain Text'
+3. Find and replace (with the C column still selected) and replace "," with "".
+4. Download as csv then use: https://www.csvjson.com/csv2json to convert it into json

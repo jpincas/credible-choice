@@ -9,6 +9,9 @@ import FormatNumber.Locales
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes as Attributes
 import Html.Events as Events
+import Http
+import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
 import Route exposing (Route(..))
 import Url
 
@@ -40,6 +43,8 @@ type alias Model =
     , route : Route
     , mainOptions : List MainOption
     , selectedMainOption : Maybe MainOptionId
+    , people : List Person
+    , selectedRepresentative : Maybe PersonName
     }
 
 
@@ -54,10 +59,44 @@ type alias MainOption =
     }
 
 
+type alias PersonName =
+    String
+
+
+type alias Person =
+    { name : PersonName
+    , position : String
+    , votes : Int
+    }
+
+
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | MainOptionSelected MainOptionId
+    | PeopleReceived (Result Http.Error (List Person))
+    | SelectRepresentative PersonName
+
+
+getPeople : Cmd Msg
+getPeople =
+    let
+        url =
+            "/static/data/people.json"
+
+        expect =
+            Http.expectJson PeopleReceived peopleDecoder
+
+        peopleDecoder =
+            Decode.list personDecoder
+
+        personDecoder =
+            Decode.succeed Person
+                |> Pipeline.required "Representative" Decode.string
+                |> Pipeline.required "Profession" Decode.string
+                |> Pipeline.required "ChosenBy" Decode.int
+    in
+    Http.get { url = url, expect = expect }
 
 
 init : ProgramFlags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -72,6 +111,8 @@ init () url key =
             , route = route
             , mainOptions = mainOptions
             , selectedMainOption = Nothing
+            , people = []
+            , selectedRepresentative = Nothing
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
@@ -90,7 +131,7 @@ init () url key =
               }
             ]
     in
-    noCommand initialModel
+    withCommands initialModel [ getPeople ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -106,7 +147,7 @@ update msg model =
                         Browser.External href ->
                             Nav.load href
             in
-            ( model, command )
+            withCommands model [ command ]
 
         UrlChanged url ->
             let
@@ -120,6 +161,16 @@ update msg model =
             -- but ultimately it will be when receieve a successful response from the server, which
             -- should include the new number of votes.
             noCommand { model | selectedMainOption = Just optionId }
+
+        PeopleReceived (Err _) ->
+            -- TODO: I guess we should have some kind of re-download button or something.
+            noCommand model
+
+        PeopleReceived (Ok people) ->
+            noCommand { model | people = people }
+
+        SelectRepresentative name ->
+            noCommand { model | selectedRepresentative = Just name }
 
 
 withCommands : model -> List (Cmd msg) -> ( model, Cmd msg )
@@ -138,7 +189,7 @@ view model =
         contents =
             case model.route of
                 Choose ->
-                    viewChoose model.mainOptions model.selectedMainOption
+                    viewChoose model.mainOptions model.selectedMainOption model.people model.selectedRepresentative
 
                 Authenticate ->
                     viewAuthenticate
@@ -251,8 +302,8 @@ paragraph content =
 -- Probably as well to just accept the model here, this app is going to be *mostly* contained within this page.
 
 
-viewChoose : List MainOption -> Maybe MainOptionId -> Html Msg
-viewChoose bareMainOptions mSelectedMainOptionId =
+viewChoose : List MainOption -> Maybe MainOptionId -> List Person -> Maybe PersonName -> Html Msg
+viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepresentative =
     let
         mainOptions =
             -- This is a small hack to have the number of votes incremented for the selected option
@@ -300,17 +351,30 @@ viewChoose bareMainOptions mSelectedMainOptionId =
                     ]
                 ]
 
-        makeRepChoice selected person profession votes =
+        makeRepChoice person =
+            let
+                isSelected =
+                    mSelectedRepresentative == Just person.name
+
+                votes =
+                    case isSelected of
+                        True ->
+                            person.votes + 1
+
+                        False ->
+                            person.votes
+            in
             Html.tr
                 []
                 [ Html.td
                     [ Attributes.class "button"
-                    , selectedClass selected
+                    , selectedClass isSelected
+                    , Events.onClick <| SelectRepresentative person.name
                     ]
-                    [ text person ]
+                    [ text person.name ]
                 , Html.td
                     []
-                    [ text profession ]
+                    [ text person.position ]
                 , Html.td
                     []
                     [ text <| formatInt votes ]
@@ -318,6 +382,9 @@ viewChoose bareMainOptions mSelectedMainOptionId =
 
         totalNumVotes =
             List.map .votes mainOptions |> List.sum
+
+        selectedRepresentatives =
+            List.take 25 representatives
     in
     div
         [ Attributes.class "panels" ]
@@ -368,48 +435,24 @@ viewChoose bareMainOptions mSelectedMainOptionId =
                         [ Html.tr
                             []
                             [ Html.th [] [ text "Person" ]
-                            , Html.th [] [ text "Profession" ]
+                            , Html.th [] [ text "Position" ]
                             , Html.th [] [ text "Choices" ]
                             ]
                         ]
                     , Html.tbody
                         []
-                        [ makeRepChoice True "JK Rowling" "Writer" 457365
-                        , makeRepChoice False "Katie Hopkins" "Writer" 457365
-                        , makeRepChoice False "Piers Morgan" "Writer" 457365
-                        , makeRepChoice False "Gary Linekar" "Sports Personality" 457365
-                        , makeRepChoice False "Jacob Rees Mogg" "Politician" 457365
-                        , makeRepChoice False "Lawrence Dallaglio" "Sports Personality" 457365
-                        , makeRepChoice False "Ben Ainslie" "Writer" 457365
-                        , makeRepChoice False "Elton John" "Musician" 457365
-                        , makeRepChoice False "Billy Brag" "Writer" 457365
-                        , makeRepChoice False "Jarvis Cocker" "Musician" 457365
-                        , makeRepChoice False "Simon Cowell" "Businessman" 457365
-                        , makeRepChoice False "Bob Geldof" "Activist" 457365
-                        , makeRepChoice False "Paloma Faith" "Musician" 457365
-                        , makeRepChoice False "Patrick Stewart" "Actor" 457365
-                        , makeRepChoice False "Daniel Craig" "Actor" 457365
-                        , makeRepChoice False "Idris Elba" "Actor" 457365
-                        , makeRepChoice False "Helena Bonham Carter" "Actress" 457365
-                        , makeRepChoice False "Markus Brigstocke" "Writer" 457365
-                        , makeRepChoice False "Stewart Lee" "Writer" 457365
-                        , makeRepChoice False "Frankie Boyle" "Writer" 457365
-                        , makeRepChoice False "Danny Boyle" "Film director" 457365
-                        , makeRepChoice False "Jack Munro" "Writer" 457365
-                        , makeRepChoice False "Russell Brand" "Presenter" 457365
-                        , makeRepChoice False "Nigel Farage" "Politician" 457365
-                        ]
+                        (List.map makeRepChoice selectedRepresentatives)
                     ]
                 , Html.p
                     []
                     [ text "Showing top "
                     , Html.span
                         [ Attributes.class "bold" ]
-                        [ text "25" ]
+                        [ List.length selectedRepresentatives |> formatInt |> text ]
                     , text " of "
                     , Html.span
                         [ Attributes.class "bold" ]
-                        [ text "1,345" ]
+                        [ List.length representatives |> formatInt |> text ]
                     ]
                 , Html.input
                     [ Attributes.type_ "text"
