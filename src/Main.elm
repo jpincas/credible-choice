@@ -262,22 +262,24 @@ viewChoose mainOptions mSelectedMainOptionId =
                 False ->
                     Attributes.class "not-selected"
 
+        numVotes option =
+            -- This is a small hack to have the number of votes incremented for the selected option
+            -- *and* decremented if a different option is selected. In production we'll probably update
+            -- the whole list of main options in when we receive a response from the server indicating that
+            -- the vote has been successful.
+            -- Note that we do it outwith the `mainChoice` function since it *also* has to work for the
+            -- display of the total number of votes.
+            case mSelectedMainOptionId == Just option.id of
+                True ->
+                    option.votes + 1
+
+                False ->
+                    option.votes
+
         makeChoice option =
             let
                 isSelected =
                     mSelectedMainOptionId == Just option.id
-
-                -- This is a small hack to have the number of votes incremented for the selected option
-                -- *and* decremented if a different option is selected. In production we'll probably update
-                -- the whole list of main options in when we receive a response from the server indicating that
-                -- the vote has been successful.
-                numVotes =
-                    case isSelected of
-                        True ->
-                            option.votes + 1
-
-                        False ->
-                            option.votes
             in
             div
                 [ Attributes.class "option button"
@@ -290,7 +292,7 @@ viewChoose mainOptions mSelectedMainOptionId =
                     [ text "Chosen so far by "
                     , Html.span
                         [ Attributes.class "bold" ]
-                        [ text <| formatInt numVotes ]
+                        [ numVotes option |> formatInt |> text ]
                     ]
                 ]
 
@@ -309,6 +311,9 @@ viewChoose mainOptions mSelectedMainOptionId =
                     []
                     [ text <| formatInt votes ]
                 ]
+
+        totalNumVotes =
+            List.map numVotes mainOptions |> List.sum
     in
     div
         [ Attributes.class "panels" ]
@@ -325,7 +330,9 @@ viewChoose mainOptions mSelectedMainOptionId =
                 ]
             , div
                 [ Attributes.id "total-choices" ]
-                [ text "Total choices made so far: 676,879" ]
+                [ text "Total choices made so far: "
+                , text <| formatInt totalNumVotes
+                ]
             , Html.section
                 [ Attributes.id "explanation"
                 , Attributes.class "explainer"
