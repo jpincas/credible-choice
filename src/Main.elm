@@ -8,6 +8,7 @@ import FormatNumber
 import FormatNumber.Locales
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes as Attributes
+import Html.Events as Events
 import Route exposing (Route(..))
 import Url
 
@@ -37,12 +38,26 @@ type alias Model =
     { key : Nav.Key
     , url : Url.Url
     , route : Route
+    , mainOptions : List MainOption
+    , selectedMainOption : Maybe MainOptionId
+    }
+
+
+type alias MainOptionId =
+    Int
+
+
+type alias MainOption =
+    { id : MainOptionId
+    , description : String
+    , votes : Int
     }
 
 
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
+    | MainOptionSelected MainOptionId
 
 
 init : ProgramFlags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -55,7 +70,25 @@ init () url key =
             { key = key
             , url = url
             , route = route
+            , mainOptions = mainOptions
+            , selectedMainOption = Nothing
             }
+
+        -- Ultimately we may download these, or include them in the index.html and hence the program flags.
+        mainOptions =
+            [ { id = 0
+              , description = "We should accept whatever Theresa May is able to agree with the EU"
+              , votes = 100000
+              }
+            , { id = 1
+              , description = "We should have a decisive break with the EU an envisaged by Jacob Rees Mogg"
+              , votes = 40000
+              }
+            , { id = 2
+              , description = "We should stay in the EU on the current basis"
+              , votes = 200000
+              }
+            ]
     in
     noCommand initialModel
 
@@ -82,6 +115,12 @@ update msg model =
             in
             noCommand { model | url = url, route = newRoute }
 
+        MainOptionSelected optionId ->
+            -- Note we're not updating the votes here, we do that in the view function for now,
+            -- but ultimately it will be when receieve a successful response from the server, which
+            -- should include the new number of votes.
+            noCommand { model | selectedMainOption = Just optionId }
+
 
 withCommands : model -> List (Cmd msg) -> ( model, Cmd msg )
 withCommands model commands =
@@ -99,7 +138,7 @@ view model =
         contents =
             case model.route of
                 Choose ->
-                    viewChoose
+                    viewChoose model.mainOptions model.selectedMainOption
 
                 Authenticate ->
                     viewAuthenticate
@@ -208,8 +247,12 @@ paragraph content =
     Html.p [] [ text content ]
 
 
-viewChoose : Html msg
-viewChoose =
+
+-- Probably as well to just accept the model here, this app is going to be *mostly* contained within this page.
+
+
+viewChoose : List MainOption -> Maybe MainOptionId -> Html Msg
+viewChoose mainOptions mSelectedMainOptionId =
     let
         selectedClass b =
             case b of
@@ -219,18 +262,35 @@ viewChoose =
                 False ->
                     Attributes.class "not-selected"
 
-        makeChoice selected chosenBy textContent =
+        makeChoice option =
+            let
+                isSelected =
+                    mSelectedMainOptionId == Just option.id
+
+                -- This is a small hack to have the number of votes incremented for the selected option
+                -- *and* decremented if a different option is selected. In production we'll probably update
+                -- the whole list of main options in when we receive a response from the server indicating that
+                -- the vote has been successful.
+                numVotes =
+                    case isSelected of
+                        True ->
+                            option.votes + 1
+
+                        False ->
+                            option.votes
+            in
             div
                 [ Attributes.class "option button"
-                , selectedClass selected
+                , selectedClass isSelected
+                , Events.onClick <| MainOptionSelected option.id
                 ]
-                [ text textContent
+                [ text option.description
                 , div
                     [ Attributes.class "chosen-by" ]
                     [ text "Chosen so far by "
                     , Html.span
                         [ Attributes.class "bold" ]
-                        [ text <| formatInt chosenBy ]
+                        [ text <| formatInt numVotes ]
                     ]
                 ]
 
@@ -261,16 +321,7 @@ viewChoose =
                     [ text "Your Choice Today" ]
                 , Html.form
                     [ Attributes.class "choices" ]
-                    [ makeChoice True
-                        210956
-                        "We should accept whatever Theresa May is able to agree with the EU"
-                    , makeChoice False
-                        123
-                        "We should have a decisive break with the EU an envisaged by Jacob Rees Mogg"
-                    , makeChoice False
-                        20123023
-                        "We should stay in the EU on the current basis"
-                    ]
+                    (List.map makeChoice mainOptions)
                 ]
             , div
                 [ Attributes.id "total-choices" ]
