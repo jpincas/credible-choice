@@ -1,0 +1,8 @@
+{
+    "checks": {
+        "BooleanCase": false
+    },
+    "TriggerWords": {
+        "words": []
+    }
+}
