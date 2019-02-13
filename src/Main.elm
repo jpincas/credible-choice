@@ -44,6 +44,7 @@ type alias Model =
     , mainOptions : List MainOption
     , selectedMainOption : Maybe MainOptionId
     , people : List Person
+    , selectedRepresentative : Maybe PersonName
     }
 
 
@@ -58,8 +59,12 @@ type alias MainOption =
     }
 
 
+type alias PersonName =
+    String
+
+
 type alias Person =
-    { name : String
+    { name : PersonName
     , position : String
     , votes : Int
     }
@@ -70,6 +75,7 @@ type Msg
     | UrlChanged Url.Url
     | MainOptionSelected MainOptionId
     | PeopleReceived (Result Http.Error (List Person))
+    | SelectRepresentative PersonName
 
 
 getPeople : Cmd Msg
@@ -106,6 +112,7 @@ init () url key =
             , mainOptions = mainOptions
             , selectedMainOption = Nothing
             , people = []
+            , selectedRepresentative = Nothing
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
@@ -162,6 +169,9 @@ update msg model =
         PeopleReceived (Ok people) ->
             noCommand { model | people = people }
 
+        SelectRepresentative name ->
+            noCommand { model | selectedRepresentative = Just name }
+
 
 withCommands : model -> List (Cmd msg) -> ( model, Cmd msg )
 withCommands model commands =
@@ -179,7 +189,7 @@ view model =
         contents =
             case model.route of
                 Choose ->
-                    viewChoose model.mainOptions model.selectedMainOption model.people
+                    viewChoose model.mainOptions model.selectedMainOption model.people model.selectedRepresentative
 
                 Authenticate ->
                     viewAuthenticate
@@ -292,8 +302,8 @@ paragraph content =
 -- Probably as well to just accept the model here, this app is going to be *mostly* contained within this page.
 
 
-viewChoose : List MainOption -> Maybe MainOptionId -> List Person -> Html Msg
-viewChoose bareMainOptions mSelectedMainOptionId representatives =
+viewChoose : List MainOption -> Maybe MainOptionId -> List Person -> Maybe PersonName -> Html Msg
+viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepresentative =
     let
         mainOptions =
             -- This is a small hack to have the number of votes incremented for the selected option
@@ -342,11 +352,24 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives =
                 ]
 
         makeRepChoice person =
+            let
+                isSelected =
+                    mSelectedRepresentative == Just person.name
+
+                votes =
+                    case isSelected of
+                        True ->
+                            person.votes + 1
+
+                        False ->
+                            person.votes
+            in
             Html.tr
                 []
                 [ Html.td
                     [ Attributes.class "button"
-                    , selectedClass False
+                    , selectedClass isSelected
+                    , Events.onClick <| SelectRepresentative person.name
                     ]
                     [ text person.name ]
                 , Html.td
@@ -354,7 +377,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives =
                     [ text person.position ]
                 , Html.td
                     []
-                    [ text <| formatInt person.votes ]
+                    [ text <| formatInt votes ]
                 ]
 
         totalNumVotes =
