@@ -45,6 +45,7 @@ type alias Model =
     , selectedMainOption : Maybe MainOptionId
     , people : List Person
     , selectedRepresentative : Maybe PersonName
+    , searchRepresentativeInput : String
     }
 
 
@@ -76,6 +77,7 @@ type Msg
     | MainOptionSelected MainOptionId
     | PeopleReceived (Result Http.Error (List Person))
     | SelectRepresentative PersonName
+    | SearchRepresentativeInput String
 
 
 getPeople : Cmd Msg
@@ -113,6 +115,7 @@ init () url key =
             , selectedMainOption = Nothing
             , people = []
             , selectedRepresentative = Nothing
+            , searchRepresentativeInput = ""
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
@@ -172,6 +175,9 @@ update msg model =
         SelectRepresentative name ->
             noCommand { model | selectedRepresentative = Just name }
 
+        SearchRepresentativeInput input ->
+            noCommand { model | searchRepresentativeInput = input }
+
 
 withCommands : model -> List (Cmd msg) -> ( model, Cmd msg )
 withCommands model commands =
@@ -189,7 +195,7 @@ view model =
         contents =
             case model.route of
                 Choose ->
-                    viewChoose model.mainOptions model.selectedMainOption model.people model.selectedRepresentative
+                    viewChoose model.mainOptions model.selectedMainOption model.people model.selectedRepresentative model.searchRepresentativeInput
 
                 Authenticate ->
                     viewAuthenticate
@@ -302,8 +308,8 @@ paragraph content =
 -- Probably as well to just accept the model here, this app is going to be *mostly* contained within this page.
 
 
-viewChoose : List MainOption -> Maybe MainOptionId -> List Person -> Maybe PersonName -> Html Msg
-viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepresentative =
+viewChoose : List MainOption -> Maybe MainOptionId -> List Person -> Maybe PersonName -> String -> Html Msg
+viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepresentative searchRepresentativeInput =
     let
         mainOptions =
             -- This is a small hack to have the number of votes incremented for the selected option
@@ -383,8 +389,17 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
         totalNumVotes =
             List.map .votes mainOptions |> List.sum
 
+        filteredRepresentatives =
+            case String.isEmpty searchRepresentativeInput of
+                True ->
+                    representatives
+
+                False ->
+                    representatives
+                        |> List.filter (\p -> String.contains searchRepresentativeInput p.name)
+
         selectedRepresentatives =
-            List.take 25 representatives
+            List.take 25 filteredRepresentatives
     in
     div
         [ Attributes.class "panels" ]
@@ -452,11 +467,28 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     , text " of "
                     , Html.span
                         [ Attributes.class "bold" ]
-                        [ List.length representatives |> formatInt |> text ]
+                        [ List.length filteredRepresentatives |> formatInt |> text ]
+                    , case String.isEmpty searchRepresentativeInput of
+                        True ->
+                            text ""
+
+                        False ->
+                            Html.span
+                                []
+                                [ text " matching "
+                                , Html.span
+                                    [ Attributes.class "bold" ]
+                                    [ text "“"
+                                    , text searchRepresentativeInput
+                                    , text "”"
+                                    ]
+                                ]
                     ]
                 , Html.input
                     [ Attributes.type_ "text"
                     , Attributes.placeholder "Search for person"
+                    , Attributes.value searchRepresentativeInput
+                    , Events.onInput SearchRepresentativeInput
                     ]
                     []
 
