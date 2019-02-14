@@ -2,6 +2,7 @@
     --black: #0b0c0c;
     --blue: rgb(0, 94, 165);
     --grey: rgb(243, 243, 243);
+    --construction: hsl(30, 94%, 56%);
 }
 
 body {
@@ -44,6 +45,18 @@ a {
     opacity: 0.5;
 }
 
+#under-construction{
+    background-color: var(--construction);
+    font-size: 2rem;
+    text-transform: uppercase;
+    padding: 8px 10px 5px 10px;
+    margin: 0;
+    text-align: center;
+}
+#under-construction p{
+    font-size: 0.5em;
+}
+
 #presentation {
     background-color: var(--blue);
     font-size: 2rem;
@@ -52,6 +65,7 @@ a {
     margin: 0;
     text-align: center;
 }
+
 
 nav {
     background-color: rgb(243, 243, 243);

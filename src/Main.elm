@@ -210,6 +210,13 @@ view model =
             Html.header
                 []
                 [ div
+                    [ Attributes.id "under-construction" ]
+                    [ text "Under construction"
+                    , Html.p
+                        []
+                        [ text "We're still building this site, please check back at the beginning of March." ]
+                    ]
+                , div
                     [ Attributes.id "presentation" ]
                     [ div
                         [ Attributes.id "brexit"
