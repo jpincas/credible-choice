@@ -3,6 +3,7 @@
     --blue: rgb(0, 94, 165);
     --grey: rgb(243, 243, 243);
     --construction: hsl(30, 94%, 56%);
+    --dark-grey: hsl(30, 0%, 64%);
 }
 
 body {
@@ -216,6 +217,17 @@ table#list-of-persons {
 table#list-of-persons th,
 table#list-of-persons td {
     text-align: left;
+}
+
+table#list-of-persons th {
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+table#list-of-persons th .help-text{
+    font-size: 0.6em;
+    font-weight: normal;
+    color: var(--dark-grey);
 }
 
 table#list-of-persons td {

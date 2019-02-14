@@ -449,16 +449,23 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                 [ Html.h2
                     []
                     [ text "Who do you trust to represent your views?" ]
-                , paragraph "Optionally you can select a person who would represent your views to parliament and the government"
+                , paragraph "You can select a person who would represent your views to parliament and the government"
                 , Html.table
                     [ Attributes.id "list-of-persons" ]
                     [ Html.thead
                         []
                         [ Html.tr
                             []
-                            [ Html.th [] [ text "Person" ]
-                            , Html.th [] [ text "Position" ]
-                            , Html.th [] [ text "Choices" ]
+                            [ Html.th
+                                []
+                                [ text "Representative"
+                                , Html.br [] []
+                                , Html.span
+                                    [ Attributes.class "help-text" ]
+                                    [ text "Click to choose" ]
+                                ]
+                            , Html.th [] [ text "Profession" ]
+                            , Html.th [] [ text "Chosen by" ]
                             ]
                         ]
                     , Html.tbody
@@ -518,10 +525,9 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     , Route.href Donate
                     ]
                     [ text "Add" ]
-                , paragraph """Any UK citizen with a Wikipedia entry. Confirmation may not be immediate.
-                    There is no guarantee that Parliament will take any notice but if someone is chosen by a million people they should be heard.
-                    If you appear on this list and you'd rather not, please contact us at
-                    remove-me@crediblechoice.co.uk."""
+                , paragraph """You may add any British citizen with a Wikipedia entry to the Representative list. They must be 17 or over and able to express their views.  If they ask to be removed, we will remove them.  We will manually check additions and so name may not be immediately added."""
+                , paragraph """There is no obligation whatsoever that anyone on this list should do anything and anyone on the list will be removed at their request by contacting us at remove-me@crediblechoice.co.uk (make it a picture)."""
+                , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
                 ]
             ]
         ]
