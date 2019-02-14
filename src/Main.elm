@@ -416,7 +416,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                 []
                 [ Html.h2
                     []
-                    [ text "Your Choice Today" ]
+                    [ text "What should we do?" ]
                 , Html.form
                     [ Attributes.class "choices" ]
                     (List.map makeChoice mainOptions)
@@ -448,7 +448,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                 []
                 [ Html.h2
                     []
-                    [ text "Who would you choose to represent your views?" ]
+                    [ text "Who do you trust to represent your views?" ]
                 , paragraph "Optionally you can select a person who would represent your views to parliament and the government"
                 , Html.table
                     [ Attributes.id "list-of-persons" ]
