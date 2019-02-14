@@ -225,7 +225,7 @@ view model =
                         [ text "Brexit" ]
                     , div
                         [ Attributes.id "slogan" ]
-                        [ text "Make your voice heard right now" ]
+                        [ text "Make your voice heard today" ]
                     ]
                 ]
 
