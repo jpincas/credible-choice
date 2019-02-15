@@ -2,3 +2,4 @@ elm-stuff
 static/main.js
 ignored-data/
 .vscode
+.DS_Store
