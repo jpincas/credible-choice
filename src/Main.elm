@@ -1,9 +1,11 @@
 module Main exposing (main)
 
+import Array exposing (Array)
 import Browser
 import Browser.Dom
 import Browser.Events
 import Browser.Navigation as Nav
+import Color exposing (Color)
 import FormatNumber
 import FormatNumber.Locales
 import Html exposing (Attribute, Html, div, text)
@@ -12,7 +14,13 @@ import Html.Events as Events
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Path
 import Route exposing (Route(..))
+import Shape
+import TypedSvg
+import TypedSvg.Attributes as SvgAttributes
+import TypedSvg.Core
+import TypedSvg.Types as SvgTypes
 import Url
 
 
@@ -50,11 +58,12 @@ type alias Model =
 
 
 type alias MainOptionId =
-    Int
+    String
 
 
 type alias MainOption =
     { id : MainOptionId
+    , name : String
     , description : String
     , votes : Int
     }
@@ -120,15 +129,18 @@ init () url key =
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
         mainOptions =
-            [ { id = 0
+            [ { id = "agree"
+              , name = "May agree"
               , description = "We should accept whatever Theresa May is able to agree with the EU"
               , votes = 100000
               }
-            , { id = 1
-              , description = "We should have a decisive break with the EU an envisaged by Jacob Rees Mogg"
+            , { id = "break"
+              , name = "Decisive break"
+              , description = "We should have a decisive break with the EU as envisaged by Jacob Rees Mogg"
               , votes = 40000
               }
-            , { id = 2
+            , { id = "remain"
+              , name = "Remain EU"
               , description = "We should stay in the EU on the current basis"
               , votes = 200000
               }
@@ -407,6 +419,71 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
 
         selectedRepresentatives =
             List.take 25 filteredRepresentatives
+
+        viewPie =
+            let
+                pieConfig =
+                    { startAngle = 0
+                    , endAngle = 2 * pi
+                    , padAngle = 0
+                    , sortingFn = Basics.compare
+                    , valueFn = identity
+                    , innerRadius = 0
+                    , outerRadius = 100
+                    , cornerRadius = 0
+                    , padRadius = 0
+                    }
+
+                arcs =
+                    List.map (toFloat << .votes) mainOptions
+                        |> Shape.pie pieConfig
+
+                makeSliceAndLabel arc mainOption =
+                    let
+                        slice =
+                            Path.element
+                                (Shape.arc arc)
+                                [ SvgAttributes.stroke Color.white
+                                , SvgAttributes.class [ mainOption.id ]
+                                ]
+
+                        ( labelX, labelY ) =
+                            Shape.centroid { arc | innerRadius = radius, outerRadius = radius }
+
+                        label =
+                            TypedSvg.text_
+                                [ SvgAttributes.transform [ SvgTypes.Translate labelX labelY ]
+                                , SvgAttributes.dy (SvgTypes.em 2.0)
+                                , SvgAttributes.textAnchor SvgTypes.AnchorMiddle
+                                ]
+                                [ TypedSvg.Core.text mainOption.name ]
+                    in
+                    ( slice, label )
+
+                width =
+                    500
+
+                height =
+                    300
+
+                radius =
+                    min width height / 2
+
+                ( slices, labels ) =
+                    List.map2 makeSliceAndLabel arcs mainOptions
+                        |> List.unzip
+
+                pieImage =
+                    TypedSvg.svg
+                        [ SvgAttributes.viewBox 0 0 width height ]
+                        [ TypedSvg.g
+                            [ SvgAttributes.transform [ SvgTypes.Translate (width / 2) (height / 2) ] ]
+                            [ TypedSvg.g [] slices
+                            , TypedSvg.g [] labels
+                            ]
+                        ]
+            in
+            pieImage
     in
     div
         [ Attributes.class "panels" ]
@@ -426,6 +503,9 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                 [ text "Total choices made so far: "
                 , text <| formatInt totalNumVotes
                 ]
+            , div
+                [ Attributes.class "main-option-pie-container" ]
+                [ viewPie ]
             , Html.section
                 [ Attributes.id "explanation"
                 , Attributes.class "explainer"

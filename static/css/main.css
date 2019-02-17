@@ -4,6 +4,7 @@
     --grey: rgb(243, 243, 243);
     --construction: hsl(30, 94%, 56%);
     --dark-grey: hsl(30, 0%, 64%);
+    --green: green;
 }
 
 body {
@@ -182,7 +183,7 @@ input {
 
 
 .button.selected {
-    background-color: green;
+    background-color: var(--green);
 }
 
 .button.selected:hover {
@@ -190,7 +191,7 @@ input {
 }
 
 .button:hover {
-    background-color: green;
+    background-color: var(--green);
     opacity: 0.8;
 }
 
@@ -207,6 +208,22 @@ input {
     text-align: center;
     font-weight: 700;
     font-size: 1.3rem;
+}
+
+.main-option-pie-container svg path.agree {
+    fill: var(--green);
+}
+.main-option-pie-container svg path.break {
+    fill: var(--construction);
+}
+.main-option-pie-container svg path.remain {
+    fill: var(--blue);
+}
+
+.main-option-pie-container svg text {
+    font-size: 1.2em;
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
 table#list-of-persons {
