@@ -82,6 +82,10 @@ nav ul {
     justify-content: space-between;
 }
 
+nav ul li{
+    text-transform: uppercase;
+    font-size: 0.8em;
+}
 nav ul li.active {
     text-decoration: underline;
 }
