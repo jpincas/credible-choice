@@ -607,6 +607,24 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     , Attributes.placeholder "New person"
                     ]
                     []
+                , let
+                    makeOption profession =
+                        Html.option
+                            [ Attributes.value profession ]
+                            [ text profession ]
+
+                    professions =
+                        [ "Politician", "Writer", "Entertainer", "Sports person", "Journalist", "Actor" ]
+
+                    pleaseSelect =
+                        Html.option
+                            [ Attributes.value "" ]
+                            [ text "Please select" ]
+
+                    options =
+                        pleaseSelect :: List.map makeOption professions
+                  in
+                  Html.select [] options
                 , Html.button
                     [ Attributes.class "button"
                     , Route.href Donate
