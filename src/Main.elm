@@ -394,6 +394,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                 [ Html.td
                     [ Attributes.class "button"
                     , selectedClass isSelected
+                    , Attributes.class "representative-name"
                     , Events.onClick <| SelectRepresentative person.name
                     ]
                     [ text person.name ]
@@ -414,11 +415,14 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     representatives
 
                 False ->
-                    representatives
-                        |> List.filter (\p -> String.contains searchRepresentativeInput p.name)
+                    let
+                        searchString =
+                            String.toLower searchRepresentativeInput
 
-        selectedRepresentatives =
-            List.take 25 filteredRepresentatives
+                        matches person =
+                            String.contains searchString <| String.toLower person.name
+                    in
+                    List.filter matches representatives
 
         viewPie =
             let
@@ -530,35 +534,34 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     []
                     [ text "Who do you trust to represent your views?" ]
                 , paragraph "You can select a person who would represent your views to parliament and the government"
-                , Html.table
-                    [ Attributes.id "list-of-persons" ]
-                    [ Html.thead
-                        []
-                        [ Html.tr
+                , div
+                    [ Attributes.id "list-of-persons-container" ]
+                    [ Html.table
+                        [ Attributes.id "list-of-persons" ]
+                        [ Html.thead
                             []
-                            [ Html.th
+                            [ Html.tr
                                 []
-                                [ text "Representative"
-                                , Html.br [] []
-                                , Html.span
-                                    [ Attributes.class "help-text" ]
-                                    [ text "Click to choose" ]
+                                [ Html.th
+                                    []
+                                    [ text "Representative"
+                                    , Html.br [] []
+                                    , Html.span
+                                        [ Attributes.class "help-text" ]
+                                        [ text "Click to choose" ]
+                                    ]
+                                , Html.th [] [ text "Profession" ]
+                                , Html.th [] [ text "Chosen by" ]
                                 ]
-                            , Html.th [] [ text "Profession" ]
-                            , Html.th [] [ text "Chosen by" ]
                             ]
+                        , Html.tbody
+                            []
+                            (List.map makeRepChoice filteredRepresentatives)
                         ]
-                    , Html.tbody
-                        []
-                        (List.map makeRepChoice selectedRepresentatives)
                     ]
                 , Html.p
                     []
-                    [ text "Showing top "
-                    , Html.span
-                        [ Attributes.class "bold" ]
-                        [ List.length selectedRepresentatives |> formatInt |> text ]
-                    , text " of "
+                    [ text "Showing "
                     , Html.span
                         [ Attributes.class "bold" ]
                         [ List.length filteredRepresentatives |> formatInt |> text ]
@@ -569,7 +572,11 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                         False ->
                             Html.span
                                 []
-                                [ text " matching "
+                                [ text " of "
+                                , Html.span
+                                    [ Attributes.class "bold" ]
+                                    [ List.length representatives |> formatInt |> text ]
+                                , text " matching "
                                 , Html.span
                                     [ Attributes.class "bold" ]
                                     [ text "“"

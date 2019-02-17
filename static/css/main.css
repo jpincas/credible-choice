@@ -230,14 +230,35 @@ input {
     font-weight: 600;
 }
 
+#list-of-persons-container{
+    max-height: 60vh;
+    min-height: 60vh;
+    overflow-y: auto;
+}
 table#list-of-persons {
     width: 100%;
     margin-bottom: 10px;
+    border-collapse: collapse;
 }
 
 table#list-of-persons th,
 table#list-of-persons td {
     text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+}
+table#list-of-persons td.representative-name{
+    width: calc(100% - 1em);
+}
+
+table#list-of-persons thead{
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+table#list-of-persons thead tr th{
+    /* Required to make the list of representatives scroll 'under' the headings.*/
+    background-color: white;
 }
 
 table#list-of-persons th {
