@@ -53,7 +53,7 @@ type alias Model =
     , mainOptions : List MainOption
     , selectedMainOption : Maybe MainOptionId
     , people : List Person
-    , selectedRepresentative : Maybe PersonName
+    , selectedRepresentative : Maybe Person
     , searchRepresentativeInput : String
     }
 
@@ -76,6 +76,7 @@ type alias PersonName =
 
 type alias Person =
     { name : PersonName
+    , code : String
     , position : String
     , votes : Int
     }
@@ -91,7 +92,7 @@ type Msg
     | MainOptionSelected MainOptionId
     | ResultsReceived (HttpResult ResultsPayload)
     | PeopleReceived (HttpResult (List Person))
-    | SelectRepresentative PersonName
+    | SelectRepresentative Person
     | SearchRepresentativeInput String
 
 
@@ -150,6 +151,7 @@ getPeople =
         personDecoder =
             Decode.succeed Person
                 |> Pipeline.required "Representative" Decode.string
+                |> Pipeline.hardcoded "CODE1"
                 |> Pipeline.required "Profession" Decode.string
                 |> Pipeline.required "ChosenBy" Decode.int
     in
@@ -249,8 +251,8 @@ update msg model =
         PeopleReceived (Ok people) ->
             noCommand { model | people = people }
 
-        SelectRepresentative name ->
-            noCommand { model | selectedRepresentative = Just name }
+        SelectRepresentative person ->
+            noCommand { model | selectedRepresentative = Just person }
 
         SearchRepresentativeInput input ->
             noCommand { model | searchRepresentativeInput = input }
@@ -272,7 +274,7 @@ view model =
         contents =
             case model.route of
                 Choose ->
-                    viewChoose model.mainOptions model.selectedMainOption model.people model.selectedRepresentative model.searchRepresentativeInput
+                    viewChoose model
 
                 Authenticate ->
                     viewAuthenticate
@@ -392,27 +394,9 @@ paragraph content =
 -- Probably as well to just accept the model here, this app is going to be *mostly* contained within this page.
 
 
-viewChoose : List MainOption -> Maybe MainOptionId -> List Person -> Maybe PersonName -> String -> Html Msg
-viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepresentative searchRepresentativeInput =
+viewChoose : Model -> Html Msg
+viewChoose model =
     let
-        mainOptions =
-            -- This is a small hack to have the number of votes incremented for the selected option
-            -- *and* decremented if a different option is selected. In production we'll probably update
-            -- the whole list of main options in when we receive a response from the server indicating that
-            -- the vote has been successful.
-            -- Note that we do it outwith the `mainChoice` function since it *also* has to work for the
-            -- display of the total number of votes.
-            let
-                addOneToSelected option =
-                    case mSelectedMainOptionId == Just option.id of
-                        False ->
-                            option
-
-                        True ->
-                            { option | votes = option.votes + 1 }
-            in
-            List.map addOneToSelected bareMainOptions
-
         selectedClass b =
             case b of
                 True ->
@@ -424,7 +408,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
         makeChoice option =
             let
                 isSelected =
-                    mSelectedMainOptionId == Just option.id
+                    model.selectedMainOption == Just option.id
             in
             div
                 [ Attributes.class "option button"
@@ -444,15 +428,15 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
         makeRepChoice person =
             let
                 isSelected =
-                    mSelectedRepresentative == Just person.name
+                    case model.selectedRepresentative of
+                        Nothing ->
+                            False
 
-                votes =
-                    case isSelected of
-                        True ->
-                            person.votes + 1
-
-                        False ->
-                            person.votes
+                        Just rep ->
+                            -- TODO: This only really needs to check the code, but since I've hard coded
+                            -- that to all be the same temporarily that would make all the representatives appear
+                            -- selected.
+                            rep.name == person.name && rep.code == person.code
             in
             Html.tr
                 []
@@ -460,7 +444,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     [ Attributes.class "button"
                     , selectedClass isSelected
                     , Attributes.class "representative-name"
-                    , Events.onClick <| SelectRepresentative person.name
+                    , Events.onClick <| SelectRepresentative person
                     ]
                     [ text person.name ]
                 , Html.td
@@ -468,26 +452,26 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     [ text person.position ]
                 , Html.td
                     []
-                    [ text <| formatInt votes ]
+                    [ text <| formatInt person.votes ]
                 ]
 
         totalNumVotes =
-            List.map .votes mainOptions |> List.sum
+            List.map .votes model.mainOptions |> List.sum
 
         filteredRepresentatives =
-            case String.isEmpty searchRepresentativeInput of
+            case String.isEmpty model.searchRepresentativeInput of
                 True ->
-                    representatives
+                    model.people
 
                 False ->
                     let
                         searchString =
-                            String.toLower searchRepresentativeInput
+                            String.toLower model.searchRepresentativeInput
 
                         matches person =
                             String.contains searchString <| String.toLower person.name
                     in
-                    List.filter matches representatives
+                    List.filter matches model.people
 
         viewPie =
             let
@@ -504,7 +488,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     }
 
                 arcs =
-                    List.map (toFloat << .votes) mainOptions
+                    List.map (toFloat << .votes) model.mainOptions
                         |> Shape.pie pieConfig
 
                 makeSliceAndLabel arc mainOption =
@@ -539,7 +523,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     min width height / 2
 
                 ( slices, labels ) =
-                    List.map2 makeSliceAndLabel arcs mainOptions
+                    List.map2 makeSliceAndLabel arcs model.mainOptions
                         |> List.unzip
 
                 pieImage =
@@ -553,6 +537,53 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                         ]
             in
             pieImage
+
+        textBuilder =
+            case model.selectedMainOption of
+                Nothing ->
+                    text "Make a main choice to vote."
+
+                Just option ->
+                    let
+                        repVote =
+                            case model.selectedRepresentative of
+                                Nothing ->
+                                    ""
+
+                                Just rep ->
+                                    rep.code
+
+                        charity =
+                            ""
+
+                        postcode =
+                            ""
+
+                        birthyear =
+                            ""
+
+                        donation =
+                            ""
+
+                        separator =
+                            "/"
+
+                        code =
+                            String.join separator
+                                [ option
+                                , repVote
+                                , charity
+                                , postcode
+                                , birthyear
+                                , donation
+                                ]
+                    in
+                    div
+                        [ Attributes.class "text-builder" ]
+                        [ text "CHOICE"
+                        , text " "
+                        , text code
+                        ]
     in
     div
         [ Attributes.class "panels" ]
@@ -565,7 +596,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     [ text "What should we do?" ]
                 , Html.form
                     [ Attributes.class "choices" ]
-                    (List.map makeChoice mainOptions)
+                    (List.map makeChoice model.mainOptions)
                 ]
             , div
                 [ Attributes.id "total-choices" ]
@@ -589,6 +620,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     , text " minutes"
                     ]
                 ]
+            , textBuilder
             ]
         , div [ Attributes.class "sep" ] []
         , div
@@ -630,7 +662,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                     , Html.span
                         [ Attributes.class "bold" ]
                         [ List.length filteredRepresentatives |> formatInt |> text ]
-                    , case String.isEmpty searchRepresentativeInput of
+                    , case String.isEmpty model.searchRepresentativeInput of
                         True ->
                             text ""
 
@@ -640,12 +672,12 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                                 [ text " of "
                                 , Html.span
                                     [ Attributes.class "bold" ]
-                                    [ List.length representatives |> formatInt |> text ]
+                                    [ List.length model.people |> formatInt |> text ]
                                 , text " matching "
                                 , Html.span
                                     [ Attributes.class "bold" ]
                                     [ text "“"
-                                    , text searchRepresentativeInput
+                                    , text model.searchRepresentativeInput
                                     , text "”"
                                     ]
                                 ]
@@ -653,7 +685,7 @@ viewChoose bareMainOptions mSelectedMainOptionId representatives mSelectedRepres
                 , Html.input
                     [ Attributes.type_ "text"
                     , Attributes.placeholder "Search for person"
-                    , Attributes.value searchRepresentativeInput
+                    , Attributes.value model.searchRepresentativeInput
                     , Events.onInput SearchRepresentativeInput
                     ]
                     []
