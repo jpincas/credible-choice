@@ -98,7 +98,7 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {
-		r.Post("/"+a.Config.VoteWebhook, ReceiveVote)
+		r.Get("/"+a.Config.VoteWebhook, ReceiveVote)
 	})
 
 	// Log and apply to application
