@@ -4,6 +4,7 @@
     --grey: rgb(243, 243, 243);
     --construction: hsl(30, 94%, 56%);
     --dark-grey: hsl(30, 0%, 64%);
+    --green: green;
 }
 
 body {
@@ -81,6 +82,10 @@ nav ul {
     justify-content: space-between;
 }
 
+nav ul li{
+    text-transform: uppercase;
+    font-size: 0.8em;
+}
 nav ul li.active {
     text-decoration: underline;
 }
@@ -182,7 +187,7 @@ input {
 
 
 .button.selected {
-    background-color: green;
+    background-color: var(--green);
 }
 
 .button.selected:hover {
@@ -190,7 +195,7 @@ input {
 }
 
 .button:hover {
-    background-color: green;
+    background-color: var(--green);
     opacity: 0.8;
 }
 
@@ -209,14 +214,51 @@ input {
     font-size: 1.3rem;
 }
 
+.main-option-pie-container svg path.agree {
+    fill: var(--green);
+}
+.main-option-pie-container svg path.break {
+    fill: var(--construction);
+}
+.main-option-pie-container svg path.remain {
+    fill: var(--blue);
+}
+
+.main-option-pie-container svg text {
+    font-size: 1.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+#list-of-persons-container{
+    max-height: 60vh;
+    min-height: 60vh;
+    overflow-y: auto;
+}
 table#list-of-persons {
     width: 100%;
     margin-bottom: 10px;
+    border-collapse: collapse;
 }
 
 table#list-of-persons th,
 table#list-of-persons td {
     text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+}
+table#list-of-persons td.representative-name{
+    width: calc(100% - 1em);
+}
+
+table#list-of-persons thead{
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+table#list-of-persons thead tr th{
+    /* Required to make the list of representatives scroll 'under' the headings.*/
+    background-color: white;
 }
 
 table#list-of-persons th {
