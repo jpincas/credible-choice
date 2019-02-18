@@ -156,17 +156,17 @@ init () url key =
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
         mainOptions =
-            [ { id = "agree"
+            [ { id = "A"
               , name = "May agree"
               , description = "We should accept whatever Theresa May is able to agree with the EU"
               , votes = 100000
               }
-            , { id = "break"
+            , { id = "B"
               , name = "Decisive break"
               , description = "We should have a decisive break with the EU as envisaged by Jacob Rees Mogg"
               , votes = 40000
               }
-            , { id = "remain"
+            , { id = "C"
               , name = "Remain EU"
               , description = "We should stay in the EU on the current basis"
               , votes = 200000
