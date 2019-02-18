@@ -5,3 +5,5 @@ ignored-data/
 .DS_Store
 
 /server/ccserver
+/db-data
+/db-data-test

@@ -1,5 +1,6 @@
 {
     "testMode": true,
     "port": 5001,
+    "dbDirectory": "../db-data",
     "dataDirectory": "../data"
 }

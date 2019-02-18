@@ -11,8 +11,8 @@ func main() {
 	flag.Parse()
 
 	// Run the app
-	application := run(*configFile)
+	runApplication(*configFile)
 
 	// Defer disconnection of tenants
-	defer application.close()
+	defer app.close()
 }
