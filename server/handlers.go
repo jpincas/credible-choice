@@ -16,6 +16,10 @@ func ListRecentVotes(w http.ResponseWriter, r *http.Request) {
 	respond(w, votes)
 }
 
+func GetResults(w http.ResponseWriter, r *http.Request) {
+	respond(w, app.Results)
+}
+
 func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 	// This is where we will need to decipher the incoming
 	// data from the SMS donation platform

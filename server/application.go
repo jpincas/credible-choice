@@ -17,10 +17,11 @@ import (
 var app Application
 
 type Application struct {
-	Config Config
-	Router *chi.Mux
-	DB     *tormenta.DB
-	Data   Data
+	Config  Config
+	Router  *chi.Mux
+	DB      *tormenta.DB
+	Data    Data
+	Results Results
 }
 
 type Config struct {
@@ -83,6 +84,7 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	r.Route("/appapi", func(r chi.Router) {
 		r.Get("/charities", ListCharities)
 		r.Get("/recentvotes", ListRecentVotes)
+		r.Get("/results", GetResults)
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {

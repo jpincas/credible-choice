@@ -4,7 +4,7 @@ import (
 	"github.com/jpincas/tormenta"
 )
 
-type pence = uint16
+type pence = uint
 
 type Vote struct {
 	tormenta.Model
