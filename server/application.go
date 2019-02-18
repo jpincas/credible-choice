@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
 	"github.com/jpincas/tormenta"
 	"github.com/robfig/cron"
@@ -90,6 +91,8 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	// Initialise a new router
 	r := chi.NewRouter()
 
+	r.Use(middleware.Recoverer)
+
 	// Set up routes
 	r.Route("/appapi", func(r chi.Router) {
 		r.Get("/charities", ListCharities)
@@ -98,7 +101,7 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {
-		r.Post("/"+a.Config.VoteWebhook, ReceiveVote)
+		r.Get("/"+a.Config.VoteWebhook, ReceiveVote)
 	})
 
 	// Log and apply to application
