@@ -1,1 +1,1 @@
-elm-live -p 6002 -s index.html --pushstate -- src/Main.elm --output static/main.js $@
+elm-live -p 6002 -s index.html --pushstate --proxyHost "http://localhost:5001" --proxyPrefix "/appapi" -- src/Main.elm --output static/main.js $@

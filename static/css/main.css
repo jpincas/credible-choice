@@ -214,13 +214,13 @@ input {
     font-size: 1.3rem;
 }
 
-.main-option-pie-container svg path.agree {
+.main-option-pie-container svg path.A {
     fill: var(--green);
 }
-.main-option-pie-container svg path.break {
+.main-option-pie-container svg path.B {
     fill: var(--construction);
 }
-.main-option-pie-container svg path.remain {
+.main-option-pie-container svg path.C {
     fill: var(--blue);
 }
 
