@@ -27,9 +27,9 @@ sudo apt-get update
 sudo apt-get install golang-go
 ```
 
-## Message Design
+## Message Design / SMS Format
 
-We want to embed the sms message into a few human readable words representing the following data:
+We want to embed the sms message into a concatenated string representing the following data:
 
 ```golang
 type Vote struct {
@@ -42,18 +42,20 @@ type Vote struct {
 }
 ```
 
-This is encoded into a string like `ABRANADASW161980 50`, which is equivalent to:
+This is encoded into a string like `A / RBRAN0 / ADA / SW16 / 1980 -> ARBRAN0ADASW161980`.  The donation amount needs to be added outside this concatenated string so that the gateway can parse it.  Thus, the full text would look like `CHOICE ARBRAN0ADASW161980 50`, where 'CHOICE' is our unique campaign keyword to be assigned by the gateway.  This is equivalent to:
 
 ```golang
 Vote{
     MainVote: "A",
-    RepVote: "BRAN",
+    RepVote: "RBRAN0",
     Charity: "ADA",
     PostCode: "SW16",
     BirthYear: 1980,
     Donation: 50,
 }
 ```
+
+API: all of this information will get posted to the endpoint of our choosing by GET request and with the data encoded in URL parameters.  More info on that to come.
 
 We will provide an encode/decode function from words to vote both in js (for the client) and in go (to write to the db).
 We can also provide an online tool to allow people to ensure their code matches their choices.
