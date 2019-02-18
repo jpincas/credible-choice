@@ -6,13 +6,14 @@ import Browser.Dom
 import Browser.Events
 import Browser.Navigation as Nav
 import Color exposing (Color)
+import Dict exposing (Dict)
 import FormatNumber
 import FormatNumber.Locales
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes as Attributes
 import Html.Events as Events
 import Http
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Path
 import Route exposing (Route(..))
@@ -88,30 +89,48 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | MainOptionSelected MainOptionId
-    | ResultsReceived (HttpResult (List MainOption))
+    | ResultsReceived (HttpResult ResultsPayload)
     | PeopleReceived (HttpResult (List Person))
     | SelectRepresentative PersonName
     | SearchRepresentativeInput String
+
+
+type alias ResultsPayload =
+    { mainVote : Dict String Int
+    , repVote : Dict String DonateVote
+    , charity : Dict String DonateVote
+    }
+
+
+resultsPayloadDecoder : Decoder ResultsPayload
+resultsPayloadDecoder =
+    Decode.succeed ResultsPayload
+        |> Pipeline.required "MainVote" (Decode.dict Decode.int)
+        |> Pipeline.required "RepVote" (Decode.dict donateVoteDecoder)
+        |> Pipeline.required "Charity" (Decode.dict donateVoteDecoder)
+
+
+type alias DonateVote =
+    { votes : Int
+    , amountDonated : Int
+    }
+
+
+donateVoteDecoder : Decoder DonateVote
+donateVoteDecoder =
+    Decode.succeed DonateVote
+        |> Pipeline.required "chosenBy" Decode.int
+        |> Pipeline.required "amountDonated" Decode.int
 
 
 getResults : Cmd Msg
 getResults =
     let
         url =
-            "http://localhost:5001/appapi/results"
+            "/appapi/results"
 
         expect =
-            Http.expectJson ResultsReceived resultsDecoder
-
-        resultsDecoder =
-            Decode.list mainOptionDecoder
-
-        mainOptionDecoder =
-            Decode.succeed MainOption
-                |> Pipeline.required "id" Decode.string
-                |> Pipeline.required "name" Decode.string
-                |> Pipeline.required "description" Decode.string
-                |> Pipeline.required "votes" Decode.int
+            Http.expectJson ResultsReceived resultsPayloadDecoder
     in
     Http.get { url = url, expect = expect }
 
@@ -208,8 +227,20 @@ update msg model =
             -- TODO: I guess we should have some kind of re-download button or something.
             noCommand model
 
-        ResultsReceived (Ok mainOptions) ->
-            noCommand { model | mainOptions = mainOptions }
+        ResultsReceived (Ok results) ->
+            let
+                updateMainOptionVotes option =
+                    case Dict.get option.id results.mainVote of
+                        Nothing ->
+                            { option | votes = 10 }
+
+                        Just votes ->
+                            { option | votes = votes }
+
+                newMainOptions =
+                    List.map updateMainOptionVotes model.mainOptions
+            in
+            noCommand { model | mainOptions = newMainOptions }
 
         PeopleReceived (Err _) ->
             -- TODO: I guess we should have some kind of re-download button or something.
