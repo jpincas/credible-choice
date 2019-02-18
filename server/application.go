@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
 	"github.com/jpincas/tormenta"
 	"github.com/robfig/cron"
@@ -89,6 +90,8 @@ func (a *Application) applyConfig(configFileName string) {
 func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	// Initialise a new router
 	r := chi.NewRouter()
+
+	r.Use(middleware.Recoverer)
 
 	// Set up routes
 	r.Route("/appapi", func(r chi.Router) {
