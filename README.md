@@ -42,7 +42,7 @@ type Vote struct {
 }
 ```
 
-This is encoded into a string like `A / RBRAN0 / ADA / SW16 / 1980 -> ARBRAN0ADASW161980`.  The donation amount needs to be added outside this concatenated string so that the gateway can parse it.  Thus, the full text would look like `CHOICE ARBRAN0ADASW161980 50`, where 'CHOICE' is our unique campaign keyword to be assigned by the gateway.  This is equivalent to:
+This is encoded into a string like `A / RBRAN0 / ADA / 1980 / SW16  -> ARBRAN0ADA1980SW16`.  The donation amount needs to be added outside this concatenated string so that the gateway can parse it.  Thus, the full text would look like `CHOICE ARBRAN0ADA1980SW16 50`, where 'CHOICE' is our unique campaign keyword to be assigned by the gateway.  This is equivalent to:
 
 ```golang
 Vote{
