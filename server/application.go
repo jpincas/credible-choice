@@ -46,6 +46,9 @@ func runApplication(configFile string) {
 	tokenAuth := jwtauth.New("HS256", []byte("secret"), nil)
 	app.initRouter(tokenAuth)
 
+	// Init results maps
+	app.Results = initResults()
+
 	// Startup jobs
 	go app.runStartupJobs()
 

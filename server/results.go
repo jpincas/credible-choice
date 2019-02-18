@@ -1,26 +1,29 @@
 package main
 
 type Results struct {
-	MainChoice []MainChoiceResult
-	RepChoice  []RepChoiceResult
-	Charity    []CharityResult
-}
-
-type MainChoiceResult struct {
-	ChoiceID      uint8 `json:"choiceID"`
-	ChosenByCount uint  `json:"chosenBy"`
+	MainChoice map[uint8]uint
+	RepChoice  map[uint8]RepChoiceResult
+	Charity    map[uint8]CharityResult
 }
 
 type RepChoiceResult struct {
-	ChoiceID      uint8 `json:"choiceID"`
 	ChosenByCount uint  `json:"chosenBy"`
 	AmountDonated pence `json:"amountDonated"`
 }
 
 type CharityResult struct {
-	CharityID     uint8 `json:"choiceID"`
 	ChosenByCount uint  `json:"chosenBy"`
 	AmountDonated pence `json:"amountDonated"`
+}
+
+func initResults() Results {
+	// Initialise all the maps in Results
+	// to avoid nil map assignment errors
+	return Results{
+		MainChoice: map[uint8]uint{},
+		RepChoice:  map[uint8]RepChoiceResult{},
+		Charity:    map[uint8]CharityResult{},
+	}
 }
 
 func updateResults() {
@@ -34,14 +37,14 @@ func calcResults() (results Results) {
 	return
 }
 
-func calcMainChoiceResults() (results []MainChoiceResult) {
-	return
+func calcMainChoiceResults() map[uint8]uint {
+	return map[uint8]uint{}
 }
 
-func calcRepChoiceResults() (results []RepChoiceResult) {
-	return
+func calcRepChoiceResults() map[uint8]RepChoiceResult {
+	return map[uint8]RepChoiceResult{}
 }
 
-func calcCharityResults() (results []CharityResult) {
-	return
+func calcCharityResults() map[uint8]CharityResult {
+	return map[uint8]CharityResult{}
 }

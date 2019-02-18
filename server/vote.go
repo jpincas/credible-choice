@@ -20,8 +20,34 @@ type Vote struct {
 }
 
 func (v Vote) save() error {
+	// TODO: check mobile before impacting results
+
+	// Note - save and result impacting should really be atomic,
+	// but that would be hard to acheive here, so we'll just run a period
+	// recalc
 	_, err := app.DB.Save(&v)
-	return err
+	if err != nil {
+		return err
+	}
+
+	v.impactResults()
+	return nil
+}
+
+func (v Vote) impactResults() {
+	// Main choice
+	app.Results.MainChoice[v.MainChoice] = app.Results.MainChoice[v.MainChoice] + 1
+
+	// Rep Choice
+	app.Results.RepChoice[v.RepChoice] = RepChoiceResult{
+		ChosenByCount: app.Results.RepChoice[v.RepChoice].ChosenByCount + 1,
+		AmountDonated: app.Results.RepChoice[v.RepChoice].AmountDonated + v.DonationAmount,
+	}
+
+	app.Results.Charity[v.CharityChoice] = CharityResult{
+		ChosenByCount: app.Results.Charity[v.CharityChoice].ChosenByCount + 1,
+		AmountDonated: app.Results.Charity[v.CharityChoice].AmountDonated + v.DonationAmount,
+	}
 }
 
 func getRecentVotes() ([]Vote, error) {
