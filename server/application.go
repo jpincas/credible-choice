@@ -28,6 +28,7 @@ type Config struct {
 	TestMode      bool   `json:"testMode"`
 	DBDirectory   string `json:"dbDirectory"`
 	DataDirectory string `json:"dataDirectory"`
+	VoteWebhook   string `json:"voteWebhook"`
 }
 
 type Data struct {
@@ -81,9 +82,11 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	// Set up routes
 	r.Route("/appapi", func(r chi.Router) {
 		r.Get("/charities", ListCharities)
+		r.Get("/recentvotes", ListRecentVotes)
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {
+		r.Post("/"+a.Config.VoteWebhook, ReceiveVote)
 	})
 
 	// Log and apply to application

@@ -66,6 +66,11 @@ func respond(w http.ResponseWriter, toRender interface{}) {
 	render(w, http.StatusOK, toRender)
 }
 
+func respondOK(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
 func lookupErrorCode(errorType string) int {
 	code, ok := ErrorCodeLookup[errorType]
 	if !ok {
