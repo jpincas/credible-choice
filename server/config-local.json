@@ -1,0 +1,5 @@
+{
+    "testMode": true,
+    "port": 5001,
+    "dataDirectory": "../data"
+}
