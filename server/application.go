@@ -11,17 +11,19 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
 	"github.com/jpincas/tormenta"
+	"github.com/robfig/cron"
 )
 
 // Create an app instance
 var app Application
 
 type Application struct {
-	Config  Config
-	Router  *chi.Mux
-	DB      *tormenta.DB
-	Data    Data
-	Results Results
+	Config    Config
+	Router    *chi.Mux
+	Scheduler *cron.Cron
+	DB        *tormenta.DB
+	Data      Data
+	Results   Results
 }
 
 type Config struct {
@@ -43,6 +45,12 @@ func runApplication(configFile string) {
 	// Initiate the router
 	tokenAuth := jwtauth.New("HS256", []byte("secret"), nil)
 	app.initRouter(tokenAuth)
+
+	// Startup jobs
+	go app.runStartupJobs()
+
+	// Job Scheduler
+	app.scheduleJobs()
 
 	// DB Connection
 	var err error
@@ -136,4 +144,19 @@ func (a *Application) readCharities() error {
 	Log(LogModuleStartup, true, "Read in list of charities OK", nil)
 	a.Data.Charities = charities
 	return nil
+}
+
+func (a Application) runStartupJobs() {
+	updateResults()
+	Log(LogModuleStartup, true, "Ran startup jobs OK", nil)
+}
+
+func (a *Application) scheduleJobs() {
+	a.Scheduler = cron.New()
+
+	a.Scheduler.AddFunc("@every 5m", func() { updateResults() })
+
+	a.Scheduler.Start()
+
+	Log(LogModuleStartup, true, "Job scheduler initialised OK", nil)
 }

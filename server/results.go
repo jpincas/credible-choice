@@ -23,6 +23,10 @@ type CharityResult struct {
 	AmountDonated pence `json:"amountDonated"`
 }
 
+func updateResults() {
+	app.Results = calcResults()
+}
+
 func calcResults() (results Results) {
 	results.MainChoice = calcMainChoiceResults()
 	results.RepChoice = calcRepChoiceResults()
