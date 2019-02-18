@@ -80,13 +80,40 @@ type alias Person =
     }
 
 
+type alias HttpResult a =
+    Result Http.Error a
+
+
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | MainOptionSelected MainOptionId
-    | PeopleReceived (Result Http.Error (List Person))
+    | ResultsReceived (HttpResult (List MainOption))
+    | PeopleReceived (HttpResult (List Person))
     | SelectRepresentative PersonName
     | SearchRepresentativeInput String
+
+
+getResults : Cmd Msg
+getResults =
+    let
+        url =
+            "http://localhost:5001/appapi/results"
+
+        expect =
+            Http.expectJson ResultsReceived resultsDecoder
+
+        resultsDecoder =
+            Decode.list mainOptionDecoder
+
+        mainOptionDecoder =
+            Decode.succeed MainOption
+                |> Pipeline.required "id" Decode.string
+                |> Pipeline.required "name" Decode.string
+                |> Pipeline.required "description" Decode.string
+                |> Pipeline.required "votes" Decode.int
+    in
+    Http.get { url = url, expect = expect }
 
 
 getPeople : Cmd Msg
@@ -146,7 +173,7 @@ init () url key =
               }
             ]
     in
-    withCommands initialModel [ getPeople ]
+    withCommands initialModel [ getResults, getPeople ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -176,6 +203,13 @@ update msg model =
             -- but ultimately it will be when receieve a successful response from the server, which
             -- should include the new number of votes.
             noCommand { model | selectedMainOption = Just optionId }
+
+        ResultsReceived (Err _) ->
+            -- TODO: I guess we should have some kind of re-download button or something.
+            noCommand model
+
+        ResultsReceived (Ok mainOptions) ->
+            noCommand { model | mainOptions = mainOptions }
 
         PeopleReceived (Err _) ->
             -- TODO: I guess we should have some kind of re-download button or something.
