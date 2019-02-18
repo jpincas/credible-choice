@@ -34,7 +34,7 @@ We want to embed the sms message into a concatenated string representing the fol
 ```golang
 type Vote struct {
     MainVote string // 1 character (A B C)
-    RepVote string // 4 characters
+    RepVote string // 5 characters (4 chars and a digit)
     Charity string // 3 characters
     PostCode string // 3-4 characters, valid UK post code prefix
     BirthYear int32 // Hopefully somewhere between 1900 and 2002
