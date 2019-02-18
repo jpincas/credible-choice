@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
@@ -134,10 +133,7 @@ func (a *Application) readCharities() error {
 			return err
 		}
 
-		id, err := strconv.Atoi(record[0])
-		if err != nil {
-			return err
-		}
+		id := record[0]
 		name := record[1]
 
 		charities = append(charities, Charity{id, name})
