@@ -565,17 +565,13 @@ viewChoose model =
                         donation =
                             ""
 
-                        separator =
-                            "/"
-
                         code =
-                            String.join separator
+                            String.join ""
                                 [ option
                                 , repVote
                                 , charity
                                 , postcode
                                 , birthyear
-                                , donation
                                 ]
                     in
                     div
@@ -583,156 +579,200 @@ viewChoose model =
                         [ text "CHOICE"
                         , text " "
                         , text code
+                        , text " "
+                        , text donation
                         ]
+
+        choicePanel =
+            div
+                [ Attributes.class "panel" ]
+                [ Html.section
+                    []
+                    [ Html.h2
+                        []
+                        [ text "What should we do?" ]
+                    , Html.form
+                        [ Attributes.class "choices" ]
+                        (List.map makeChoice model.mainOptions)
+                    ]
+                , div
+                    [ Attributes.id "total-choices" ]
+                    [ text "Total choices made so far: "
+                    , text <| formatInt totalNumVotes
+                    ]
+                , div
+                    [ Attributes.class "main-option-pie-container" ]
+                    [ viewPie ]
+                , Html.section
+                    [ Attributes.id "explanation"
+                    , Attributes.class "explainer"
+                    ]
+                    [ paragraph "You can change your mind as many times as you like but only once an hour."
+                    , Html.p
+                        []
+                        [ text "Time to next ability to change "
+                        , Html.b
+                            []
+                            [ text <| formatInt 16 ]
+                        , text " minutes"
+                        ]
+                    ]
+                , textBuilder
+                ]
+
+        representativePanel =
+            div
+                [ Attributes.class "panel" ]
+                [ Html.section
+                    []
+                    [ Html.h2
+                        []
+                        [ text "Who do you trust to represent your views?" ]
+                    , paragraph "You can select a person who would represent your views to parliament and the government"
+                    , div
+                        [ Attributes.id "list-of-persons-container" ]
+                        [ Html.table
+                            [ Attributes.id "list-of-persons" ]
+                            [ Html.thead
+                                []
+                                [ Html.tr
+                                    []
+                                    [ Html.th
+                                        []
+                                        [ text "Representative"
+                                        , Html.br [] []
+                                        , Html.span
+                                            [ Attributes.class "help-text" ]
+                                            [ text "Click to choose" ]
+                                        ]
+                                    , Html.th [] [ text "Profession" ]
+                                    , Html.th [] [ text "Chosen by" ]
+                                    ]
+                                ]
+                            , Html.tbody
+                                []
+                                (List.map makeRepChoice filteredRepresentatives)
+                            ]
+                        ]
+                    , Html.p
+                        []
+                        [ text "Showing "
+                        , Html.span
+                            [ Attributes.class "bold" ]
+                            [ List.length filteredRepresentatives |> formatInt |> text ]
+                        , case String.isEmpty model.searchRepresentativeInput of
+                            True ->
+                                text ""
+
+                            False ->
+                                Html.span
+                                    []
+                                    [ text " of "
+                                    , Html.span
+                                        [ Attributes.class "bold" ]
+                                        [ List.length model.people |> formatInt |> text ]
+                                    , text " matching "
+                                    , Html.span
+                                        [ Attributes.class "bold" ]
+                                        [ text "“"
+                                        , text model.searchRepresentativeInput
+                                        , text "”"
+                                        ]
+                                    ]
+                        ]
+                    , Html.input
+                        [ Attributes.type_ "text"
+                        , Attributes.placeholder "Search for person"
+                        , Attributes.value model.searchRepresentativeInput
+                        , Events.onInput SearchRepresentativeInput
+                        ]
+                        []
+
+                    -- TODO: Well obviously this is wrong
+                    , Html.a
+                        [ Attributes.class "button"
+                        , Route.href Donate
+                        ]
+                        [ text "Search" ]
+                    ]
+                , Html.section
+                    [ Attributes.id "add-person" ]
+                    [ Html.input
+                        [ Attributes.type_ "text"
+                        , Attributes.placeholder "New person"
+                        ]
+                        []
+                    , let
+                        makeOption profession =
+                            Html.option
+                                [ Attributes.value profession ]
+                                [ text profession ]
+
+                        professions =
+                            [ "Politician", "Writer", "Entertainer", "Sports person", "Journalist", "Actor" ]
+
+                        pleaseSelect =
+                            Html.option
+                                [ Attributes.value "" ]
+                                [ text "Please select" ]
+
+                        options =
+                            pleaseSelect :: List.map makeOption professions
+                      in
+                      Html.select [] options
+                    , Html.button
+                        [ Attributes.class "button"
+                        , Route.href Donate
+                        ]
+                        [ text "Add" ]
+                    , paragraph """You may add any British citizen with a Wikipedia entry to the Representative list. They must be 17 or over and able to express their views.  If they ask to be removed, we will remove them.  We will manually check additions and so name may not be immediately added."""
+                    , paragraph """There is no obligation whatsoever that anyone on this list should do anything and anyone on the list will be removed at their request by contacting us at remove-me@crediblechoice.co.uk (make it a picture)."""
+                    , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
+                    ]
+                ]
+
+        charityPanel =
+            div
+                [ Attributes.class "panel" ]
+                [ Html.section
+                    []
+                    [ Html.h2
+                        []
+                        [ text "How much" ]
+                    , let
+                        makeDonationOption amount =
+                            Html.label
+                                [ Attributes.class "donation-option-label" ]
+                                [ text <| formatPence amount
+                                , Html.input
+                                    [ Attributes.class "donation-option-input"
+                                    , Attributes.type_ "radio"
+                                    ]
+                                    []
+                                ]
+                      in
+                      Html.div
+                        []
+                        (List.map makeDonationOption [ 50, 100, 500, 1000, 2000 ])
+                    , Html.h2
+                        []
+                        [ text "To which charity" ]
+                    ]
+                ]
+
+        panelSeparator =
+            div [ Attributes.class "sep" ] []
+
+        panels =
+            List.intersperse panelSeparator
+                [ choicePanel
+                , representativePanel
+                , charityPanel
+                ]
     in
     div
         [ Attributes.class "panels" ]
-        [ div
-            [ Attributes.class "panel" ]
-            [ Html.section
-                []
-                [ Html.h2
-                    []
-                    [ text "What should we do?" ]
-                , Html.form
-                    [ Attributes.class "choices" ]
-                    (List.map makeChoice model.mainOptions)
-                ]
-            , div
-                [ Attributes.id "total-choices" ]
-                [ text "Total choices made so far: "
-                , text <| formatInt totalNumVotes
-                ]
-            , div
-                [ Attributes.class "main-option-pie-container" ]
-                [ viewPie ]
-            , Html.section
-                [ Attributes.id "explanation"
-                , Attributes.class "explainer"
-                ]
-                [ paragraph "You can change your mind as many times as you like but only once an hour."
-                , Html.p
-                    []
-                    [ text "Time to next ability to change "
-                    , Html.b
-                        []
-                        [ text <| formatInt 16 ]
-                    , text " minutes"
-                    ]
-                ]
-            , textBuilder
-            ]
-        , div [ Attributes.class "sep" ] []
-        , div
-            [ Attributes.class "panel" ]
-            [ Html.section
-                []
-                [ Html.h2
-                    []
-                    [ text "Who do you trust to represent your views?" ]
-                , paragraph "You can select a person who would represent your views to parliament and the government"
-                , div
-                    [ Attributes.id "list-of-persons-container" ]
-                    [ Html.table
-                        [ Attributes.id "list-of-persons" ]
-                        [ Html.thead
-                            []
-                            [ Html.tr
-                                []
-                                [ Html.th
-                                    []
-                                    [ text "Representative"
-                                    , Html.br [] []
-                                    , Html.span
-                                        [ Attributes.class "help-text" ]
-                                        [ text "Click to choose" ]
-                                    ]
-                                , Html.th [] [ text "Profession" ]
-                                , Html.th [] [ text "Chosen by" ]
-                                ]
-                            ]
-                        , Html.tbody
-                            []
-                            (List.map makeRepChoice filteredRepresentatives)
-                        ]
-                    ]
-                , Html.p
-                    []
-                    [ text "Showing "
-                    , Html.span
-                        [ Attributes.class "bold" ]
-                        [ List.length filteredRepresentatives |> formatInt |> text ]
-                    , case String.isEmpty model.searchRepresentativeInput of
-                        True ->
-                            text ""
-
-                        False ->
-                            Html.span
-                                []
-                                [ text " of "
-                                , Html.span
-                                    [ Attributes.class "bold" ]
-                                    [ List.length model.people |> formatInt |> text ]
-                                , text " matching "
-                                , Html.span
-                                    [ Attributes.class "bold" ]
-                                    [ text "“"
-                                    , text model.searchRepresentativeInput
-                                    , text "”"
-                                    ]
-                                ]
-                    ]
-                , Html.input
-                    [ Attributes.type_ "text"
-                    , Attributes.placeholder "Search for person"
-                    , Attributes.value model.searchRepresentativeInput
-                    , Events.onInput SearchRepresentativeInput
-                    ]
-                    []
-
-                -- TODO: Well obviously this is wrong
-                , Html.a
-                    [ Attributes.class "button"
-                    , Route.href Donate
-                    ]
-                    [ text "Search" ]
-                ]
-            , Html.section
-                [ Attributes.id "add-person" ]
-                [ Html.input
-                    [ Attributes.type_ "text"
-                    , Attributes.placeholder "New person"
-                    ]
-                    []
-                , let
-                    makeOption profession =
-                        Html.option
-                            [ Attributes.value profession ]
-                            [ text profession ]
-
-                    professions =
-                        [ "Politician", "Writer", "Entertainer", "Sports person", "Journalist", "Actor" ]
-
-                    pleaseSelect =
-                        Html.option
-                            [ Attributes.value "" ]
-                            [ text "Please select" ]
-
-                    options =
-                        pleaseSelect :: List.map makeOption professions
-                  in
-                  Html.select [] options
-                , Html.button
-                    [ Attributes.class "button"
-                    , Route.href Donate
-                    ]
-                    [ text "Add" ]
-                , paragraph """You may add any British citizen with a Wikipedia entry to the Representative list. They must be 17 or over and able to express their views.  If they ask to be removed, we will remove them.  We will manually check additions and so name may not be immediately added."""
-                , paragraph """There is no obligation whatsoever that anyone on this list should do anything and anyone on the list will be removed at their request by contacting us at remove-me@crediblechoice.co.uk (make it a picture)."""
-                , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
-                ]
-            ]
-        ]
+        panels
 
 
 viewAuthenticate : Html msg
@@ -856,3 +896,24 @@ formatInt i =
             { formatNumberLocale | decimals = 0 }
     in
     FormatNumber.format locale (toFloat i)
+
+
+formatPence : Int -> String
+formatPence pennies =
+    let
+        totalString =
+            String.fromInt pennies
+                |> String.padLeft 3 '0'
+
+        penceString =
+            String.right 2 totalString
+
+        poundsString =
+            String.dropRight 2 totalString
+    in
+    String.join ""
+        [ "£"
+        , poundsString
+        , "."
+        , penceString
+        ]
