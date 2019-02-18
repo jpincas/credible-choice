@@ -15,7 +15,7 @@ If you have errors, first
 
 Once all requirements are resolved, it should run smoothly
 
-Find the api at `localhost:5001`.
+Find the api at http://localhost:5001
 
 ### Install golang 1.11 on Ubuntu
 
@@ -26,6 +26,19 @@ sudo add-apt-repository ppa:longsleep/golang-backports
 sudo apt-get update
 sudo apt-get install golang-go
 ```
+
+## Client
+
+First, make sure you have elm set up (oh, yeah, and node 10 installed)
+
+`npm install -g elm elm-live`
+
+Then just run:
+
+`./live.sh`
+
+And find the site at http://localhost:6002
+
 
 ## Message Design / SMS Format
 
