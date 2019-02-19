@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-
-	"github.com/jpincas/pakk/services/log"
 )
 
 const (
@@ -61,7 +59,7 @@ func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 	// We'll try to save, but if we can't, the most we can do is log it
 	// as there's no point reporting that to the gatweay
 	if err := vote.save(); err != nil {
-		log.Log(LogModuleHandlers, false, fmt.Sprintf("Error saving vote %v to DB", vote), err)
+		Log(LogModuleHandlers, false, fmt.Sprintf("Error saving vote %v to DB", vote), err)
 	}
 
 	respondOK(w)
