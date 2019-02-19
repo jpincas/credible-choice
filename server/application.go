@@ -105,6 +105,7 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 		r.Get("/charities", ListCharities)
 		r.Get("/recentvotes", ListRecentVotes)
 		r.Get("/results", GetResults)
+		r.Post("/prevote")
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {

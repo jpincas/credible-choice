@@ -20,6 +20,10 @@ func GetResults(w http.ResponseWriter, r *http.Request) {
 	respond(w, app.Results)
 }
 
+func RegisterPreVote(w http.ResponseWriter, r *http.Request) {
+	respondOK(w)
+}
+
 func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	var vote Vote
