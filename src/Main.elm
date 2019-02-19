@@ -56,6 +56,8 @@ type alias Model =
     , route : Route
     , mainOptions : List MainOption
     , selectedMainOption : Maybe MainOptionId
+    , postcode : String
+    , birthyear : String
     , people : List Person
     , selectedRepresentative : Maybe Person
     , searchRepresentativeInput : String
@@ -103,6 +105,8 @@ type Msg
     | UrlChanged Url.Url
     | NonceGenerated Char
     | MainOptionSelected MainOptionId
+    | PostCodeInput String
+    | BirthYearInput String
     | ResultsReceived (HttpResult ResultsPayload)
     | PeopleReceived (HttpResult (List Person))
     | SelectRepresentative Person
@@ -252,6 +256,19 @@ sendPreVote model =
         code =
             String.join "" [ codeParts.nonce, codeParts.repVote, codeParts.charity ]
 
+        birthyear =
+            case String.toInt model.birthyear of
+                Nothing ->
+                    ""
+
+                Just i ->
+                    case i >= 1900 && i <= 2003 of
+                        True ->
+                            model.birthyear
+
+                        False ->
+                            ""
+
         body =
             Http.jsonBody <|
                 Encode.object
@@ -261,8 +278,8 @@ sendPreVote model =
                     , ( "charity", Encode.string codeParts.charity )
                     , ( "donation", Encode.int <| Maybe.withDefault 0 model.donation )
                     , ( "coded-part", Encode.string code )
-                    , ( "birthyear", Encode.int 1990 )
-                    , ( "postcode", Encode.string "SW19" )
+                    , ( "birthyear", Encode.string birthyear )
+                    , ( "postcode", Encode.string model.postcode )
                     ]
 
         toMsg =
@@ -290,6 +307,8 @@ init () url key =
             , route = route
             , mainOptions = mainOptions
             , selectedMainOption = Nothing
+            , postcode = ""
+            , birthyear = ""
             , people = []
             , selectedRepresentative = Nothing
             , searchRepresentativeInput = ""
@@ -362,6 +381,12 @@ update msg model =
             -- but ultimately it will be when receieve a successful response from the server, which
             -- should include the new number of votes.
             noCommand { model | selectedMainOption = Just optionId }
+
+        PostCodeInput input ->
+            noCommand { model | postcode = input }
+
+        BirthYearInput input ->
+            noCommand { model | birthyear = input }
 
         ResultsReceived (Err _) ->
             -- TODO: I guess we should have some kind of re-download button or something.
@@ -693,10 +718,39 @@ viewChoose model =
             in
             pieImage
 
+        optionalPersonalInfo =
+            Html.section
+                [ Attributes.class "personal-information" ]
+                [ Html.label
+                    [ Attributes.class "post-code-label" ]
+                    [ text "First part of your post-code, eg SW19" ]
+                , Html.input
+                    [ Attributes.class "post-code-input"
+                    , Events.onInput PostCodeInput
+                    , Attributes.value model.postcode
+                    , Attributes.type_ "text"
+                    , Attributes.maxlength 4
+                    ]
+                    []
+                , Html.label
+                    [ Attributes.class "birthyear-label" ]
+                    [ text "Your year of birth" ]
+                , Html.input
+                    [ Attributes.class "birthyear-input"
+                    , Events.onInput BirthYearInput
+                    , Attributes.value model.birthyear
+                    , Attributes.type_ "number"
+                    , Attributes.min "1900"
+                    , Attributes.max "2003"
+                    ]
+                    []
+                ]
+
         choicePanel =
             div
                 [ Attributes.class "panel" ]
-                [ Html.section
+                [ optionalPersonalInfo
+                , Html.section
                     []
                     [ Html.h2
                         []
