@@ -173,24 +173,94 @@ getPeople =
     Http.get { url = url, expect = expect }
 
 
+type alias CodeComponents =
+    { nonce : String
+    , repVote : String
+    , charity : String
+    }
+
+
+codeComponents : Model -> CodeComponents
+codeComponents model =
+    { nonce = String.fromChar model.nonce
+    , repVote =
+        case model.selectedRepresentative of
+            Nothing ->
+                "XXX"
+
+            Just rep ->
+                rep.code
+    , charity = Maybe.withDefault "" model.charity
+    }
+
+
+textBuilder : Model -> Html msg
+textBuilder model =
+    case model.selectedMainOption of
+        Nothing ->
+            text "Make a main choice to vote."
+
+        Just option ->
+            case model.donation of
+                Nothing ->
+                    text "You must select a donation amount to vote"
+
+                Just donationPennies ->
+                    let
+                        donation =
+                            String.fromInt donationPennies
+
+                        codeParts =
+                            codeComponents model
+
+                        code =
+                            Html.span
+                                [ Attributes.class "text-code" ]
+                                [ Html.span
+                                    [ Attributes.class "text-code-main-choice" ]
+                                    [ text option ]
+                                , Html.span
+                                    [ Attributes.class "text-code-nonce" ]
+                                    [ text codeParts.nonce ]
+                                , Html.span
+                                    [ Attributes.class "text-code-rep" ]
+                                    [ text codeParts.repVote ]
+                                , Html.span
+                                    [ Attributes.class "text-code-charity" ]
+                                    [ text codeParts.charity ]
+                                ]
+                    in
+                    div
+                        [ Attributes.class "text-builder" ]
+                        [ text "CCH"
+                        , text " "
+                        , code
+                        , text " "
+                        , text donation
+                        ]
+
+
 sendPreVote : Model -> Cmd Msg
 sendPreVote model =
     let
         url =
             "/appapi/prevote"
 
-        representative =
-            Maybe.map .code model.selectedRepresentative
-                |> Maybe.withDefault ""
+        codeParts =
+            codeComponents model
+
+        code =
+            String.join "" [ codeParts.nonce, codeParts.repVote, codeParts.charity ]
 
         body =
             Http.jsonBody <|
                 Encode.object
-                    [ ( "nonce", Encode.string <| String.fromChar model.nonce )
+                    [ ( "nonce", Encode.string codeParts.nonce )
                     , ( "choice", Encode.string <| Maybe.withDefault "0" model.selectedMainOption )
-                    , ( "representative", Encode.string representative )
-                    , ( "charity", Encode.string <| Maybe.withDefault "" model.charity )
+                    , ( "representative", Encode.string codeParts.repVote )
+                    , ( "charity", Encode.string codeParts.charity )
                     , ( "donation", Encode.int <| Maybe.withDefault 0 model.donation )
+                    , ( "coded-part", Encode.string code )
                     ]
 
         toMsg =
@@ -621,58 +691,6 @@ viewChoose model =
             in
             pieImage
 
-        textBuilder =
-            case model.selectedMainOption of
-                Nothing ->
-                    text "Make a main choice to vote."
-
-                Just option ->
-                    case model.donation of
-                        Nothing ->
-                            text "You must select a donation amount to vote"
-
-                        Just donationPennies ->
-                            let
-                                repVote =
-                                    case model.selectedRepresentative of
-                                        Nothing ->
-                                            "XXX"
-
-                                        Just rep ->
-                                            rep.code
-
-                                charity =
-                                    Maybe.withDefault "" model.charity
-
-                                donation =
-                                    String.fromInt donationPennies
-
-                                code =
-                                    Html.span
-                                        [ Attributes.class "text-code" ]
-                                        [ Html.span
-                                            [ Attributes.class "text-code-main-choice" ]
-                                            [ text option ]
-                                        , Html.span
-                                            [ Attributes.class "text-code-nonce" ]
-                                            [ text <| String.fromChar model.nonce ]
-                                        , Html.span
-                                            [ Attributes.class "text-code-rep" ]
-                                            [ text repVote ]
-                                        , Html.span
-                                            [ Attributes.class "text-code-charity" ]
-                                            [ text charity ]
-                                        ]
-                            in
-                            div
-                                [ Attributes.class "text-builder" ]
-                                [ text "CHOICE"
-                                , text " "
-                                , code
-                                , text " "
-                                , text donation
-                                ]
-
         choicePanel =
             div
                 [ Attributes.class "panel" ]
@@ -707,7 +725,7 @@ viewChoose model =
                         , text " minutes"
                         ]
                     ]
-                , textBuilder
+                , textBuilder model
                 ]
 
         representativePanel =
