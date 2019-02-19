@@ -21,14 +21,14 @@ type Vote struct {
 	tormenta.Model
 
 	// Choices
-	MainVote string `json:"mainVote"`
+	MainVote uint8  `json:"mainVote"`
 	RepVote  string `json:"repVote"`
 	Charity  string `json:"charity"`
 
 	// Anonymous data
 	AnonMobile string `json:"anonMobile"`
 	PostCode   string `json:"postcode"`
-	BirthYear  uint32 `json:"birthYear"`
+	BirthYear  uint16 `json:"birthYear"`
 	Donation   pence  `json:"donation"`
 }
 
@@ -118,17 +118,27 @@ func (v *Vote) buildFromURLParams(values url.Values) error {
 	}
 
 	// Attempt to parse the concatenated data string from the SMS
+	// Parsing must be 'succesful' - that's to say, we are going to
+	// do our best to decode it, but even if we can't, there's no
+	// point in reporting that back up stream
 	var smsTextValues SMSTextValues
-	if err := smsTextValues.parse(dataString); err != nil {
-		return err
-	}
+	smsTextValues.mustParse(dataString)
 
 	// Set the values from SMSTextValues
+	// Parsing takes care of setting the defaults if there any issues
+	// We do our best to get as much info as possible
 	v.MainVote = smsTextValues.MainVote
 	v.RepVote = smsTextValues.RepVote
 	v.Charity = smsTextValues.Charity
-	v.PostCode = smsTextValues.PostCode
-	v.BirthYear = smsTextValues.BirthYear
+
+	// If the parsing shows the the sms was 'complete'
+	// we'll try to do a lookup for the optional, anonymous data
+	res, found := app.PreVotes.Get(dataString)
+	if found {
+		prevote := res.(PreVote)
+		v.PostCode = prevote.PostCode
+		v.BirthYear = prevote.BirthYear
+	}
 
 	// Set the other stuff
 	v.AnonMobile = anonMobileString

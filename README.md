@@ -46,30 +46,36 @@ We want to embed the sms message into a concatenated string representing the fol
 
 ```golang
 type Vote struct {
-    MainVote string // 1 character (A B C)
-    RepVote string // 6 characters (1 char 1st initial, 4 chars from surname, and a digit)
-    Charity string // 3 characters
+    MainVote uint8 // 1 digit (1,2,3)
+    RepVote string // 3 characters (unique, composed from name and surname)
+    Charity string // 2 characters
     PostCode string // 3-4 characters, valid UK post code prefix
-    BirthYear uint8 // Hopefully somewhere between 1900 and 2002, as 2-digit year
+    BirthYear uint16 // Hopefully somewhere between 1900 and 2002
     Donation int32  // How many pence were donated
 }
 ```
 
-This is encoded into a string like `A / RBRAN0 / ADA / 80 / SW16  -> ARBRAN0ADA1980SW16`.  The donation amount needs to be added outside this concatenated string so that the gateway can parse it.  Thus, the full text would look like `CHOICE ARBRAN0ADA80SW16 50`, where 'CHOICE' is our unique campaign keyword to be assigned by the gateway.  This is equivalent to:
+Only the main vote, rep vote and charity choice are encoded in the SMS.  They are encoded into a string like `q / 1 / RBR / AD  -> q1RBRAD`.  Where `q` is a random nonce drawn from `a-z, A-Z, 0-9`.  
+
+The donation amount needs to be added outside this concatenated string so that the gateway can parse it.  
+
+The year of birth and postcode are not encoded in the SMS, they are passed to the api in a 'pre-vote'.
+
+Thus, the full text would look like `CCH q1RBRAD 50`, where 'CHOICE' is our unique campaign keyword to be assigned by the gateway.  This is equivalent to:
 
 ```golang
 Vote{
-    MainVote: "A",
-    RepVote: "RBRAN0",
-    Charity: "ADA",
-    PostCode: "SW16",
-    BirthYear: 80,
+    MainVote: 1,
+    RepVote: "RBR",
+    Charity: "AD",
+    PostCode: "SW16", // from the prevote
+    BirthYear: 1980, // from the prevote
     Donation: 50,
 }
 ```
 
-The rep vote is optional - it will default to `NOBODY`
-The charity choice is optional - it will default to `ALL`
+The rep vote is optional - it will default to `NIL`
+The charity choice is optional - it will default to `AL`
 The year and postcode are both optional - they will not appear at all if not entered.  We will have to be careful with the parser to pick up the right information. Years start with a number and postcodes with a letter, so use that.
 
 
