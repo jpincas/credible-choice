@@ -23,6 +23,7 @@ func GetResults(w http.ResponseWriter, r *http.Request) {
 func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	var vote Vote
+
 	if err := vote.buildFromURLParams(query); err != nil {
 		respondWithError(w, errorTypeBadRequest, err)
 		return

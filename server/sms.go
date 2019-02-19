@@ -1,37 +1,57 @@
 package main
 
-import (
-	"errors"
-	"strconv"
-)
+import "strconv"
 
 type SMSTextValues struct {
-	MainVote  string `json:"mainVote"`
-	RepVote   string `json:"repVote"`
-	Charity   string `json:"charity"`
-	PostCode  string `json:"postcode"`
-	BirthYear uint32 `json:"birthYear"`
+	MainVote uint8  `json:"mainVote"`
+	RepVote  string `json:"repVote"`
+	Charity  string `json:"charity"`
+	Complete bool   `json:"-"`
 }
 
-// A / RBRAN0 / ADA / 1980 / SW16
+const (
+	noVote    = uint8(0)
+	noRep     = "XXX"
+	noCharity = "AL"
+)
 
-func (s *SMSTextValues) parse(smsTextString string) error {
-	// Check that the string isn't too short
-	if len(smsTextString) < 17 {
-		return errors.New("SMS text string is too short")
+// q / 1 / RBR / AD (optional)  -> q1RBRAD
+
+func (s *SMSTextValues) mustParse(smsTextString string) {
+	charity := noCharity
+	repVote := noRep
+	mainVote := noVote
+
+	// All the info is there
+	if len(smsTextString) >= 7 {
+		charity = string(smsTextString[5:7])
+		if _, ok := app.Data.Charities[charity]; !ok {
+			charity = noCharity
+		}
+		s.Complete = true
 	}
 
-	s.MainVote = string(smsTextString[0])
-	s.RepVote = string(smsTextString[1:7])
-	s.Charity = string(smsTextString[7:10])
-
-	birthYear, err := strconv.Atoi(string(smsTextString[10:14]))
-	if err != nil {
-		return errors.New("Birth year is invalid format")
+	if len(smsTextString) >= 5 {
+		repVote = string(smsTextString[2:5])
+		// TODO: check that the rep exists
 	}
-	s.BirthYear = uint32(birthYear)
 
-	s.PostCode = string(smsTextString[14:])
+	if len(smsTextString) >= 2 {
+		mainVoteString := smsTextString[1]
 
-	return nil
+		// If the main vote char can't be decoded, its a no vote
+		// If its not valid because its not 1,2,3 its also a no vote
+		if i, err := strconv.Atoi(string(mainVoteString)); err != nil {
+			mainVote = noVote
+		} else if i > 3 {
+			mainVote = noVote
+		} else {
+			mainVote = uint8(i)
+		}
+	}
+
+	s.MainVote = mainVote
+	s.RepVote = repVote
+	s.Charity = charity
+	return
 }

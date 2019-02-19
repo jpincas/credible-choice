@@ -6,6 +6,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/patrickmn/go-cache"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -24,6 +27,7 @@ type Application struct {
 	DB        *tormenta.DB
 	Data      Data
 	Results   Results
+	PreVotes  *cache.Cache
 }
 
 type Config struct {
@@ -35,7 +39,7 @@ type Config struct {
 }
 
 type Data struct {
-	Charities []Charity
+	Charities map[string]Charity
 }
 
 func runApplication(configFile string) {
@@ -54,6 +58,9 @@ func runApplication(configFile string) {
 
 	// Job Scheduler
 	app.scheduleJobs()
+
+	// Cache
+	app.PreVotes = cache.New(5*time.Minute, 10*time.Minute)
 
 	// DB Connection
 	var err error
@@ -126,7 +133,7 @@ func (a *Application) readCharities() error {
 
 	csvr := csv.NewReader(f)
 
-	charities := []Charity{}
+	charities := map[string]Charity{}
 	for {
 		record, err := csvr.Read()
 		// Stop at EOF.
@@ -139,8 +146,7 @@ func (a *Application) readCharities() error {
 		id := record[0]
 		name := record[1]
 
-		charities = append(charities, Charity{id, name})
-
+		charities[id] = Charity{id, name}
 	}
 
 	Log(LogModuleStartup, true, "Read in list of charities OK", nil)

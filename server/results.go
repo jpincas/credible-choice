@@ -1,7 +1,7 @@
 package main
 
 type Results struct {
-	MainVote map[string]uint32
+	MainVote map[uint8]uint32
 	RepVote  map[string]RepVoteResult
 	Charity  map[string]CharityResult
 }
@@ -20,7 +20,7 @@ func initResults() Results {
 	// Initialise all the maps in Results
 	// to avoid nil map assignment errors
 	return Results{
-		MainVote: map[string]uint32{},
+		MainVote: map[uint8]uint32{},
 		RepVote:  map[string]RepVoteResult{},
 		Charity:  map[string]CharityResult{},
 	}
@@ -37,8 +37,8 @@ func calcResults() (results Results) {
 	return
 }
 
-func calcMainVoteResults() map[string]uint32 {
-	return map[string]uint32{}
+func calcMainVoteResults() map[uint8]uint32 {
+	return map[uint8]uint32{}
 }
 
 func calcRepVoteResults() map[string]RepVoteResult {
