@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -41,7 +40,7 @@ type Config struct {
 
 type Data struct {
 	Charities       map[string]Charity
-	Representatives []Representative
+	Representatives map[string]Representative
 }
 
 func runApplication(configFile string) {
@@ -173,7 +172,7 @@ func (a *Application) readRepresentatives() error {
 
 	csvr := csv.NewReader(f)
 
-	representatives := []Representative{}
+	representatives := map[string]Representative{}
 	for {
 		record, err := csvr.Read()
 		// Stop at EOF.
@@ -183,13 +182,10 @@ func (a *Application) readRepresentatives() error {
 			return err
 		}
 
-		id, err := strconv.Atoi(record[0])
-		if err != nil {
-			return err
-		}
+		id := record[0]
 		name := record[1]
 
-		representatives = append(representatives, Representative{id, name})
+		representatives[id] = Representative{id, name}
 	}
 
 	Log(LogModuleStartup, true, "Read in list of representatives OK", nil)
