@@ -64,6 +64,7 @@ type alias MainOptionId =
 
 type alias MainOption =
     { id : MainOptionId
+    , class : String
     , name : String
     , description : String
     , votes : Int
@@ -177,17 +178,20 @@ init () url key =
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
         mainOptions =
-            [ { id = "A"
+            [ { id = "1"
+              , class = "A"
               , name = "May agree"
               , description = "We should accept whatever Theresa May is able to agree with the EU"
               , votes = 100000
               }
-            , { id = "B"
+            , { id = "2"
+              , class = "B"
               , name = "Decisive break"
               , description = "We should have a decisive break with the EU as envisaged by Jacob Rees Mogg"
               , votes = 40000
               }
-            , { id = "C"
+            , { id = "3"
+              , class = "C"
               , name = "Remain EU"
               , description = "We should stay in the EU on the current basis"
               , votes = 200000
@@ -497,7 +501,7 @@ viewChoose model =
                             Path.element
                                 (Shape.arc arc)
                                 [ SvgAttributes.stroke Color.white
-                                , SvgAttributes.class [ mainOption.id ]
+                                , SvgAttributes.class [ mainOption.class ]
                                 ]
 
                         ( labelX, labelY ) =
@@ -548,7 +552,7 @@ viewChoose model =
                         repVote =
                             case model.selectedRepresentative of
                                 Nothing ->
-                                    ""
+                                    "XXX"
 
                                 Just rep ->
                                     rep.code
@@ -556,29 +560,31 @@ viewChoose model =
                         charity =
                             ""
 
-                        postcode =
-                            ""
-
-                        birthyear =
-                            ""
-
                         donation =
                             ""
 
                         code =
-                            String.join ""
-                                [ option
-                                , repVote
-                                , charity
-                                , postcode
-                                , birthyear
+                            Html.span
+                                [ Attributes.class "text-code" ]
+                                [ Html.span
+                                    [ Attributes.class "text-code-main-choice" ]
+                                    [ text option ]
+                                , Html.span
+                                    [ Attributes.class "text-code-nonce" ]
+                                    [ text "q" ]
+                                , Html.span
+                                    [ Attributes.class "text-code-rep" ]
+                                    [ text repVote ]
+                                , Html.span
+                                    [ Attributes.class "text-code-charity" ]
+                                    [ text charity ]
                                 ]
                     in
                     div
                         [ Attributes.class "text-builder" ]
                         [ text "CHOICE"
                         , text " "
-                        , text code
+                        , code
                         , text " "
                         , text donation
                         ]
