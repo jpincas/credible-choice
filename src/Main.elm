@@ -15,6 +15,7 @@ import Html.Events as Events
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
+import Json.Encode as Encode
 import Path
 import Route exposing (Route(..))
 import Shape
@@ -55,7 +56,14 @@ type alias Model =
     , people : List Person
     , selectedRepresentative : Maybe Person
     , searchRepresentativeInput : String
+    , nonce : String
+    , charity : Maybe String
+    , donation : Maybe Pennies
     }
+
+
+type alias Pennies =
+    Int
 
 
 type alias MainOptionId =
@@ -64,6 +72,7 @@ type alias MainOptionId =
 
 type alias MainOption =
     { id : MainOptionId
+    , class : String
     , name : String
     , description : String
     , votes : Int
@@ -94,6 +103,8 @@ type Msg
     | PeopleReceived (HttpResult (List Person))
     | SelectRepresentative Person
     | SearchRepresentativeInput String
+    | SelectDonationAmount Pennies
+    | PrevoteResponse (HttpResult ())
 
 
 type alias ResultsPayload =
@@ -158,6 +169,39 @@ getPeople =
     Http.get { url = url, expect = expect }
 
 
+sendPreVote : Model -> Cmd Msg
+sendPreVote model =
+    let
+        url =
+            "/appapi/prevote"
+
+        representative =
+            Maybe.map .code model.selectedRepresentative
+                |> Maybe.withDefault ""
+
+        body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "nonce", Encode.string model.nonce )
+                    , ( "choice", Encode.string <| Maybe.withDefault "0" model.selectedMainOption )
+                    , ( "representative", Encode.string representative )
+                    , ( "charity", Encode.string <| Maybe.withDefault "" model.charity )
+                    , ( "donation", Encode.int <| Maybe.withDefault 0 model.donation )
+                    ]
+
+        toMsg =
+            PrevoteResponse
+
+        decoder =
+            Decode.succeed ()
+    in
+    Http.post
+        { url = url
+        , body = body
+        , expect = Http.expectJson toMsg decoder
+        }
+
+
 init : ProgramFlags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init () url key =
     let
@@ -173,21 +217,29 @@ init () url key =
             , people = []
             , selectedRepresentative = Nothing
             , searchRepresentativeInput = ""
+
+            -- TODO: Properly randomise
+            , nonce = "q"
+            , charity = Nothing
+            , donation = Nothing
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
         mainOptions =
-            [ { id = "A"
+            [ { id = "1"
+              , class = "A"
               , name = "May agree"
               , description = "We should accept whatever Theresa May is able to agree with the EU"
               , votes = 100000
               }
-            , { id = "B"
+            , { id = "2"
+              , class = "B"
               , name = "Decisive break"
               , description = "We should have a decisive break with the EU as envisaged by Jacob Rees Mogg"
               , votes = 40000
               }
-            , { id = "C"
+            , { id = "3"
+              , class = "C"
               , name = "Remain EU"
               , description = "We should stay in the EU on the current basis"
               , votes = 200000
@@ -256,6 +308,19 @@ update msg model =
 
         SearchRepresentativeInput input ->
             noCommand { model | searchRepresentativeInput = input }
+
+        SelectDonationAmount pennies ->
+            withCommands { model | donation = Just pennies } [ sendPreVote model ]
+
+        -- Strange but there isn't really anything to do upon receiving the prevote
+        -- response, we cannot really take any interesting action or give any interesting
+        -- information to the user. In theory we could display a dialog saying that they
+        -- could press a button to resend, but I think it won't be needed.
+        PrevoteResponse (Err _) ->
+            noCommand model
+
+        PrevoteResponse (Ok ()) ->
+            noCommand model
 
 
 withCommands : model -> List (Cmd msg) -> ( model, Cmd msg )
@@ -497,7 +562,7 @@ viewChoose model =
                             Path.element
                                 (Shape.arc arc)
                                 [ SvgAttributes.stroke Color.white
-                                , SvgAttributes.class [ mainOption.id ]
+                                , SvgAttributes.class [ mainOption.class ]
                                 ]
 
                         ( labelX, labelY ) =
@@ -544,44 +609,51 @@ viewChoose model =
                     text "Make a main choice to vote."
 
                 Just option ->
-                    let
-                        repVote =
-                            case model.selectedRepresentative of
-                                Nothing ->
-                                    ""
+                    case model.donation of
+                        Nothing ->
+                            text "You must select a donation amount to vote"
 
-                                Just rep ->
-                                    rep.code
+                        Just donationPennies ->
+                            let
+                                repVote =
+                                    case model.selectedRepresentative of
+                                        Nothing ->
+                                            "XXX"
 
-                        charity =
-                            ""
+                                        Just rep ->
+                                            rep.code
 
-                        postcode =
-                            ""
+                                charity =
+                                    Maybe.withDefault "" model.charity
 
-                        birthyear =
-                            ""
+                                donation =
+                                    String.fromInt donationPennies
 
-                        donation =
-                            ""
-
-                        code =
-                            String.join ""
-                                [ option
-                                , repVote
-                                , charity
-                                , postcode
-                                , birthyear
+                                code =
+                                    Html.span
+                                        [ Attributes.class "text-code" ]
+                                        [ Html.span
+                                            [ Attributes.class "text-code-main-choice" ]
+                                            [ text option ]
+                                        , Html.span
+                                            [ Attributes.class "text-code-nonce" ]
+                                            [ text model.nonce ]
+                                        , Html.span
+                                            [ Attributes.class "text-code-rep" ]
+                                            [ text repVote ]
+                                        , Html.span
+                                            [ Attributes.class "text-code-charity" ]
+                                            [ text charity ]
+                                        ]
+                            in
+                            div
+                                [ Attributes.class "text-builder" ]
+                                [ text "CHOICE"
+                                , text " "
+                                , code
+                                , text " "
+                                , text donation
                                 ]
-                    in
-                    div
-                        [ Attributes.class "text-builder" ]
-                        [ text "CHOICE"
-                        , text " "
-                        , text code
-                        , text " "
-                        , text donation
-                        ]
 
         choicePanel =
             div
@@ -741,18 +813,27 @@ viewChoose model =
                         [ text "How much" ]
                     , let
                         makeDonationOption amount =
+                            let
+                                selected =
+                                    model.donation == Just amount
+                            in
                             Html.label
-                                [ Attributes.class "donation-option-label" ]
+                                [ Attributes.class "donation-option-label"
+                                , Attributes.class "button"
+                                , selectedClass selected
+                                ]
                                 [ text <| formatPence amount
                                 , Html.input
                                     [ Attributes.class "donation-option-input"
                                     , Attributes.type_ "radio"
+                                    , Events.onClick <| SelectDonationAmount amount
+                                    , Attributes.selected selected
                                     ]
                                     []
                                 ]
                       in
                       Html.div
-                        []
+                        [ Attributes.id "donation-amount-selector" ]
                         (List.map makeDonationOption [ 50, 100, 500, 1000, 2000 ])
                     , Html.h2
                         []
@@ -898,7 +979,7 @@ formatInt i =
     FormatNumber.format locale (toFloat i)
 
 
-formatPence : Int -> String
+formatPence : Pennies -> String
 formatPence pennies =
     let
         totalString =

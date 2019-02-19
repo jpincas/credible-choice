@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -39,7 +40,8 @@ type Config struct {
 }
 
 type Data struct {
-	Charities map[string]Charity
+	Charities       map[string]Charity
+	Representatives []Representative
 }
 
 func runApplication(configFile string) {
@@ -105,7 +107,12 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 		r.Get("/charities", ListCharities)
 		r.Get("/recentvotes", ListRecentVotes)
 		r.Get("/results", GetResults)
-		r.Post("/prevote")
+		r.Post("/prevote", RegisterPreVote)
+		r.Get("/representatives", ListTopRepresentatives)
+		r.Post("/representatives/search", SearchRepresentative)
+		// TODO EdS: Create endpoint
+		// TODO EdS: Delete endpoint
+
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {
@@ -123,6 +130,7 @@ func (a Application) close() {
 
 func (a *Application) initFixedData() {
 	a.readCharities()
+	a.readRepresentatives()
 }
 
 func (a *Application) readCharities() error {
@@ -152,6 +160,40 @@ func (a *Application) readCharities() error {
 
 	Log(LogModuleStartup, true, "Read in list of charities OK", nil)
 	a.Data.Charities = charities
+	return nil
+}
+
+// TODO EdS: Code repetition
+func (a *Application) readRepresentatives() error {
+	f, err := os.Open(a.Config.DataDirectory + "/representatives.csv")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	csvr := csv.NewReader(f)
+
+	representatives := []Representative{}
+	for {
+		record, err := csvr.Read()
+		// Stop at EOF.
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		id, err := strconv.Atoi(record[0])
+		if err != nil {
+			return err
+		}
+		name := record[1]
+
+		representatives = append(representatives, Representative{id, name})
+	}
+
+	Log(LogModuleStartup, true, "Read in list of representatives OK", nil)
+	a.Data.Representatives = representatives
 	return nil
 }
 
