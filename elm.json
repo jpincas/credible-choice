@@ -14,7 +14,9 @@
             "elm/html": "1.0.0",
             "elm/http": "2.0.0",
             "elm/json": "1.1.2",
+            "elm/random": "1.0.0",
             "elm/url": "1.0.0",
+            "elm-community/random-extra": "3.0.0",
             "elm-community/typed-svg": "5.0.1",
             "folkertdev/one-true-path-experiment": "4.0.2",
             "gampleman/elm-visualization": "2.0.0"

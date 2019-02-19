@@ -17,6 +17,9 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Path
+import Random
+import Random.Char
+import Random.Extra
 import Route exposing (Route(..))
 import Shape
 import TypedSvg
@@ -56,7 +59,7 @@ type alias Model =
     , people : List Person
     , selectedRepresentative : Maybe Person
     , searchRepresentativeInput : String
-    , nonce : String
+    , nonce : Char
     , charity : Maybe String
     , donation : Maybe Pennies
     }
@@ -98,6 +101,7 @@ type alias HttpResult a =
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
+    | NonceGenerated Char
     | MainOptionSelected MainOptionId
     | ResultsReceived (HttpResult ResultsPayload)
     | PeopleReceived (HttpResult (List Person))
@@ -182,7 +186,7 @@ sendPreVote model =
         body =
             Http.jsonBody <|
                 Encode.object
-                    [ ( "nonce", Encode.string model.nonce )
+                    [ ( "nonce", Encode.string <| String.fromChar model.nonce )
                     , ( "choice", Encode.string <| Maybe.withDefault "0" model.selectedMainOption )
                     , ( "representative", Encode.string representative )
                     , ( "charity", Encode.string <| Maybe.withDefault "" model.charity )
@@ -217,9 +221,7 @@ init () url key =
             , people = []
             , selectedRepresentative = Nothing
             , searchRepresentativeInput = ""
-
-            -- TODO: Properly randomise
-            , nonce = "q"
+            , nonce = 'q'
             , charity = Nothing
             , donation = Nothing
             }
@@ -245,8 +247,17 @@ init () url key =
               , votes = 200000
               }
             ]
+
+        numbers =
+            Random.Char.char 48 57
+
+        generator =
+            Random.Extra.choices Random.Char.lowerCaseLatin [ Random.Char.upperCaseLatin, numbers ]
+
+        initNonce =
+            Random.generate NonceGenerated generator
     in
-    withCommands initialModel [ getResults, getPeople ]
+    withCommands initialModel [ getResults, getPeople, initNonce ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -270,6 +281,9 @@ update msg model =
                     Route.parse url
             in
             noCommand { model | url = url, route = newRoute }
+
+        NonceGenerated char ->
+            noCommand { model | nonce = char }
 
         MainOptionSelected optionId ->
             -- Note we're not updating the votes here, we do that in the view function for now,
@@ -310,7 +324,11 @@ update msg model =
             noCommand { model | searchRepresentativeInput = input }
 
         SelectDonationAmount pennies ->
-            withCommands { model | donation = Just pennies } [ sendPreVote model ]
+            let
+                newModel =
+                    { model | donation = Just pennies }
+            in
+            withCommands newModel [ sendPreVote newModel ]
 
         -- Strange but there isn't really anything to do upon receiving the prevote
         -- response, we cannot really take any interesting action or give any interesting
@@ -637,7 +655,7 @@ viewChoose model =
                                             [ text option ]
                                         , Html.span
                                             [ Attributes.class "text-code-nonce" ]
-                                            [ text model.nonce ]
+                                            [ text <| String.fromChar model.nonce ]
                                         , Html.span
                                             [ Attributes.class "text-code-rep" ]
                                             [ text repVote ]
