@@ -261,6 +261,8 @@ sendPreVote model =
                     , ( "charity", Encode.string codeParts.charity )
                     , ( "donation", Encode.int <| Maybe.withDefault 0 model.donation )
                     , ( "coded-part", Encode.string code )
+                    , ( "birthyear", Encode.int 1990 )
+                    , ( "postcode", Encode.string "SW19" )
                     ]
 
         toMsg =
