@@ -18,6 +18,7 @@ const (
 	LogModuleSettings = "settings"
 	LogModuleStartup  = "startup"
 	LogModuleVote     = "vote"
+	LogModuleHandlers = "handlers"
 )
 
 // LogEntry represents an entry into the system log

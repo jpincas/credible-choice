@@ -6,6 +6,9 @@ import (
 )
 
 // Helpers
+//func generateRepId(repName string) id {
+//	// TODO EdS: Generate unique id based on name
+//}
 
 // Config
 func readAndMarshallFile(fileName string, target interface{}) error {
