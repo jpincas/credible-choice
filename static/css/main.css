@@ -286,6 +286,16 @@ table#list-of-persons td.button {
     font-weight: 700;
 }
 
+#donation-amount-selector{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#donation-amount-selector input[type="radio"]{
+    display: none;
+}
 
 #donation-options {
     display: flex;
