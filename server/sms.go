@@ -33,7 +33,9 @@ func (s *SMSTextValues) mustParse(smsTextString string) {
 
 	if len(smsTextString) >= 5 {
 		repVote = string(smsTextString[2:5])
-		// TODO: check that the rep exists
+		if _, ok := app.Data.Representatives[repVote]; !ok {
+			repVote = noRep
+		}
 	}
 
 	if len(smsTextString) >= 2 {

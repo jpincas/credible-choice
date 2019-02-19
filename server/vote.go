@@ -109,12 +109,19 @@ func (v *Vote) buildFromURLParams(values url.Values) error {
 	donationString := values.Get(smsValueDonation)
 	anonMobileString := values.Get(smsValueAnonMobile)
 
+	// We will only return an error under very restricted circumstances
+	// that basically mean we can't accept the vote
+
 	// We must have all three values to continue
 	if dataString == "" || donationString == "" || anonMobileString == "" {
 		msg := "Missing information in the URL params"
-		err := errors.New(msg)
-		Log(LogModuleVote, false, msg, err)
-		return err
+		return errors.New(msg)
+	}
+
+	// And the donation amount must be valid
+	donation, err := strconv.Atoi(donationString)
+	if err != nil {
+		return errors.New("Donation amount is invalid format")
 	}
 
 	// Attempt to parse the concatenated data string from the SMS
@@ -142,10 +149,6 @@ func (v *Vote) buildFromURLParams(values url.Values) error {
 
 	// Set the other stuff
 	v.AnonMobile = anonMobileString
-	donation, err := strconv.Atoi(donationString)
-	if err != nil {
-		return errors.New("Donation amount is invalid format")
-	}
 	v.Donation = uint32(donation)
 
 	return nil

@@ -6,10 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/jpincas/pakk/services/log"
 )
 
 const (
-	WikiUrl = "https://en.wikipedia.org/w/api.php"
+	WikiUrl        = "https://en.wikipedia.org/w/api.php"
 	WikiApiOptions = "?action=query&format=json&prop=&list=search&titles=&srnamespace=&srlimit=10&srprop=wordcount%7Ctimestamp%7Ccategorysnippet&srsearch="
 )
 
@@ -48,14 +50,18 @@ func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	var vote Vote
 
+	// buildFromURLParams will only return an error if there is actually
+	// something wrong with the params being sent by the gatweay,
+	// not if there's some internal issue parsing the data string
 	if err := vote.buildFromURLParams(query); err != nil {
 		respondWithError(w, errorTypeBadRequest, err)
 		return
 	}
 
+	// We'll try to save, but if we can't, the most we can do is log it
+	// as there's no point reporting that to the gatweay
 	if err := vote.save(); err != nil {
-		respondWithError(w, errorTypeDatabase, err)
-		return
+		log.Log(LogModuleHandlers, false, fmt.Sprintf("Error saving vote %v to DB", vote), err)
 	}
 
 	respondOK(w)
@@ -76,7 +82,7 @@ func SearchRepresentative(w http.ResponseWriter, r *http.Request) {
 	wikiApiUrl := WikiUrl + WikiApiOptions + wikiSearchTerms
 	wikiResponse, err := http.Get(wikiApiUrl)
 	if err != nil {
-		fmt.Print("Failure %s\n", err) // TODO EdS: Deal with error
+		fmt.Printf("Failure %s\n", err) // TODO EdS: Deal with error
 	}
 	data, _ := ioutil.ReadAll(wikiResponse.Body)
 	fmt.Println(string(data)) // TODO EdS: Get pertinent info and return
