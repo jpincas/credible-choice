@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -109,7 +110,7 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 		r.Post("/prevote", RegisterPreVote)
 		r.Get("/representatives", ListTopRepresentatives)
 		r.Post("/representatives/search", SearchRepresentative)
-		// TODO EdS: Create endpoint
+		r.Post("/representatives", CreateRepresentative)
 		// TODO EdS: Delete endpoint
 
 	})
@@ -183,9 +184,12 @@ func (a *Application) readRepresentatives() error {
 		}
 
 		id := record[0]
-		name := record[1]
+		firstName := record[1]
+		surname := record[2]
+		profession := record[3]
+		wikiId, _ := strconv.Atoi(record[4])
 
-		representatives[id] = Representative{id, name}
+		representatives[id] = Representative{id, firstName, surname, profession, wikiId}
 	}
 
 	Log(LogModuleStartup, true, "Read in list of representatives OK", nil)

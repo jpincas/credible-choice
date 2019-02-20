@@ -13,12 +13,14 @@ import (
 const defaultErrorText = "No error was assigned to this log entry"
 
 const (
-	LogModuleLog      = "log"
-	LogModuleConfig   = "config"
-	LogModuleSettings = "settings"
-	LogModuleStartup  = "startup"
-	LogModuleVote     = "vote"
+	LogModuleLog            = "log"
+	LogModuleConfig         = "config"
+	LogModuleSettings       = "settings"
+	LogModuleStartup        = "startup"
+	LogModuleVote           = "vote"
 	LogModuleHandlers = "handlers"
+	LogModuleRepresentative = "representative"
+	LogModuleWiki           = "wiki"
 )
 
 // LogEntry represents an entry into the system log

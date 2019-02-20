@@ -30,6 +30,15 @@ type ErrorResponse struct {
 	Code  int    `json:"code"`
 }
 
+type RepresentativeSearchResponse struct {
+	Results []representativeSearchResult `json:"results"`
+}
+
+type representativeSearchResult struct {
+	Title  string `json:"title"`
+	PageId int    `json:"pageid"`
+}
+
 var ErrorCodeLookup = map[string]int{
 	errorTypeDatabase:                               http.StatusInternalServerError,
 	errorTypeInvalidRequestBody:                     http.StatusBadRequest,
@@ -71,6 +80,11 @@ func respondOK(w http.ResponseWriter) {
 	return
 }
 
+func respondCreated(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusCreated)
+	return
+}
+
 func lookupErrorCode(errorType string) int {
 	code, ok := ErrorCodeLookup[errorType]
 	if !ok {
@@ -97,4 +111,16 @@ func respondWithError(w http.ResponseWriter, errorType string, err error) {
 	}
 
 	render(w, code, errorResponse)
+}
+
+func buildSearchResponse(r WikiSearchResponse) RepresentativeSearchResponse {
+	var searchResponse RepresentativeSearchResponse
+	for _, p := range r.Query.Pages {
+		res := &representativeSearchResult{}
+		res.PageId = p.PageId
+		res.Title = p.Title
+		searchResponse.Results = append(searchResponse.Results, *res)
+	}
+
+	return searchResponse
 }
