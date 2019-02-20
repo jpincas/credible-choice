@@ -62,8 +62,19 @@ type alias Model =
     , selectedRepresentative : Maybe Person
     , searchRepresentativeInput : String
     , nonce : Char
-    , charity : Maybe String
+    , charity : Maybe CharityId
+    , charities : List Charity
     , donation : Maybe Pennies
+    }
+
+
+type alias CharityId =
+    String
+
+
+type alias Charity =
+    { id : CharityId
+    , name : String
     }
 
 
@@ -113,6 +124,9 @@ type Msg
     | SearchRepresentativeInput String
     | SelectDonationAmount Pennies
     | PrevoteResponse (HttpResult ())
+    | CharitiesReceived (HttpResult (List Charity))
+    | MakeCharityChoice CharityId
+    | ClearCharityChoice
 
 
 type alias ResultsPayload =
@@ -173,6 +187,27 @@ getPeople =
                 |> Pipeline.hardcoded "CODE1"
                 |> Pipeline.required "Profession" Decode.string
                 |> Pipeline.required "ChosenBy" Decode.int
+    in
+    Http.get { url = url, expect = expect }
+
+
+getCharities : Cmd Msg
+getCharities =
+    let
+        url =
+            "/appapi/charities"
+
+        expect =
+            Http.expectJson CharitiesReceived charitiesDecoder
+
+        charitiesDecoder =
+            Decode.keyValuePairs charityDecoder
+                |> Decode.map (List.map Tuple.second)
+
+        charityDecoder =
+            Decode.succeed Charity
+                |> Pipeline.required "id" Decode.string
+                |> Pipeline.required "name" Decode.string
     in
     Http.get { url = url, expect = expect }
 
@@ -314,6 +349,7 @@ init () url key =
             , searchRepresentativeInput = ""
             , nonce = 'q'
             , charity = Nothing
+            , charities = []
             , donation = Nothing
             }
 
@@ -348,7 +384,7 @@ init () url key =
         initNonce =
             Random.generate NonceGenerated generator
     in
-    withCommands initialModel [ getResults, getPeople, initNonce ]
+    withCommands initialModel [ getResults, getPeople, initNonce, getCharities ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -413,6 +449,18 @@ update msg model =
 
         PeopleReceived (Ok people) ->
             noCommand { model | people = people }
+
+        CharitiesReceived (Err _) ->
+            noCommand model
+
+        CharitiesReceived (Ok charities) ->
+            noCommand { model | charities = charities }
+
+        MakeCharityChoice charityId ->
+            noCommand { model | charity = Just charityId }
+
+        ClearCharityChoice ->
+            noCommand { model | charity = Nothing }
 
         SelectRepresentative person ->
             noCommand { model | selectedRepresentative = Just person }
@@ -895,6 +943,36 @@ viewChoose model =
                     ]
                 ]
 
+        makeCharityChoice charity =
+            let
+                mId =
+                    case String.isEmpty charity.id of
+                        True ->
+                            Nothing
+
+                        False ->
+                            Just charity.id
+            in
+            Html.li
+                [ Attributes.class "charity-choice-list-item" ]
+                [ Html.button
+                    [ Attributes.class "charity-choice"
+                    , Events.onClick <| MakeCharityChoice charity.id
+                    , selectedClass <| model.charity == Just charity.id
+                    ]
+                    [ text charity.name ]
+                ]
+
+        charityChoices =
+            List.map makeCharityChoice model.charities
+
+        clearCharityChoice =
+            Html.button
+                [ Attributes.class "clear-charity-choice"
+                , Events.onClick ClearCharityChoice
+                ]
+                [ text "Clear choice" ]
+
         charityPanel =
             div
                 [ Attributes.class "panel" ]
@@ -930,6 +1008,14 @@ viewChoose model =
                     , Html.h2
                         []
                         [ text "To which charity" ]
+                    , paragraph "You may select which charity you wish to make your donation"
+                    , div
+                        [ Attributes.id "list-of-charities-container" ]
+                        [ Html.ul
+                            [ Attributes.id "list-of-charities" ]
+                            charityChoices
+                        ]
+                    , clearCharityChoice
                     ]
                 ]
 

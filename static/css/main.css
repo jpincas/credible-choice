@@ -146,7 +146,7 @@ input {
     -webkit-appearance: none;
 }
 
-.button {
+button, .button {
     text-transform: uppercase;
     font-family: "nta", Arial, sans-serif;
     font-size: 13px;
@@ -186,15 +186,15 @@ input {
 }
 
 
-.button.selected {
+button.selected, .button.selected {
     background-color: var(--green);
 }
 
-.button.selected:hover {
+button.selected:hover, .button.selected:hover {
     cursor: not-allowed;
 }
 
-.button:hover {
+button:hover, .button:hover {
     background-color: var(--green);
     opacity: 0.8;
 }
@@ -291,6 +291,11 @@ table#list-of-persons td.button {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+}
+
+.charity-choice {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #donation-amount-selector input[type="radio"]{
