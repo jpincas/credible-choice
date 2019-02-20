@@ -455,8 +455,19 @@ update msg model =
 
                         DisplayTextCode ->
                             DisplayTextCode
+
+                newModel =
+                    { model | stage = newStage }
+
+                command =
+                    case newStage == DisplayTextCode of
+                        False ->
+                            Cmd.none
+
+                        True ->
+                            sendPreVote model
             in
-            noCommand { model | stage = newStage }
+            withCommands newModel [ command ]
 
         PrevChoice ->
             let
@@ -527,11 +538,7 @@ update msg model =
             noCommand { model | searchRepresentativeInput = input }
 
         SelectDonationAmount pennies ->
-            let
-                newModel =
-                    { model | donation = Just pennies }
-            in
-            withCommands newModel [ sendPreVote newModel ]
+            noCommand { model | donation = Just pennies }
 
         -- Strange but there isn't really anything to do upon receiving the prevote
         -- response, we cannot really take any interesting action or give any interesting
@@ -778,7 +785,11 @@ viewChoose model =
                 ]
 
         DisplayTextCode ->
-            viewTextCode model
+            div
+                []
+                [ viewTextCode model
+                , navButtons [ prevButton ]
+                ]
 
 
 viewMainChoice : Model -> Html Msg
