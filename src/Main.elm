@@ -54,6 +54,7 @@ type alias Model =
     { key : Nav.Key
     , url : Url.Url
     , route : Route
+    , stage : Stage
     , mainOptions : List MainOption
     , selectedMainOption : Maybe MainOptionId
     , postcode : String
@@ -66,6 +67,14 @@ type alias Model =
     , charities : List Charity
     , donation : Maybe Pennies
     }
+
+
+type Stage
+    = MainChoice
+    | RepresentativeChoice
+    | PersonalInformation
+    | CharityChoice
+    | DisplayTextCode
 
 
 type alias CharityId =
@@ -127,6 +136,9 @@ type Msg
     | CharitiesReceived (HttpResult (List Charity))
     | MakeCharityChoice CharityId
     | ClearCharityChoice
+    | NextChoice
+    | PrevChoice
+    | StartChoice
 
 
 type alias ResultsPayload =
@@ -233,8 +245,8 @@ codeComponents model =
     }
 
 
-textBuilder : Model -> Html msg
-textBuilder model =
+viewTextCode : Model -> Html msg
+viewTextCode model =
     case model.selectedMainOption of
         Nothing ->
             text "Make a main choice to vote."
@@ -340,6 +352,7 @@ init () url key =
             { key = key
             , url = url
             , route = route
+            , stage = MainChoice
             , mainOptions = mainOptions
             , selectedMainOption = Nothing
             , postcode = ""
@@ -423,6 +436,51 @@ update msg model =
 
         BirthYearInput input ->
             noCommand { model | birthyear = input }
+
+        NextChoice ->
+            let
+                newStage =
+                    case model.stage of
+                        MainChoice ->
+                            RepresentativeChoice
+
+                        RepresentativeChoice ->
+                            PersonalInformation
+
+                        PersonalInformation ->
+                            CharityChoice
+
+                        CharityChoice ->
+                            DisplayTextCode
+
+                        DisplayTextCode ->
+                            DisplayTextCode
+            in
+            noCommand { model | stage = newStage }
+
+        PrevChoice ->
+            let
+                newStage =
+                    case model.stage of
+                        MainChoice ->
+                            MainChoice
+
+                        RepresentativeChoice ->
+                            MainChoice
+
+                        PersonalInformation ->
+                            RepresentativeChoice
+
+                        CharityChoice ->
+                            PersonalInformation
+
+                        DisplayTextCode ->
+                            CharityChoice
+            in
+            noCommand { model | stage = newStage }
+
+        StartChoice ->
+            noCommand { model | stage = MainChoice }
 
         ResultsReceived (Err _) ->
             -- TODO: I guess we should have some kind of re-download button or something.
@@ -618,21 +676,114 @@ paragraph content =
     Html.p [] [ text content ]
 
 
+selectedClass : Bool -> Html.Attribute msg
+selectedClass b =
+    case b of
+        True ->
+            Attributes.class "selected"
 
--- Probably as well to just accept the model here, this app is going to be *mostly* contained within this page.
+        False ->
+            Attributes.class "not-selected"
 
 
 viewChoose : Model -> Html Msg
 viewChoose model =
     let
-        selectedClass b =
-            case b of
-                True ->
-                    Attributes.class "selected"
+        prevButton =
+            Html.button
+                [ Attributes.class "prev-choice"
+                , Events.onClick PrevChoice
+                ]
+                [ text "Prev" ]
 
-                False ->
-                    Attributes.class "not-selected"
+        nextButton disabled =
+            Html.button
+                [ Attributes.class "next-choice"
+                , Events.onClick NextChoice
+                , Attributes.disabled disabled
+                ]
+                [ text "Next" ]
 
+        skipButton =
+            Html.button
+                [ Attributes.class "skip-choice"
+                , Events.onClick NextChoice
+                ]
+                [ text "Skip" ]
+
+        navButtons =
+            div
+                [ Attributes.class "choice-nav-buttons" ]
+    in
+    case model.stage of
+        MainChoice ->
+            div
+                []
+                [ viewMainChoice model
+                , navButtons
+                    [ nextButton <| model.selectedMainOption == Nothing ]
+                ]
+
+        RepresentativeChoice ->
+            div
+                []
+                [ viewRepresentativeChoice model
+                , navButtons
+                    [ prevButton
+                    , case model.selectedRepresentative == Nothing of
+                        True ->
+                            skipButton
+
+                        False ->
+                            nextButton False
+                    ]
+                ]
+
+        CharityChoice ->
+            div
+                []
+                [ viewCharityChoice model
+                , navButtons
+                    [ prevButton
+                    , nextButton (model.donation == Nothing)
+                    ]
+                ]
+
+        PersonalInformation ->
+            let
+                validYear =
+                    case String.toInt model.birthyear of
+                        Nothing ->
+                            False
+
+                        Just i ->
+                            i >= 1900 && i <= 2003
+
+                isValid =
+                    List.all identity
+                        [ String.length model.postcode <= 4
+                        , String.length model.postcode >= 3
+                        , validYear
+                        ]
+            in
+            div
+                []
+                [ viewPersonalInformation model
+                , case isValid of
+                    True ->
+                        nextButton False
+
+                    False ->
+                        skipButton
+                ]
+
+        DisplayTextCode ->
+            viewTextCode model
+
+
+viewMainChoice : Model -> Html Msg
+viewMainChoice model =
+    let
         makeChoice option =
             let
                 isSelected =
@@ -653,53 +804,8 @@ viewChoose model =
                     ]
                 ]
 
-        makeRepChoice person =
-            let
-                isSelected =
-                    case model.selectedRepresentative of
-                        Nothing ->
-                            False
-
-                        Just rep ->
-                            -- TODO: This only really needs to check the code, but since I've hard coded
-                            -- that to all be the same temporarily that would make all the representatives appear
-                            -- selected.
-                            rep.name == person.name && rep.code == person.code
-            in
-            Html.tr
-                []
-                [ Html.td
-                    [ Attributes.class "button"
-                    , selectedClass isSelected
-                    , Attributes.class "representative-name"
-                    , Events.onClick <| SelectRepresentative person
-                    ]
-                    [ text person.name ]
-                , Html.td
-                    []
-                    [ text person.position ]
-                , Html.td
-                    []
-                    [ text <| formatInt person.votes ]
-                ]
-
         totalNumVotes =
             List.map .votes model.mainOptions |> List.sum
-
-        filteredRepresentatives =
-            case String.isEmpty model.searchRepresentativeInput of
-                True ->
-                    model.people
-
-                False ->
-                    let
-                        searchString =
-                            String.toLower model.searchRepresentativeInput
-
-                        matches person =
-                            String.contains searchString <| String.toLower person.name
-                    in
-                    List.filter matches model.people
 
         viewPie =
             let
@@ -765,184 +871,226 @@ viewChoose model =
                         ]
             in
             pieImage
+    in
+    div
+        [ Attributes.class "panel" ]
+        [ Html.section
+            []
+            [ Html.h2
+                []
+                [ text "What should we do?" ]
+            , Html.form
+                [ Attributes.class "choices" ]
+                (List.map makeChoice model.mainOptions)
+            ]
+        , div
+            [ Attributes.id "total-choices" ]
+            [ text "Total choices made so far: "
+            , text <| formatInt totalNumVotes
+            ]
+        , div
+            [ Attributes.class "main-option-pie-container" ]
+            [ viewPie ]
+        , Html.section
+            [ Attributes.id "explanation"
+            , Attributes.class "explainer"
+            ]
+            [ paragraph "You can change your mind as many times as you like but only once an hour."
+            , Html.p
+                []
+                [ text "Time to next ability to change "
+                , Html.b
+                    []
+                    [ text <| formatInt 16 ]
+                , text " minutes"
+                ]
+            ]
+        ]
 
-        optionalPersonalInfo =
-            Html.section
-                [ Attributes.class "personal-information" ]
-                [ Html.label
-                    [ Attributes.class "post-code-label" ]
-                    [ text "First part of your post-code, eg SW19" ]
-                , Html.input
-                    [ Attributes.class "post-code-input"
-                    , Events.onInput PostCodeInput
-                    , Attributes.value model.postcode
-                    , Attributes.type_ "text"
-                    , Attributes.maxlength 4
+
+viewRepresentativeChoice : Model -> Html Msg
+viewRepresentativeChoice model =
+    let
+        makeRepChoice person =
+            let
+                isSelected =
+                    case model.selectedRepresentative of
+                        Nothing ->
+                            False
+
+                        Just rep ->
+                            -- TODO: This only really needs to check the code, but since I've hard coded
+                            -- that to all be the same temporarily that would make all the representatives appear
+                            -- selected.
+                            rep.name == person.name && rep.code == person.code
+            in
+            Html.tr
+                []
+                [ Html.td
+                    [ Attributes.class "button"
+                    , selectedClass isSelected
+                    , Attributes.class "representative-name"
+                    , Events.onClick <| SelectRepresentative person
                     ]
+                    [ text person.name ]
+                , Html.td
                     []
-                , Html.label
-                    [ Attributes.class "birthyear-label" ]
-                    [ text "Your year of birth" ]
-                , Html.input
-                    [ Attributes.class "birthyear-input"
-                    , Events.onInput BirthYearInput
-                    , Attributes.value model.birthyear
-                    , Attributes.type_ "number"
-                    , Attributes.min "1900"
-                    , Attributes.max "2003"
-                    ]
+                    [ text person.position ]
+                , Html.td
                     []
+                    [ text <| formatInt person.votes ]
                 ]
 
-        choicePanel =
-            div
-                [ Attributes.class "panel" ]
-                [ optionalPersonalInfo
-                , Html.section
-                    []
-                    [ Html.h2
+        filteredRepresentatives =
+            case String.isEmpty model.searchRepresentativeInput of
+                True ->
+                    model.people
+
+                False ->
+                    let
+                        searchString =
+                            String.toLower model.searchRepresentativeInput
+
+                        matches person =
+                            String.contains searchString <| String.toLower person.name
+                    in
+                    List.filter matches model.people
+    in
+    div
+        [ Attributes.class "panel" ]
+        [ Html.section
+            []
+            [ Html.h2
+                []
+                [ text "Who do you trust to represent your views?" ]
+            , paragraph "You can select a person who would represent your views to parliament and the government"
+            , div
+                [ Attributes.id "list-of-persons-container" ]
+                [ Html.table
+                    [ Attributes.id "list-of-persons" ]
+                    [ Html.thead
                         []
-                        [ text "What should we do?" ]
-                    , Html.form
-                        [ Attributes.class "choices" ]
-                        (List.map makeChoice model.mainOptions)
-                    ]
-                , div
-                    [ Attributes.id "total-choices" ]
-                    [ text "Total choices made so far: "
-                    , text <| formatInt totalNumVotes
-                    ]
-                , div
-                    [ Attributes.class "main-option-pie-container" ]
-                    [ viewPie ]
-                , Html.section
-                    [ Attributes.id "explanation"
-                    , Attributes.class "explainer"
-                    ]
-                    [ paragraph "You can change your mind as many times as you like but only once an hour."
-                    , Html.p
-                        []
-                        [ text "Time to next ability to change "
-                        , Html.b
+                        [ Html.tr
                             []
-                            [ text <| formatInt 16 ]
-                        , text " minutes"
-                        ]
-                    ]
-                , textBuilder model
-                ]
-
-        representativePanel =
-            div
-                [ Attributes.class "panel" ]
-                [ Html.section
-                    []
-                    [ Html.h2
-                        []
-                        [ text "Who do you trust to represent your views?" ]
-                    , paragraph "You can select a person who would represent your views to parliament and the government"
-                    , div
-                        [ Attributes.id "list-of-persons-container" ]
-                        [ Html.table
-                            [ Attributes.id "list-of-persons" ]
-                            [ Html.thead
+                            [ Html.th
                                 []
-                                [ Html.tr
-                                    []
-                                    [ Html.th
-                                        []
-                                        [ text "Representative"
-                                        , Html.br [] []
-                                        , Html.span
-                                            [ Attributes.class "help-text" ]
-                                            [ text "Click to choose" ]
-                                        ]
-                                    , Html.th [] [ text "Profession" ]
-                                    , Html.th [] [ text "Chosen by" ]
-                                    ]
+                                [ text "Representative"
+                                , Html.br [] []
+                                , Html.span
+                                    [ Attributes.class "help-text" ]
+                                    [ text "Click to choose" ]
                                 ]
-                            , Html.tbody
-                                []
-                                (List.map makeRepChoice filteredRepresentatives)
+                            , Html.th [] [ text "Profession" ]
+                            , Html.th [] [ text "Chosen by" ]
                             ]
                         ]
-                    , Html.p
+                    , Html.tbody
                         []
-                        [ text "Showing "
-                        , Html.span
-                            [ Attributes.class "bold" ]
-                            [ List.length filteredRepresentatives |> formatInt |> text ]
-                        , case String.isEmpty model.searchRepresentativeInput of
-                            True ->
-                                text ""
-
-                            False ->
-                                Html.span
-                                    []
-                                    [ text " of "
-                                    , Html.span
-                                        [ Attributes.class "bold" ]
-                                        [ List.length model.people |> formatInt |> text ]
-                                    , text " matching "
-                                    , Html.span
-                                        [ Attributes.class "bold" ]
-                                        [ text "“"
-                                        , text model.searchRepresentativeInput
-                                        , text "”"
-                                        ]
-                                    ]
-                        ]
-                    , Html.input
-                        [ Attributes.type_ "text"
-                        , Attributes.placeholder "Search for person"
-                        , Attributes.value model.searchRepresentativeInput
-                        , Events.onInput SearchRepresentativeInput
-                        ]
-                        []
-
-                    -- TODO: Well obviously this is wrong
-                    , Html.a
-                        [ Attributes.class "button"
-                        , Route.href Donate
-                        ]
-                        [ text "Search" ]
-                    ]
-                , Html.section
-                    [ Attributes.id "add-person" ]
-                    [ Html.input
-                        [ Attributes.type_ "text"
-                        , Attributes.placeholder "New person"
-                        ]
-                        []
-                    , let
-                        makeOption profession =
-                            Html.option
-                                [ Attributes.value profession ]
-                                [ text profession ]
-
-                        professions =
-                            [ "Politician", "Writer", "Entertainer", "Sports person", "Journalist", "Actor" ]
-
-                        pleaseSelect =
-                            Html.option
-                                [ Attributes.value "" ]
-                                [ text "Please select" ]
-
-                        options =
-                            pleaseSelect :: List.map makeOption professions
-                      in
-                      Html.select [] options
-                    , Html.button
-                        [ Attributes.class "button"
-                        , Route.href Donate
-                        ]
-                        [ text "Add" ]
-                    , paragraph """You may add any British citizen with a Wikipedia entry to the Representative list. They must be 17 or over and able to express their views.  If they ask to be removed, we will remove them.  We will manually check additions and so name may not be immediately added."""
-                    , paragraph """There is no obligation whatsoever that anyone on this list should do anything and anyone on the list will be removed at their request by contacting us at remove-me@crediblechoice.co.uk (make it a picture)."""
-                    , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
+                        (List.map makeRepChoice filteredRepresentatives)
                     ]
                 ]
+            , Html.p
+                []
+                [ text "Showing "
+                , Html.span
+                    [ Attributes.class "bold" ]
+                    [ List.length filteredRepresentatives |> formatInt |> text ]
+                , case String.isEmpty model.searchRepresentativeInput of
+                    True ->
+                        text ""
 
+                    False ->
+                        Html.span
+                            []
+                            [ text " of "
+                            , Html.span
+                                [ Attributes.class "bold" ]
+                                [ List.length model.people |> formatInt |> text ]
+                            , text " matching "
+                            , Html.span
+                                [ Attributes.class "bold" ]
+                                [ text "“"
+                                , text model.searchRepresentativeInput
+                                , text "”"
+                                ]
+                            ]
+                ]
+            , Html.input
+                [ Attributes.type_ "text"
+                , Attributes.placeholder "Search for person"
+                , Attributes.value model.searchRepresentativeInput
+                , Events.onInput SearchRepresentativeInput
+                ]
+                []
+            ]
+        , Html.section
+            [ Attributes.id "add-person" ]
+            [ Html.input
+                [ Attributes.type_ "text"
+                , Attributes.placeholder "New person"
+                ]
+                []
+            , let
+                makeOption profession =
+                    Html.option
+                        [ Attributes.value profession ]
+                        [ text profession ]
+
+                professions =
+                    [ "Politician", "Writer", "Entertainer", "Sports person", "Journalist", "Actor" ]
+
+                pleaseSelect =
+                    Html.option
+                        [ Attributes.value "" ]
+                        [ text "Please select" ]
+
+                options =
+                    pleaseSelect :: List.map makeOption professions
+              in
+              Html.select [] options
+            , Html.button
+                [ Attributes.class "button" ]
+                [ text "Add" ]
+            , paragraph """You may add any British citizen with a Wikipedia entry to the Representative list. They must be 17 or over and able to express their views.  If they ask to be removed, we will remove them.  We will manually check additions and so name may not be immediately added."""
+            , paragraph """There is no obligation whatsoever that anyone on this list should do anything and anyone on the list will be removed at their request by contacting us at remove-me@crediblechoice.co.uk (make it a picture)."""
+            , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
+            ]
+        ]
+
+
+viewPersonalInformation : Model -> Html Msg
+viewPersonalInformation model =
+    Html.section
+        [ Attributes.class "personal-information" ]
+        [ Html.label
+            [ Attributes.class "post-code-label" ]
+            [ text "First part of your post-code, eg SW19" ]
+        , Html.input
+            [ Attributes.class "post-code-input"
+            , Events.onInput PostCodeInput
+            , Attributes.value model.postcode
+            , Attributes.type_ "text"
+            , Attributes.maxlength 4
+            ]
+            []
+        , Html.label
+            [ Attributes.class "birthyear-label" ]
+            [ text "Your year of birth" ]
+        , Html.input
+            [ Attributes.class "birthyear-input"
+            , Events.onInput BirthYearInput
+            , Attributes.value model.birthyear
+            , Attributes.type_ "number"
+            , Attributes.min "1900"
+            , Attributes.max "2003"
+            ]
+            []
+        ]
+
+
+viewCharityChoice : Model -> Html Msg
+viewCharityChoice model =
+    let
         makeCharityChoice charity =
             let
                 mId =
@@ -973,65 +1121,49 @@ viewChoose model =
                 ]
                 [ text "Clear choice" ]
 
-        charityPanel =
-            div
-                [ Attributes.class "panel" ]
-                [ Html.section
-                    []
-                    [ Html.h2
-                        []
-                        [ text "How much" ]
-                    , let
-                        makeDonationOption amount =
-                            let
-                                selected =
-                                    model.donation == Just amount
-                            in
-                            Html.label
-                                [ Attributes.class "donation-option-label"
-                                , Attributes.class "button"
-                                , selectedClass selected
-                                ]
-                                [ text <| formatPence amount
-                                , Html.input
-                                    [ Attributes.class "donation-option-input"
-                                    , Attributes.type_ "radio"
-                                    , Events.onClick <| SelectDonationAmount amount
-                                    , Attributes.selected selected
-                                    ]
-                                    []
-                                ]
-                      in
-                      Html.div
-                        [ Attributes.id "donation-amount-selector" ]
-                        (List.map makeDonationOption [ 50, 100, 500, 1000, 2000 ])
-                    , Html.h2
-                        []
-                        [ text "To which charity" ]
-                    , paragraph "You may select which charity you wish to make your donation"
-                    , div
-                        [ Attributes.id "list-of-charities-container" ]
-                        [ Html.ul
-                            [ Attributes.id "list-of-charities" ]
-                            charityChoices
-                        ]
-                    , clearCharityChoice
-                    ]
+        makeDonationOption amount =
+            let
+                selected =
+                    model.donation == Just amount
+            in
+            Html.label
+                [ Attributes.class "donation-option-label"
+                , Attributes.class "button"
+                , selectedClass selected
                 ]
-
-        panelSeparator =
-            div [ Attributes.class "sep" ] []
-
-        panels =
-            List.intersperse panelSeparator
-                [ choicePanel
-                , representativePanel
-                , charityPanel
+                [ text <| formatPence amount
+                , Html.input
+                    [ Attributes.class "donation-option-input"
+                    , Attributes.type_ "radio"
+                    , Events.onClick <| SelectDonationAmount amount
+                    , Attributes.selected selected
+                    ]
+                    []
                 ]
     in
     div
-        [ Attributes.class "panels" ]
-        panels
+        [ Attributes.class "panel" ]
+        [ Html.section
+            []
+            [ Html.h2
+                []
+                [ text "How much" ]
+            , Html.div
+                [ Attributes.id "donation-amount-selector" ]
+                (List.map makeDonationOption [ 50, 100, 500, 1000, 2000 ])
+            , Html.h2
+                []
+                [ text "To which charity" ]
+            , paragraph "You may select which charity you wish to make your donation"
+            , div
+                [ Attributes.id "list-of-charities-container" ]
+                [ Html.ul
+                    [ Attributes.id "list-of-charities" ]
+                    charityChoices
+                ]
+            , clearCharityChoice
+            ]
+        ]
 
 
 viewAuthenticate : Html msg
