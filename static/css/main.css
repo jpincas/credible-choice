@@ -162,6 +162,11 @@ button, .button {
     cursor: pointer;
 }
 
+button:disabled{
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
 
 .explainer {
     font-style: italic;
