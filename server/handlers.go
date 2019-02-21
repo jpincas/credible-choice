@@ -83,7 +83,7 @@ func CreateRepresentative(w http.ResponseWriter, r *http.Request) {
 	wikiResponse := fetchRepresentativeFromWikipedia(repCreateRequest)
 
 	var rep Representative
-	if err := rep.buildFromWikiResponse(wikiResponse); err != nil {
+	if err := rep.buildFromWikiResponse(wikiResponse, repCreateRequest.Id); err != nil {
 		respondWithError(w, "Incomplete info for representative", err)
 		return
 	}

@@ -26,31 +26,33 @@ func generateRepId(firstName string, surname string) (string, error) {
 	return "", nil
 }
 
-// TODO EdS: Delete this when I have first name and surname sorted
 func generateRepIdFromSingleString(name string) (string, error) {
 	trimmedName := strings.TrimSpace(name)
 	names := strings.Split(trimmedName, " ")
 	firstName := names[0]
-	surname := names[len(names)-1] // TODO EdS: This assumes last part of the name is surname as opposed to position or title
 
 	if firstName == "" {
 		err := errors.New("cannot create Representative id from an empty string")
 		return "", err
 	}
 
-	// TODO EdS: Handle case with no surname
+	var secondName string
+	if len(names) > 1 {
+		secondName = names[1]
+	} else {
+		secondName = names[0][1:] // TODO EdS: What if first name is only 1 character long?
+	}
 
 	for i := 0; i < len(firstName); i++ {
-		for j := 0; j < len(surname)-1; j++ {
-			var id string = string(firstName[i]) + string(surname[j]) + string(surname[j+1])
+		for j := 0; j < len(secondName)-1; j++ {
+			var id string = string(firstName[i]) + string(secondName[j]) + string(secondName[j+1])
 			if _, exists := app.Data.Representatives[id]; !exists {
 				return strings.ToUpper(id), nil
 			}
 		}
 	}
 
-	err := errors.New("") // TODO EdS: Create error properly
-	return "", err
+	return "", errors.New("no three letter ID could be created for this Representative")
 }
 
 // Config

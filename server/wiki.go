@@ -15,7 +15,6 @@ const (
 	WikiApiSearch = "?action=query&format=json&list=search&srlimit=10&srprop=&srsearch="
 	// To fetch info on a specific wikipedia page id
 	WikiApiQueryIdTemp = "?action=query&format=json&pageids="
-	// TODO EdS: Look at WikiData API for more semantic search possibilities
 )
 
 func searchWikipedia(r *http.Request) (WikiSearchResponse, error) {
@@ -46,7 +45,7 @@ func searchWikipedia(r *http.Request) (WikiSearchResponse, error) {
 	return response, nil
 }
 
-func fetchRepresentativeFromWikipedia(r CreateRepresentativeRequest) WikiIdResponse {
+func fetchRepresentativeFromWikipedia(r CreateRepresentativeRequest) WikiInfo {
 	wikiApiUrl := WikiUrlBase + WikiApiQueryIdTemp + strconv.Itoa(r.Id)
 
 	wikiResponse, err := http.Get(wikiApiUrl)
@@ -59,28 +58,22 @@ func fetchRepresentativeFromWikipedia(r CreateRepresentativeRequest) WikiIdRespo
 		fmt.Printf("Failure 1 %s\n", err) // TODO EdS: Deal with error
 	}
 
-	return response
+	var wikiPage WikiInfo
+	j, _ := json.Marshal(&response.QueryResult.Pages)
+	if err := json.NewDecoder(strings.NewReader(string(j))).Decode(&wikiPage); err != nil {
+		fmt.Printf("Failure 1 %s\n", err) // TODO EdS: Deal with error
+	}
+
+	return wikiPage
 }
 
 type WikiSearchResponse struct {
-	//BatchComplete string `json:"batchcomplete"`
-	//Paging Paging `json:"continue"`
 	Query Query `json:"query"`
 }
 
-//type paging struct {
-//	SrOffset int `json:"sroffset"`
-//	Continue string `json:"continue"`
-//}
-
 type Query struct {
-	//SearchInfo Searchinfo `json:"searchinfo"`
 	Pages []Page `json:"search"`
 }
-
-//type searchinfo struct {
-//	TotalHits int `json:"totalhits"`
-//}
 
 type Page struct {
 	//Ns int `json:"ns"`
@@ -89,19 +82,17 @@ type Page struct {
 }
 
 type WikiIdResponse struct {
-	//BatchComplete string `json:"batchcomplete"`
-	QueryResult QueryResult `json:"query"` // TODO EdS: Merge these structs
+	QueryResult QueryResult `json:"query"` // TODO EdS: Can I merge these structs?
 }
 
 type QueryResult struct {
-	Pages PageNumber `json:"pages"`
+	Pages json.RawMessage `json:"pages"`
 }
 
-type PageNumber struct {
-	//Test map[string]Value
-	Value struct {
-		PageId int `json:"pageid"`
-		//Ns int `json:"ns"`
-		Title string `json:"title"`
-	} `json:"434967"` // TODO EdS: Obviously this cannot be fixed to a particular value!
+type WikiInfo map[string]Pge
+
+type Pge struct {
+	PageId int `json:"pageid"`
+	//Ns int `json:"ns"`
+	Title string `json:"title"`
 }

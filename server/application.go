@@ -184,12 +184,11 @@ func (a *Application) readRepresentatives() error {
 		}
 
 		id := record[0]
-		firstName := record[1]
-		surname := record[2]
-		profession := record[3]
-		wikiId, _ := strconv.Atoi(record[4])
+		title := record[1]
+		profession := record[2]
+		wikiId, _ := strconv.Atoi(record[3])
 
-		representatives[id] = Representative{id, firstName, surname, profession, wikiId}
+		representatives[id] = Representative{id, title, profession, wikiId}
 	}
 
 	Log(LogModuleStartup, true, "Read in list of representatives OK", nil)
