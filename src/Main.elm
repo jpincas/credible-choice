@@ -254,38 +254,43 @@ viewTextCode model =
                             text "You must select a donation amount to vote"
 
                         Just donationPennies ->
-                            let
-                                donation =
-                                    String.fromInt donationPennies
+                            case model.charity == Nothing of
+                                True ->
+                                    text "You must select a charity to vote."
 
-                                codeParts =
-                                    codeComponents model
+                                False ->
+                                    let
+                                        donation =
+                                            String.fromInt donationPennies
 
-                                code =
-                                    Html.span
-                                        [ Attributes.class "text-code" ]
-                                        [ Html.span
-                                            [ Attributes.class "text-code-main-choice" ]
-                                            [ text option ]
-                                        , Html.span
-                                            [ Attributes.class "text-code-nonce" ]
-                                            [ text codeParts.nonce ]
-                                        , Html.span
-                                            [ Attributes.class "text-code-rep" ]
-                                            [ text codeParts.repVote ]
-                                        , Html.span
-                                            [ Attributes.class "text-code-charity" ]
-                                            [ text codeParts.charity ]
+                                        codeParts =
+                                            codeComponents model
+
+                                        code =
+                                            Html.span
+                                                [ Attributes.class "text-code" ]
+                                                [ Html.span
+                                                    [ Attributes.class "text-code-main-choice" ]
+                                                    [ text option ]
+                                                , Html.span
+                                                    [ Attributes.class "text-code-nonce" ]
+                                                    [ text codeParts.nonce ]
+                                                , Html.span
+                                                    [ Attributes.class "text-code-rep" ]
+                                                    [ text codeParts.repVote ]
+                                                , Html.span
+                                                    [ Attributes.class "text-code-charity" ]
+                                                    [ text codeParts.charity ]
+                                                ]
+                                    in
+                                    div
+                                        [ Attributes.class "text-builder" ]
+                                        [ text "CCH"
+                                        , text " "
+                                        , code
+                                        , text " "
+                                        , text donation
                                         ]
-                            in
-                            div
-                                [ Attributes.class "text-builder" ]
-                                [ text "CCH"
-                                , text " "
-                                , code
-                                , text " "
-                                , text donation
-                                ]
 
 
 sendPreVote : Model -> Cmd Msg
@@ -1254,8 +1259,8 @@ donationSection model =
                     []
                     [ Html.button
                         [ Attributes.class "charity-choice"
-                        , Events.onClick ClearCharityChoice
-                        , selectedClass <| model.charity == Nothing
+                        , Events.onClick <| MakeCharityChoice ""
+                        , selectedClass <| model.charity == Just ""
                         ]
                         [ text "Spread over all listed charities" ]
                     ]
