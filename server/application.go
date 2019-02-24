@@ -109,7 +109,7 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 		r.Post("/prevote", RegisterPreVote)
 		r.Get("/representatives", ListTopRepresentatives)
 		r.Post("/representatives/search", SearchRepresentative)
-		// TODO EdS: Create endpoint
+		r.Post("/representatives", CreateRepresentative)
 		// TODO EdS: Delete endpoint
 
 	})
@@ -162,7 +162,6 @@ func (a *Application) readCharities() error {
 	return nil
 }
 
-// TODO EdS: Code repetition
 func (a *Application) readRepresentatives() error {
 	f, err := os.Open(a.Config.DataDirectory + "/representatives.csv")
 	if err != nil {
@@ -183,9 +182,11 @@ func (a *Application) readRepresentatives() error {
 		}
 
 		id := record[0]
-		name := record[1]
+		title := record[1]
+		profession := record[2]
+		wikiId := record[3]
 
-		representatives[id] = Representative{id, name}
+		representatives[id] = Representative{id, title, profession, wikiId}
 	}
 
 	Log(LogModuleStartup, true, "Read in list of representatives OK", nil)

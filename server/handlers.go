@@ -3,24 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"strings"
 )
-
-const (
-	WikiUrl        = "https://en.wikipedia.org/w/api.php"
-	WikiApiOptions = "?action=query&format=json&prop=&list=search&titles=&srnamespace=&srlimit=10&srprop=wordcount%7Ctimestamp%7Ccategorysnippet&srsearch="
-)
-
-// TODO EdS:
-type SearchRepresentativeRequest struct {
-	SearchPhrase string `json:"searchPhrase"`
-}
-
-type CreateRepresentativeRequest struct {
-	id int `json:"pageId"`
-}
 
 func ListCharities(w http.ResponseWriter, r *http.Request) {
 	respond(w, app.Data.Charities)
@@ -66,35 +50,49 @@ func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListTopRepresentatives(w http.ResponseWriter, r *http.Request) {
-	// TODO EdS: Order
+	// TODO EdS: Should I implement paging and/or on returned Representatives?
 	respond(w, app.Data.Representatives)
 }
 
-// The request is in the shape: { "searchTerms": "Example Person" }
+// The request is in the shape: { "searchTerms" }
+// The response is in the shape: { "results" : [{ "title", "pageId"}]}
 func SearchRepresentative(w http.ResponseWriter, r *http.Request) {
-	// TODO EdS: Validate the request
-	var repSearchRequest SearchRepresentativeRequest
-	json.NewDecoder(r.Body).Decode(&repSearchRequest)
-	trimmedSearchPhrase := strings.TrimSpace(repSearchRequest.SearchPhrase) // TODO EdS: Tidy this
-	wikiSearchTerms := strings.Replace(trimmedSearchPhrase, " ", "+", -1)
-	wikiApiUrl := WikiUrl + WikiApiOptions + wikiSearchTerms
-	wikiResponse, err := http.Get(wikiApiUrl)
+	searchResponse, err := searchWikipedia(r)
+	//searchResponse, err := searchKGraph(r) // TODO EdS: Switch back to Knowledge Graph when API key in place
 	if err != nil {
-		fmt.Printf("Failure %s\n", err) // TODO EdS: Deal with error
+		respondWithError(w, errorTypeBadRequest, err)
+		return
 	}
-	data, _ := ioutil.ReadAll(wikiResponse.Body)
-	fmt.Println(string(data)) // TODO EdS: Get pertinent info and return
-	respond(w, wikiResponse)
+
+	response := buildSearchResponse(searchResponse)
+
+	respond(w, response)
 }
 
+// The request is in the shape { "wikiId": 123}
 func CreateRepresentative(w http.ResponseWriter, r *http.Request) {
-	// TODO EdS: Validate request
 	var repCreateRequest CreateRepresentativeRequest
 	json.NewDecoder(r.Body).Decode(&repCreateRequest)
-	// TODO EdS: Create a new Representative
-	// TODO EdS: Create a unique id for the Rep
-	//generateRepId()
-	// TODO EdS: Create Response
+
+	if err := validateCreateRepresentativeRequest(repCreateRequest); err != nil {
+		respondWithError(w, errorTypeBadRequest, err)
+		return
+	}
+
+	fetchResponse, err := fetchRepresentativeFromWikipedia(repCreateRequest)
+	//fetchResponse, err := fetchRepresentativeFromKGraph(repCreateRequest)
+	if err != nil {
+		respondWithError(w, "error fetching info from knowledge graph", err)
+	}
+
+	var rep Representative
+	if err := rep.buildFromFetchResponse(fetchResponse, repCreateRequest.Id); err != nil {
+		respondWithError(w, "error building response", err)
+		return
+	}
+	app.Data.Representatives[repCreateRequest.Id] = rep
+
+	respondCreated(w)
 }
 
 // TODO EdS: Delete endpoint

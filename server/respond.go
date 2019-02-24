@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -28,6 +30,16 @@ type ErrorResponse struct {
 	Type  string `json:"type"`
 	Error string `json:"error"`
 	Code  int    `json:"code"`
+}
+
+type RepresentativeSearchResponse struct {
+	Results []representativeSearchResult `json:"results"`
+}
+
+type representativeSearchResult struct {
+	Title      string `json:"title"`
+	PageId     string `json:"pageid"`
+	Profession string `json:"description"`
 }
 
 var ErrorCodeLookup = map[string]int{
@@ -56,8 +68,8 @@ func render(w http.ResponseWriter, code int, toRender interface{}) {
 		return
 	}
 
-	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
 	w.Write(json)
 	return
 }
@@ -68,6 +80,11 @@ func respond(w http.ResponseWriter, toRender interface{}) {
 
 func respondOK(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func respondCreated(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusCreated)
 	return
 }
 
@@ -97,4 +114,36 @@ func respondWithError(w http.ResponseWriter, errorType string, err error) {
 	}
 
 	render(w, code, errorResponse)
+}
+
+func buildSearchResponse(r interface{}) RepresentativeSearchResponse {
+	var searchResponse RepresentativeSearchResponse
+
+	switch res := r.(type) {
+	case KGraphResponse:
+		searchResponse.buildSearchResponseFromKGraph(res)
+	case WikiSearchResponse:
+		searchResponse.buildSearchResponseFromWikipedia(res)
+	}
+
+	return searchResponse
+}
+
+func (r *RepresentativeSearchResponse) buildSearchResponseFromWikipedia(wikiResponse WikiSearchResponse) {
+	for _, p := range wikiResponse.Query.Pages {
+		res := &representativeSearchResult{}
+		res.PageId = strconv.Itoa(p.PageId)
+		res.Title = p.Title
+		r.Results = append(r.Results, *res)
+	}
+}
+
+func (r *RepresentativeSearchResponse) buildSearchResponseFromKGraph(kGraphResponse KGraphResponse) {
+	for _, p := range kGraphResponse.ItemListElements {
+		res := &representativeSearchResult{}
+		res.PageId = strings.Replace(p.Person.Id, "kg:", "", 1)
+		res.Title = p.Person.Name
+		res.Profession = p.Person.Description
+		r.Results = append(r.Results, *res)
+	}
 }
