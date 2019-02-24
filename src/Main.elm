@@ -583,30 +583,25 @@ view model =
             Html.footer
                 []
                 [ div
-                    [ Attributes.id "logo" ]
-                    [ text "Credible Choice" ]
+                    [ Attributes.id "footer-title" ]
+                    [ text "Credible Choice Ltd" ]
                 , div
-                    []
-                    [ text """Credible choice is a not-for-profit entity that doesn't pay for for services, expenses or salaries. It has
-            no income or costs. The companies and individuals that have made a significant contribution are:"""
+                    [ Attributes.id "footer-about" ]
+                    [ text "About" ]
+                , navigation
+                , div
+                    [ Attributes.class "footer-section" ]
+                    [ Html.h2
+                        [ Attributes.class "footer-section-title" ]
+                        [ text "Sponsers and Contributors" ]
                     ]
-                , Html.ul
-                    []
-                    [ Html.li
-                        []
-                        [ text "XXX (identity authentication services)" ]
-                    , Html.li
-                        []
-                        [ text "XXX (website development)" ]
-                    , Html.li
-                        []
-                        [ text "PMPR (public relations)" ]
-                    ]
+                , div
+                    [ Attributes.id "footer-copyright" ]
+                    [ text "Credible Choice Ltd 2019" ]
                 ]
 
         body =
             [ header
-            , navigation
             , contents
             , footer
             ]
