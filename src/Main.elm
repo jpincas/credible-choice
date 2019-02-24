@@ -681,12 +681,14 @@ mainSection titleText contents =
         (title :: contents)
 
 
+totalNumVotes : Model -> Int
+totalNumVotes model =
+    List.map .votes model.mainOptions |> List.sum
+
+
 liveResultsSection : Model -> Html Msg
 liveResultsSection model =
     let
-        totalNumVotes =
-            List.map .votes model.mainOptions |> List.sum
-
         viewPie =
             let
                 pieConfig =
@@ -768,7 +770,7 @@ liveResultsSection model =
                     [ Html.label
                         []
                         [ text "Total number of choices" ]
-                    , text <| String.fromInt totalNumVotes
+                    , text <| formatInt <| totalNumVotes model
                     ]
                 , div
                     [ Attributes.class "total-charity" ]
@@ -843,8 +845,59 @@ Send this text to the short number shown and your choice will shortly appear in 
 
 makeYourChoiceMain : Model -> Html Msg
 makeYourChoiceMain model =
+    let
+        makeChoice option =
+            let
+                isSelected =
+                    model.selectedMainOption == Just option.id
+            in
+            Html.tr
+                [ Attributes.class "main-option-row" ]
+                [ Html.td
+                    [ Attributes.class "main-option-button" ]
+                    [ Html.button
+                        [ Attributes.class "option button"
+                        , selectedClass isSelected
+                        , Events.onClick <| MainOptionSelected option.id
+                        ]
+                        [ text option.description ]
+                    ]
+                , Html.td
+                    [ Attributes.class "main-option-chosen-by" ]
+                    [ text <| formatInt option.votes ]
+                ]
+
+        totalsRow =
+            Html.tr
+                [ Attributes.class "main-option-totals-row" ]
+                [ Html.td
+                    []
+                    [ text "Total choices so far" ]
+                , Html.td
+                    []
+                    [ text <| formatInt <| totalNumVotes model ]
+                ]
+
+        table =
+            Html.table
+                [ Attributes.id "main-choice-table" ]
+                [ Html.thead
+                    []
+                    [ Html.tr
+                        []
+                        [ Html.th [] []
+                        , Html.th
+                            [ Attributes.class "chosen-by-header" ]
+                            [ text "Chosen so far by" ]
+                        ]
+                    ]
+                , Html.tbody
+                    []
+                    (List.map makeChoice model.mainOptions ++ [ totalsRow ])
+                ]
+    in
     mainSection "Make your choice - What should we do?"
-        [ text "I'm the what should we do" ]
+        [ table ]
 
 
 makeYourChoiceRep : Model -> Html Msg
@@ -883,63 +936,6 @@ smsBuilder model =
     div
         [ Attributes.id "sms-builder" ]
         [ viewTextCode model ]
-
-
-viewMainChoice : Model -> Html Msg
-viewMainChoice model =
-    let
-        makeChoice option =
-            let
-                isSelected =
-                    model.selectedMainOption == Just option.id
-            in
-            div
-                [ Attributes.class "option button"
-                , selectedClass isSelected
-                , Events.onClick <| MainOptionSelected option.id
-                ]
-                [ text option.description
-                , div
-                    [ Attributes.class "chosen-by" ]
-                    [ text "Chosen so far by "
-                    , Html.span
-                        [ Attributes.class "bold" ]
-                        [ text <| formatInt option.votes ]
-                    ]
-                ]
-    in
-    div
-        [ Attributes.class "panel" ]
-        [ Html.section
-            []
-            [ Html.h2
-                []
-                [ text "What should we do?" ]
-            , Html.form
-                [ Attributes.class "choices" ]
-                (List.map makeChoice model.mainOptions)
-            ]
-        , div
-            [ Attributes.id "total-choices" ]
-            [ text "Total choices made so far: "
-
-            -- , text <| formatInt totalNumVotes
-            ]
-        , Html.section
-            [ Attributes.id "explanation"
-            , Attributes.class "explainer"
-            ]
-            [ paragraph "You can change your mind as many times as you like but only once an hour."
-            , Html.p
-                []
-                [ text "Time to next ability to change "
-                , Html.b
-                    []
-                    [ text <| formatInt 16 ]
-                , text " minutes"
-                ]
-            ]
-        ]
 
 
 viewRepresentativeChoice : Model -> Html Msg

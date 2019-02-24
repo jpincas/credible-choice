@@ -11,7 +11,7 @@ now dns add crediblechoice.uk "@" MX crediblechoice-uk.mail.protection.outlook.c
 # Front-end work
     [x] Create the pages as in the spreadsheet
     [x] Div for twitter thing in header
-    [ ] Just to scroll down
+    [x] Just to scroll down
     [ ] Pie-chart percentages
     [ ] Poll new results every minute
     [ ] text builder always stuck to the bottom
