@@ -566,16 +566,22 @@ view model =
     let
         contents =
             case model.route of
-                Choose ->
+                ChoosePage ->
                     viewChoose model
 
-                Authenticate ->
-                    viewAuthenticate
+                TermsAndConditionsPage ->
+                    viewTermsAndConditions
 
-                Donate ->
-                    viewDonate
+                FaqPage ->
+                    viewFaqPage
 
-                NotFound ->
+                CompanyInfoPage ->
+                    viewCompanyPage
+
+                TechnicalInfoPage ->
+                    viewTechnicalPage
+
+                NotFoundPage ->
                     viewNotFound
 
         header =
@@ -624,7 +630,7 @@ view model =
                 []
                 [ Html.ul
                     []
-                    (List.map navItem [ Choose, Authenticate, Donate ])
+                    (List.map navItem [ TermsAndConditionsPage, FaqPage, CompanyInfoPage, TechnicalInfoPage ])
                 ]
 
         footer =
@@ -661,17 +667,23 @@ view model =
 
         routeTitle route =
             case route of
-                Choose ->
+                ChoosePage ->
                     "Choose"
 
-                Authenticate ->
-                    "Register / Login"
+                TermsAndConditionsPage ->
+                    "Terms and Conditions "
 
-                Donate ->
-                    "Donate to Charity"
+                FaqPage ->
+                    "FAQ"
 
-                NotFound ->
-                    "404"
+                CompanyInfoPage ->
+                    "Company"
+
+                TechnicalInfoPage ->
+                    "Technical"
+
+                NotFoundPage ->
+                    "Not found"
     in
     { title = "Credible Choice - " ++ routeTitle model.route
     , body = body
@@ -1177,101 +1189,24 @@ viewCharityChoice model =
         ]
 
 
-viewAuthenticate : Html msg
-viewAuthenticate =
-    div
-        []
-        [ Html.section
-            [ Attributes.id "id-verification" ]
-            [ Html.h2
-                []
-                [ text "Identity Verification" ]
-            , paragraph """This is to make sure one person expresses one choice, although you can change your mind. We check your
-                identity but do not store any personal information about you. Any UK citizen over the age of 17 or person
-                with a UK NI number can make a choice."""
-            ]
-        , Html.section
-            [ Attributes.id "existing-users" ]
-            [ Html.h3
-                []
-                [ text "Existing Users" ]
-            , div
-                []
-                [ Html.input
-                    [ Attributes.type_ "text"
-                    , Attributes.placeholder "UK Mobile Number"
-                    ]
-                    []
-                , Html.a
-                    [ Attributes.class "button"
-                    , Route.href Route.homeRoute
-                    ]
-                    [ text "Get Auth Code By SMS" ]
-                ]
-            ]
-        , Html.section
-            [ Attributes.id "register" ]
-            [ Html.h3
-                []
-                [ text "New Users" ]
-            , Html.input [ Attributes.type_ "text", Attributes.placeholder "First Name" ] []
-            , Html.input [ Attributes.type_ "text", Attributes.placeholder "Last Name" ] []
-            , Html.input [ Attributes.type_ "text", Attributes.placeholder "Date of birth" ] []
-            , Html.input [ Attributes.type_ "text", Attributes.placeholder "Post Code" ] []
-            , div
-                [ Attributes.class "security-questions" ]
-                [ paragraph "ID verification questions"
-                , Html.input [ Attributes.type_ "text", Attributes.placeholder "What was the ...............?" ] []
-                , Html.input [ Attributes.type_ "text", Attributes.placeholder "When was the ...............?" ] []
-                ]
-            , Html.input [ Attributes.type_ "text", Attributes.placeholder "UK Mobile Number" ] []
-            , Html.a
-                [ Attributes.class "button"
-                , Route.href Route.homeRoute
-                ]
-                [ text "Get Auth Code By SMS" ]
-            ]
-        ]
+viewTermsAndConditions : Html msg
+viewTermsAndConditions =
+    text "I am the Terms and Conditions page."
 
 
-viewDonate : Html msg
-viewDonate =
-    Html.section
-        []
-        [ Html.h2
-            []
-            [ text "Charitable Sponsorship" ]
-        , paragraph """This is entirely optional but you may choose to make a contribution to the following charities by committing
-            to donate a certain amount for each 10,000 choices that are made prior to the end of March 2019."""
-        , div
-            [ Attributes.id "donation-options" ]
-            [ Html.input [ Attributes.type_ "text", Attributes.placeholder "£ per 10,000 choices, e.g. £0.01" ] []
-            , div
-                []
-                [ text "Current number of choices: "
-                , Html.span
-                    [ Attributes.class "bold" ]
-                    [ text <| formatInt 676879 ]
-                ]
-            , div
-                []
-                [ text "At the current number of choices, your donation would be : "
-                , Html.span
-                    [ Attributes.class "bold" ]
-                    [ text "£"
-                    , text "4.75"
-                    ]
-                ]
-            , Html.button
-                [ Attributes.class "button" ]
-                [ text "Donate" ]
-            ]
-        , div
-            [ Attributes.id "total-choices" ]
-            [ text "Total amount committed so far: "
-            , text "£1,676,869"
-            ]
-        ]
+viewFaqPage : Html msg
+viewFaqPage =
+    text "I am the FAQ page."
+
+
+viewCompanyPage : Html msg
+viewCompanyPage =
+    text "I am the company info page."
+
+
+viewTechnicalPage : Html msg
+viewTechnicalPage =
+    text "I am the technical info page."
 
 
 viewNotFound : Html msg

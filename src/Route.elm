@@ -13,15 +13,17 @@ import Url.Parser as Parser exposing ((</>), Parser)
 
 
 type Route
-    = Choose
-    | Authenticate
-    | Donate
-    | NotFound
+    = ChoosePage
+    | TermsAndConditionsPage
+    | FaqPage
+    | CompanyInfoPage
+    | TechnicalInfoPage
+    | NotFoundPage
 
 
 homeRoute : Route
 homeRoute =
-    Choose
+    ChoosePage
 
 
 parse : Url.Url -> Route
@@ -31,12 +33,14 @@ parse url =
         routeParser =
             Parser.oneOf
                 [ Parser.map homeRoute Parser.top
-                , Parser.map Choose <| Parser.s "choose"
-                , Parser.map Authenticate <| Parser.s "auth"
-                , Parser.map Donate <| Parser.s "donate"
+                , Parser.map ChoosePage <| Parser.s "choose"
+                , Parser.map TermsAndConditionsPage <| Parser.s "terms"
+                , Parser.map FaqPage <| Parser.s "faq"
+                , Parser.map CompanyInfoPage <| Parser.s "company"
+                , Parser.map TechnicalInfoPage <| Parser.s "technical"
                 ]
     in
-    Maybe.withDefault NotFound <|
+    Maybe.withDefault NotFoundPage <|
         Parser.parse routeParser url
 
 
@@ -50,16 +54,22 @@ unparse route =
     let
         parts =
             case route of
-                Choose ->
+                ChoosePage ->
                     [ "choose" ]
 
-                Authenticate ->
-                    [ "auth" ]
+                TermsAndConditionsPage ->
+                    [ "terms " ]
 
-                Donate ->
-                    [ "donate" ]
+                FaqPage ->
+                    [ "faq" ]
 
-                NotFound ->
+                CompanyInfoPage ->
+                    [ "company" ]
+
+                TechnicalInfoPage ->
+                    [ "technical" ]
+
+                NotFoundPage ->
                     [ "notfound" ]
     in
     String.join "/" parts
