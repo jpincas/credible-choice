@@ -751,9 +751,40 @@ liveResultsSection model =
                         ]
             in
             pieImage
+
+        viewRep person =
+            Html.li
+                [ Attributes.class "top-ten-rep" ]
+                [ text person.name ]
+
+        viewReps =
+            div
+                [ Attributes.id "live-results-representatives" ]
+                [ Html.ol
+                    [ Attributes.class "top-ten-representatives" ]
+                    (List.map viewRep <| List.take 10 model.people)
+                , div
+                    [ Attributes.class "total-votes" ]
+                    [ Html.label
+                        []
+                        [ text "Total number of choices" ]
+                    , text <| String.fromInt totalNumVotes
+                    ]
+                , div
+                    [ Attributes.class "total-charity" ]
+                    [ Html.label
+                        []
+                        [ text "Total raised for charity" ]
+
+                    -- TODO: Obviously we need to get this from somewhere?
+                    , text <| formatPence 50
+                    ]
+                ]
     in
     mainSection "Live Results Summary"
-        [ viewPie ]
+        [ viewPie
+        , viewReps
+        ]
 
 
 makeYourChoiceIntroduction : Model -> Html Msg
