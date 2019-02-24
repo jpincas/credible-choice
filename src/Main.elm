@@ -604,6 +604,9 @@ view model =
                     , div
                         [ Attributes.id "slogan" ]
                         [ text "Make your voice heard today" ]
+                    , div
+                        [ Attributes.id "twitter-link" ]
+                        []
                     ]
                 ]
 
