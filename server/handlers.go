@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 )
 
 func ListCharities(w http.ResponseWriter, r *http.Request) {
@@ -51,23 +50,23 @@ func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListTopRepresentatives(w http.ResponseWriter, r *http.Request) {
-	// TODO EdS: Order or paging on returned Representatives?
-	// TODO EdS: Make the response application/json
+	// TODO EdS: Should I implement paging and/or on returned Representatives?
 	respond(w, app.Data.Representatives)
 }
 
 // The request is in the shape: { "searchTerms" }
 // The response is in the shape: { "results" : [{ "title", "pageId"}]}
 func SearchRepresentative(w http.ResponseWriter, r *http.Request) {
-	wikiResponse, err := searchWikipedia(r)
+	searchResponse, err := searchWikipedia(r)
+	//searchResponse, err := searchKGraph(r) // TODO EdS: Switch back to Knowledge Graph when API key in place
 	if err != nil {
 		respondWithError(w, errorTypeBadRequest, err)
 		return
 	}
 
-	searchResponse := buildSearchResponse(wikiResponse) // TODO EdS: Error checking
+	response := buildSearchResponse(searchResponse)
 
-	respond(w, searchResponse)
+	respond(w, response)
 }
 
 // The request is in the shape { "wikiId": 123}
@@ -80,14 +79,18 @@ func CreateRepresentative(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wikiResponse := fetchRepresentativeFromWikipedia(repCreateRequest)
+	fetchResponse, err := fetchRepresentativeFromWikipedia(repCreateRequest)
+	//fetchResponse, err := fetchRepresentativeFromKGraph(repCreateRequest)
+	if err != nil {
+		respondWithError(w, "error fetching info from knowledge graph", err)
+	}
 
 	var rep Representative
-	if err := rep.buildFromWikiResponse(wikiResponse, repCreateRequest.Id); err != nil {
-		respondWithError(w, "Incomplete info for representative", err)
+	if err := rep.buildFromFetchResponse(fetchResponse, repCreateRequest.Id); err != nil {
+		respondWithError(w, "error building response", err)
 		return
 	}
-	app.Data.Representatives[strconv.Itoa(repCreateRequest.Id)] = rep
+	app.Data.Representatives[repCreateRequest.Id] = rep
 
 	respondCreated(w)
 }

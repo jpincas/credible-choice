@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -163,7 +162,6 @@ func (a *Application) readCharities() error {
 	return nil
 }
 
-// TODO EdS: Code repetition
 func (a *Application) readRepresentatives() error {
 	f, err := os.Open(a.Config.DataDirectory + "/representatives.csv")
 	if err != nil {
@@ -186,7 +184,7 @@ func (a *Application) readRepresentatives() error {
 		id := record[0]
 		title := record[1]
 		profession := record[2]
-		wikiId, _ := strconv.Atoi(record[3])
+		wikiId := record[3]
 
 		representatives[id] = Representative{id, title, profession, wikiId}
 	}

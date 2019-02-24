@@ -3,9 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -45,26 +43,26 @@ func searchWikipedia(r *http.Request) (WikiSearchResponse, error) {
 	return response, nil
 }
 
-func fetchRepresentativeFromWikipedia(r CreateRepresentativeRequest) WikiInfo {
-	wikiApiUrl := WikiUrlBase + WikiApiQueryIdTemp + strconv.Itoa(r.Id)
+func fetchRepresentativeFromWikipedia(r CreateRepresentativeRequest) (WikiInfo, error) {
+	var wikiPage WikiInfo
+	wikiApiUrl := WikiUrlBase + WikiApiQueryIdTemp + r.Id
 
 	wikiResponse, err := http.Get(wikiApiUrl)
 	if err != nil {
-		fmt.Printf("Failure %s\n", err) // TODO EdS: Deal with error
+		return wikiPage, err
 	}
 
 	var response WikiIdResponse
 	if err := json.NewDecoder(wikiResponse.Body).Decode(&response); err != nil {
-		fmt.Printf("Failure 1 %s\n", err) // TODO EdS: Deal with error
+		return wikiPage, err
 	}
 
-	var wikiPage WikiInfo
-	j, _ := json.Marshal(&response.QueryResult.Pages)
-	if err := json.NewDecoder(strings.NewReader(string(j))).Decode(&wikiPage); err != nil {
-		fmt.Printf("Failure 1 %s\n", err) // TODO EdS: Deal with error
+	wikiPages, _ := json.Marshal(&response.QueryResult.Pages)
+	if err := json.NewDecoder(strings.NewReader(string(wikiPages))).Decode(&wikiPage); err != nil {
+		return wikiPage, err
 	}
 
-	return wikiPage
+	return wikiPage, nil
 }
 
 type WikiSearchResponse struct {
@@ -82,16 +80,16 @@ type Page struct {
 }
 
 type WikiIdResponse struct {
-	QueryResult QueryResult `json:"query"` // TODO EdS: Can I merge these structs?
+	QueryResult QueryResult `json:"query"`
 }
 
 type QueryResult struct {
 	Pages json.RawMessage `json:"pages"`
 }
 
-type WikiInfo map[string]Pge
+type WikiInfo map[string]WikiPage
 
-type Pge struct {
+type WikiPage struct {
 	PageId int `json:"pageid"`
 	//Ns int `json:"ns"`
 	Title string `json:"title"`

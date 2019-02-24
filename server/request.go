@@ -9,12 +9,12 @@ type SearchRepresentativeRequest struct {
 }
 
 type CreateRepresentativeRequest struct {
-	Id int `json:"pageId"`
+	Id string `json:"pageId"`
 }
 
 func validateCreateRepresentativeRequest(r CreateRepresentativeRequest) error {
 	for _, rep := range app.Data.Representatives {
-		if rep.WikiId == r.Id {
+		if rep.ExternalId == r.Id {
 			msg := "A representative already exists with that Wikipedia id"
 			err := errors.New(msg)
 			return err

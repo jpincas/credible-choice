@@ -4,35 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"math/rand"
 	"strings"
 )
 
 // Helpers
-func generateRepId(firstName string, surname string) (string, error) {
-	if firstName == "" {
-		err := errors.New("cannot create Representative id from an empty string")
-		return "", err
-	}
-
-	// TODO EdS: Handle case with no surname
-
-	for i := 1; i < len(surname); i++ {
-		var id string = string(firstName[0]) + string(surname[0]) + string(surname[i])
-		if _, exists := app.Data.Representatives[id]; !exists {
-			return strings.ToUpper(id), nil
-		}
-	}
-
-	return "", nil
-}
-
-func generateRepIdFromSingleString(name string) (string, error) {
+func generateRepresentativeId(name string) (string, error) {
 	trimmedName := strings.TrimSpace(name)
 	names := strings.Split(trimmedName, " ")
 	firstName := names[0]
 
 	if firstName == "" {
-		err := errors.New("cannot create Representative id from an empty string")
+		err := errors.New("cannot create Representative id without a name")
 		return "", err
 	}
 
@@ -40,7 +23,7 @@ func generateRepIdFromSingleString(name string) (string, error) {
 	if len(names) > 1 {
 		secondName = names[1]
 	} else {
-		secondName = names[0][1:] // TODO EdS: What if first name is only 1 character long?
+		secondName = names[0][1:]
 	}
 
 	for i := 0; i < len(firstName); i++ {
@@ -49,6 +32,18 @@ func generateRepIdFromSingleString(name string) (string, error) {
 			if _, exists := app.Data.Representatives[id]; !exists {
 				return strings.ToUpper(id), nil
 			}
+		}
+	}
+
+	// If name too short or all relevant namespace taken, randomly generate
+	bytes := make([]byte, 3)
+	for i := 0; i < 20000; i++ {
+		for i := 0; i < 3; i++ {
+			bytes[i] = byte(65 + rand.Intn(25))
+		}
+		id := string(bytes)
+		if _, exists := app.Data.Representatives[id]; !exists {
+			return id, nil
 		}
 	}
 

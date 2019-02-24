@@ -2,37 +2,47 @@ package main
 
 import (
 	"errors"
-	"strconv"
+)
+
+var (
+	UnexpectedTypeError = errors.New("invalid type")
 )
 
 type Representative struct {
 	ID         string `json:"id"`
 	FirstName  string `json:"firstName"`
-	Profession string `json:"profession"` // TODO EdS: make this optional?
-	WikiId     int    `json:"wikiId"`
+	Profession string `json:"profession"`
+	ExternalId string `json:"externalId"`
 }
 
-func (r *Representative) buildFromWikiResponse(w WikiInfo, pageId int) error {
-	firstName := w[strconv.Itoa(pageId)].Title
-	wikiId := w[strconv.Itoa(pageId)].PageId
+func (r *Representative) buildFromFetchResponse(w interface{}, pageId string) error {
+	var profession string
+	var firstName string
 
-	if firstName == "" || wikiId == 0 {
-		msg := "Missing information required to build a representative"
-		err := errors.New(msg)
-		Log(LogModuleRepresentative, false, msg, err)
+	switch v := w.(type) {
+	case KGraphResponse:
+		firstName = v.ItemListElements[0].Person.Name
+		profession = v.ItemListElements[0].Person.Description
+	case WikiInfo:
+		firstName = v[pageId].Title
+	default:
+		return UnexpectedTypeError
+	}
+
+	if firstName == "" {
+		err := errors.New("missing information required to build a representative")
 		return err
 	}
 
-	repId, err := generateRepIdFromSingleString(firstName)
+	repId, err := generateRepresentativeId(firstName)
 	if err != nil {
-		Log(LogModuleRepresentative, false, "", err)
 		return err
 	}
 
 	r.FirstName = firstName
-	r.WikiId = wikiId
+	r.ExternalId = pageId
 	r.ID = repId
-	// TODO EdS: Set Profession
+	r.Profession = profession
 
 	return nil
 }
