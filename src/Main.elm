@@ -1359,7 +1359,27 @@ viewTermsAndConditions =
 
 viewFaqPage : Html msg
 viewFaqPage =
-    text "I am the FAQ page."
+    let
+        faq ( question, answer ) =
+            Html.li
+                []
+                [ div
+                    [ Attributes.class "faq-question" ]
+                    question
+                , div
+                    [ Attributes.class "faq-answer" ]
+                    answer
+                ]
+
+        faqs =
+            [ ( [ text "When is this due to go live" ]
+              , [ text "On the 1st of March 2019" ]
+              )
+            ]
+    in
+    Html.ul
+        [ Attributes.class "faq-list" ]
+        (List.map faq faqs)
 
 
 viewCompanyPage : Html msg
