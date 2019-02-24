@@ -534,7 +534,11 @@ view model =
                     [ Html.h2 [] [ text "Under construction" ]
                     , Html.p
                         []
-                        [ text "We're still building this site, please check back at the beginning of March." ]
+                        [ text "This site is in test mode.  It will go live at 01:01 on March 1st 2019 - "
+                        , Html.a
+                            [ Route.href FaqPage ]
+                            [ text "See FAQ " ]
+                        ]
                     ]
                 , div
                     [ Attributes.id "presentation" ]
@@ -1365,15 +1369,33 @@ viewFaqPage =
                 []
                 [ div
                     [ Attributes.class "faq-question" ]
-                    question
+                    [ text question ]
                 , div
                     [ Attributes.class "faq-answer" ]
-                    answer
+                    [ text answer ]
                 ]
 
         faqs =
-            [ ( [ text "When is this due to go live" ]
-              , [ text "On the 1st of March 2019" ]
+            [ ( "Demo Mode:  What is the basis for the order and quantities?"
+              , "These are illustrative only and will be removed for a clean launch."
+              )
+            , ( "What’s the point?"
+              , "When 50 million people liked an egg, we thought maybe we could get a few million to democratically express their views about the current Brexit situation and potentially generate some substantial funds for charity.  We also think there is a chance of a non Party group emerging from this, who could constructively help to heal the societal divisions Brexit has caused."
+              )
+            , ( "What’s in this for Credible Choice and it’s promoters?"
+              , "We have created Credible Choice Ltd, a volunteer, not-for-profit, non-partisan company.  It doesn’t have any income or expenses and doesn’t pay for supplies and services."
+              )
+            , ( "What’s the difference between this and a referendum?"
+              , "This has been created in a couple of weeks at no cost to HMG  A referendum will take six months and cost many millions to organise.  With this, participants can change their mind in response to changing circumstances."
+              )
+            , ( "Isn’t this just a self-selecting opinion poll?"
+              , "Polls interview supposedly representative groups of maybe 1,000 people.  Our approach enables millions to take part."
+              )
+            , ( "Why mobile phones when anyone can buy a SIM card for a few pounds and children and foreign powers could vote?"
+              , "The honest answer is that this is the only practical way to curtail unlimited multiple voting.  Sure their may be some multiple voting but it’s not so easy to buy and register millions of SIM cards to UK mobile phone numbers.  Any large scale spoofer would also have to donate millions to charity.  We realise this doesn’t exactly align with the electoral roll but it could be argued that this is more democratic in terms of the people affected."
+              )
+            , ( "Aren’t all sorts of nefarious players going to hack into this making it meaningless and maybe stealing loads of personal data?"
+              , "First of all we do not collect any personal data, not even mobile phone numbers.  Secondly, we are completely transparent, participants can see their choice tallied as they make it.  The whole process is underpinned by a distributed block chain which is 100% secure.  Please see the technical overview."
               )
             ]
     in
