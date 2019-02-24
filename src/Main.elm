@@ -531,7 +531,7 @@ view model =
                 []
                 [ div
                     [ Attributes.id "under-construction" ]
-                    [ text "Under construction"
+                    [ Html.h2 [] [ text "Under construction" ]
                     , Html.p
                         []
                         [ text "We're still building this site, please check back at the beginning of March." ]
@@ -779,8 +779,11 @@ liveResultsSection model =
                 ]
     in
     mainSection "Live Results Summary"
-        [ viewPie
-        , viewReps
+        [ div
+            [ Attributes.class "panels" ]
+            [ div [ Attributes.class "panel" ] [ viewPie ]
+            , div [ Attributes.class "panel" ] [ viewReps ]
+            ]
         ]
 
 
@@ -801,40 +804,54 @@ Send this text to the short number shown and your choice will shortly appear in 
         personalInfoInputs =
             div
                 [ Attributes.class "personal-information-inputs" ]
-                [ Html.label
-                    [ Attributes.class "post-code-label" ]
-                    [ text "First part of your post-code, eg SW19" ]
-                , Html.input
-                    [ Attributes.class "post-code-input"
-                    , Events.onInput PostCodeInput
-                    , Attributes.value model.postcode
-                    , Attributes.type_ "text"
-                    , Attributes.maxlength 4
-                    ]
+                [ div
                     []
-                , Html.label
-                    [ Attributes.class "birthyear-label" ]
-                    [ text "Your year of birth" ]
-                , Html.input
-                    [ Attributes.class "birthyear-input"
-                    , Events.onInput BirthYearInput
-                    , Attributes.value model.birthyear
-                    , Attributes.type_ "number"
-                    , Attributes.min "1900"
-                    , Attributes.max "2003"
+                    [ Html.label
+                        [ Attributes.class "post-code-label" ]
+                        [ text "Postcode, first 3-4 characters" ]
+                    , Html.input
+                        [ Attributes.class "post-code-input"
+                        , Events.onInput PostCodeInput
+                        , Attributes.value model.postcode
+                        , Attributes.type_ "text"
+                        , Attributes.maxlength 4
+                        , Attributes.placeholder "E.g. SW19"
+                        ]
+                        []
                     ]
+                , div
                     []
+                    [ Html.label
+                        [ Attributes.class "birthyear-label" ]
+                        [ text "Year of birth" ]
+                    , Html.input
+                        [ Attributes.class "birthyear-input"
+                        , Events.onInput BirthYearInput
+                        , Attributes.value model.birthyear
+                        , Attributes.type_ "number"
+                        , Attributes.min "1900"
+                        , Attributes.max "2003"
+                        , Attributes.placeholder "E.g. 1980"
+                        ]
+                        []
+                    ]
                 ]
     in
     mainSection "Make your choice - Introduction"
-        [ explanation
-        , div
-            [ Attributes.class "optional-label" ]
-            [ text "Optional information about you" ]
-        , personalInfoInputs
-        , div
-            [ Attributes.class "presentation-only" ]
-            [ text "Used for presentation only.  We do not collect any personal data, not even your mobile number." ]
+        [ div
+            [ Attributes.class "panels" ]
+            [ div [ Attributes.class "panel" ] [ explanation ]
+            , div
+                [ Attributes.class "panel" ]
+                [ div
+                    [ Attributes.class "optional-label" ]
+                    [ text "Information about yourself (optional)" ]
+                , personalInfoInputs
+                , div
+                    [ Attributes.class "presentation-only" ]
+                    [ text "Used for presentation only.  We do not collect any personal data, not even your mobile number." ]
+                ]
+            ]
         ]
 
 
@@ -892,7 +909,7 @@ makeYourChoiceMain model =
                 ]
     in
     mainSection "Make your choice - What should we do?"
-        [ table ]
+        [ div [ Attributes.class "panels" ] [ div [ Attributes.class "panel" ] [ table ] ] ]
 
 
 clickToChoose : Html msg
@@ -1061,13 +1078,19 @@ makeYourChoiceRep model =
                 ]
     in
     mainSection "Make your choice - Who do you trust?"
-        [ title
-        , earlyAddExplanation
-        , table
-        , totalsRow
-        , displaying
-        , addRepresentative
-        , explanations
+        [ div
+            [ Attributes.class "panels" ]
+            [ div
+                [ Attributes.class "panel" ]
+                [ title
+                , earlyAddExplanation
+                , table
+                , totalsRow
+                , displaying
+                , addRepresentative
+                , explanations
+                ]
+            ]
         ]
 
 
