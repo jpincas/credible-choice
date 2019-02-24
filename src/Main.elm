@@ -61,6 +61,7 @@ type alias Model =
     , people : List Person
     , selectedRepresentative : Maybe Person
     , searchRepresentativeInput : String
+    , representativePage : Int
     , nonce : Char
     , charity : Maybe CharityId
     , charities : List Charity
@@ -121,7 +122,10 @@ type Msg
     | ResultsReceived (HttpResult ResultsPayload)
     | PeopleReceived (HttpResult (List Person))
     | SelectRepresentative Person
+    | ClearRepresentativeChoice
     | SearchRepresentativeInput String
+    | RepPageNext
+    | RepPagePrev
     | SelectDonationAmount Pennies
     | PrevoteResponse (HttpResult ())
     | CharitiesReceived (HttpResult (List Charity))
@@ -346,6 +350,7 @@ init () url key =
             , birthyear = ""
             , people = []
             , selectedRepresentative = Nothing
+            , representativePage = 0
             , searchRepresentativeInput = ""
             , nonce = 'q'
             , charity = Nothing
@@ -465,8 +470,17 @@ update msg model =
         SelectRepresentative person ->
             noCommand { model | selectedRepresentative = Just person }
 
+        ClearRepresentativeChoice ->
+            noCommand { model | selectedRepresentative = Nothing }
+
+        RepPageNext ->
+            noCommand { model | representativePage = model.representativePage + 1 }
+
+        RepPagePrev ->
+            noCommand { model | representativePage = max 0 <| model.representativePage - 1 }
+
         SearchRepresentativeInput input ->
-            noCommand { model | searchRepresentativeInput = input }
+            noCommand { model | searchRepresentativeInput = input, representativePage = 0 }
 
         SelectDonationAmount pennies ->
             noCommand { model | donation = Just pennies }
@@ -975,8 +989,72 @@ makeYourChoiceRep model =
                     in
                     List.filter matches model.people
 
+        numFiltered =
+            List.length filteredRepresentatives
+
         selectedRepresentatives =
-            List.take 25 filteredRepresentatives
+            case repsPerPage * model.representativePage > numFiltered of
+                True ->
+                    List.drop (numFiltered - repsPerPage) filteredRepresentatives
+
+                False ->
+                    List.drop (repsPerPage * model.representativePage) filteredRepresentatives
+                        |> List.take repsPerPage
+
+        repsPerPage =
+            25
+
+        pageSelector =
+            case List.length filteredRepresentatives > 25 of
+                False ->
+                    text ""
+
+                True ->
+                    let
+                        prevButton =
+                            let
+                                attribute =
+                                    case model.representativePage == 0 of
+                                        True ->
+                                            Attributes.disabled True
+
+                                        False ->
+                                            Events.onClick RepPagePrev
+                            in
+                            Html.button
+                                [ Attributes.class "rep-page-prev"
+                                , attribute
+                                ]
+                                [ text "Prev" ]
+
+                        nextButton =
+                            let
+                                attribute =
+                                    case model.representativePage * repsPerPage >= List.length filteredRepresentatives of
+                                        True ->
+                                            Attributes.disabled True
+
+                                        False ->
+                                            Events.onClick RepPageNext
+                            in
+                            Html.button
+                                [ Attributes.class "rep-page-next"
+                                , attribute
+                                ]
+                                [ text "Next" ]
+                    in
+                    div
+                        [ Attributes.class "rep-page-selector" ]
+                        [ prevButton
+                        , Html.span
+                            [ Attributes.class "rep-page-numbers" ]
+                            -- TODO: These numbers may not be correct if we're filtering etc.
+                            [ text <| String.fromInt <| model.representativePage * repsPerPage
+                            , text " - "
+                            , text <| String.fromInt <| (model.representativePage + 1) * repsPerPage
+                            ]
+                        , nextButton
+                        ]
 
         table =
             Html.table
@@ -1088,6 +1166,8 @@ makeYourChoiceRep model =
                 [ Attributes.class "panel" ]
                 [ title
                 , earlyAddExplanation
+                , searchInput
+                , pageSelector
                 , table
                 , totalsRow
                 , displaying
