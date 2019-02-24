@@ -1232,10 +1232,16 @@ donationSection model =
                 ]
     in
     mainSection "Make a Donation"
-        [ explanations
-        , donationSelection
-        , charityLabel
-        , table
+        [ div
+            [ Attributes.class "panels" ]
+            [ div
+                [ Attributes.class "panel" ]
+                [ explanations
+                , donationSelection
+                , charityLabel
+                , table
+                ]
+            ]
         ]
 
 
