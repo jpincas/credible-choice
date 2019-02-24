@@ -21,3 +21,5 @@ now dns add crediblechoice.uk "@" MX crediblechoice-uk.mail.protection.outlook.c
     [ ] Pagination of the results
     [ ] Any added representative has to be given priority at the top of the list
     [ ] Rep-choice not optional, there is a 'no representative' choice.
+    [ ] Send the pre-vote upon charity selection again.
+    [ ] Update the footer which will now contain the navigation element.

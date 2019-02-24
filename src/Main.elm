@@ -54,7 +54,6 @@ type alias Model =
     { key : Nav.Key
     , url : Url.Url
     , route : Route
-    , stage : Stage
     , mainOptions : List MainOption
     , selectedMainOption : Maybe MainOptionId
     , postcode : String
@@ -67,14 +66,6 @@ type alias Model =
     , charities : List Charity
     , donation : Maybe Pennies
     }
-
-
-type Stage
-    = MainChoice
-    | RepresentativeChoice
-    | PersonalInformation
-    | CharityChoice
-    | DisplayTextCode
 
 
 type alias CharityId =
@@ -136,9 +127,6 @@ type Msg
     | CharitiesReceived (HttpResult (List Charity))
     | MakeCharityChoice CharityId
     | ClearCharityChoice
-    | NextChoice
-    | PrevChoice
-    | StartChoice
 
 
 type alias ResultsPayload =
@@ -352,7 +340,6 @@ init () url key =
             { key = key
             , url = url
             , route = route
-            , stage = MainChoice
             , mainOptions = mainOptions
             , selectedMainOption = Nothing
             , postcode = ""
@@ -436,62 +423,6 @@ update msg model =
 
         BirthYearInput input ->
             noCommand { model | birthyear = input }
-
-        NextChoice ->
-            let
-                newStage =
-                    case model.stage of
-                        MainChoice ->
-                            RepresentativeChoice
-
-                        RepresentativeChoice ->
-                            PersonalInformation
-
-                        PersonalInformation ->
-                            CharityChoice
-
-                        CharityChoice ->
-                            DisplayTextCode
-
-                        DisplayTextCode ->
-                            DisplayTextCode
-
-                newModel =
-                    { model | stage = newStage }
-
-                command =
-                    case newStage == DisplayTextCode of
-                        False ->
-                            Cmd.none
-
-                        True ->
-                            sendPreVote model
-            in
-            withCommands newModel [ command ]
-
-        PrevChoice ->
-            let
-                newStage =
-                    case model.stage of
-                        MainChoice ->
-                            MainChoice
-
-                        RepresentativeChoice ->
-                            MainChoice
-
-                        PersonalInformation ->
-                            RepresentativeChoice
-
-                        CharityChoice ->
-                            PersonalInformation
-
-                        DisplayTextCode ->
-                            CharityChoice
-            in
-            noCommand { model | stage = newStage }
-
-        StartChoice ->
-            noCommand { model | stage = MainChoice }
 
         ResultsReceived (Err _) ->
             -- TODO: I guess we should have some kind of re-download button or something.
@@ -711,125 +642,36 @@ selectedClass b =
 viewChoose : Model -> Html Msg
 viewChoose model =
     let
-        prevButton =
-            Html.button
-                [ Attributes.class "prev-choice"
-                , Events.onClick PrevChoice
-                ]
-                [ text "Prev" ]
-
-        nextButton disabled =
-            Html.button
-                [ Attributes.class "next-choice"
-                , Events.onClick NextChoice
-                , Attributes.disabled disabled
-                ]
-                [ text "Next" ]
-
-        skipButton =
-            Html.button
-                [ Attributes.class "skip-choice"
-                , Events.onClick NextChoice
-                ]
-                [ text "Skip" ]
-
-        navButtons =
-            div
-                [ Attributes.class "choice-nav-buttons" ]
+        sections =
+            [ liveResultsSection model
+            , makeYourChoiceIntroduction model
+            , makeYourChoiceMain model
+            , makeYourChoiceRep model
+            , donationSection model
+            , smsBuilder model
+            ]
     in
-    case model.stage of
-        MainChoice ->
-            div
-                []
-                [ viewMainChoice model
-                , navButtons
-                    [ nextButton <| model.selectedMainOption == Nothing ]
-                ]
-
-        RepresentativeChoice ->
-            div
-                []
-                [ viewRepresentativeChoice model
-                , navButtons
-                    [ prevButton
-                    , case model.selectedRepresentative == Nothing of
-                        True ->
-                            skipButton
-
-                        False ->
-                            nextButton False
-                    ]
-                ]
-
-        CharityChoice ->
-            div
-                []
-                [ viewCharityChoice model
-                , navButtons
-                    [ prevButton
-                    , nextButton (model.donation == Nothing)
-                    ]
-                ]
-
-        PersonalInformation ->
-            let
-                validYear =
-                    case String.toInt model.birthyear of
-                        Nothing ->
-                            False
-
-                        Just i ->
-                            i >= 1900 && i <= 2003
-
-                isValid =
-                    List.all identity
-                        [ String.length model.postcode <= 4
-                        , String.length model.postcode >= 3
-                        , validYear
-                        ]
-            in
-            div
-                []
-                [ viewPersonalInformation model
-                , case isValid of
-                    True ->
-                        nextButton False
-
-                    False ->
-                        skipButton
-                ]
-
-        DisplayTextCode ->
-            div
-                []
-                [ viewTextCode model
-                , navButtons [ prevButton ]
-                ]
+    div
+        [ Attributes.id "choose-page-sections" ]
+        sections
 
 
-viewMainChoice : Model -> Html Msg
-viewMainChoice model =
+mainSection : String -> List (Html Msg) -> Html Msg
+mainSection titleText contents =
     let
-        makeChoice option =
-            let
-                isSelected =
-                    model.selectedMainOption == Just option.id
-            in
-            div
-                [ Attributes.class "option button"
-                , selectedClass isSelected
-                , Events.onClick <| MainOptionSelected option.id
-                ]
-                [ text option.description
-                , div
-                    [ Attributes.class "chosen-by" ]
-                    [ text "Chosen so far by "
-                    , Html.span
-                        [ Attributes.class "bold" ]
-                        [ text <| formatInt option.votes ]
-                    ]
-                ]
+        title =
+            Html.h2
+                [ Attributes.class "main-choice-section-title" ]
+                [ text titleText ]
+    in
+    Html.section
+        [ Attributes.class "main-choice-section" ]
+        (title :: contents)
 
+
+liveResultsSection : Model -> Html Msg
+liveResultsSection model =
+    let
         totalNumVotes =
             List.map .votes model.mainOptions |> List.sum
 
@@ -898,6 +740,83 @@ viewMainChoice model =
             in
             pieImage
     in
+    mainSection "Live Results Summary"
+        [ viewPie ]
+
+
+makeYourChoiceIntroduction : Model -> Html Msg
+makeYourChoiceIntroduction model =
+    mainSection "Make your choice - Introduction"
+        [ text "I'm the introduction" ]
+
+
+makeYourChoiceMain : Model -> Html Msg
+makeYourChoiceMain model =
+    mainSection "Make your choice - What should we do?"
+        [ text "I'm the what should we do" ]
+
+
+makeYourChoiceRep : Model -> Html Msg
+makeYourChoiceRep model =
+    mainSection "Make your choice - Who do you trust?"
+        [ text "I'm the who do you trust" ]
+
+
+donationSection : Model -> Html Msg
+donationSection model =
+    mainSection "Make a Donation"
+        [ text "I'm the make a donation" ]
+
+
+validYearInput : String -> Bool
+validYearInput birthyear =
+    case String.toInt birthyear of
+        Nothing ->
+            False
+
+        Just i ->
+            i >= 1900 && i <= 2003
+
+
+validPostCodeInput : String -> Bool
+validPostCodeInput postcode =
+    let
+        length =
+            String.length postcode
+    in
+    length <= 4 && length >= 3
+
+
+smsBuilder : Model -> Html Msg
+smsBuilder model =
+    div
+        [ Attributes.id "sms-builder" ]
+        [ viewTextCode model ]
+
+
+viewMainChoice : Model -> Html Msg
+viewMainChoice model =
+    let
+        makeChoice option =
+            let
+                isSelected =
+                    model.selectedMainOption == Just option.id
+            in
+            div
+                [ Attributes.class "option button"
+                , selectedClass isSelected
+                , Events.onClick <| MainOptionSelected option.id
+                ]
+                [ text option.description
+                , div
+                    [ Attributes.class "chosen-by" ]
+                    [ text "Chosen so far by "
+                    , Html.span
+                        [ Attributes.class "bold" ]
+                        [ text <| formatInt option.votes ]
+                    ]
+                ]
+    in
     div
         [ Attributes.class "panel" ]
         [ Html.section
@@ -912,11 +831,9 @@ viewMainChoice model =
         , div
             [ Attributes.id "total-choices" ]
             [ text "Total choices made so far: "
-            , text <| formatInt totalNumVotes
+
+            -- , text <| formatInt totalNumVotes
             ]
-        , div
-            [ Attributes.class "main-option-pie-container" ]
-            [ viewPie ]
         , Html.section
             [ Attributes.id "explanation"
             , Attributes.class "explainer"
