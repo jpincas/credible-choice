@@ -1,32 +1,24 @@
 :root {
-    --black: #0b0c0c;
-    --blue: rgb(0, 94, 165);
-    --grey: rgb(243, 243, 243);
-    --under-construction: rgb(136, 241, 255);
-    --dark-grey: hsl(30, 0%, 64%);
-    --green: green;
-
-    --color-text: rgba(0, 0, 0, 0.8);
+    --color-text: rgba(0, 0, 0, 0.7);
     --color-text-label: rgba(0, 0, 0, 0.6);
     --color-text-inverted: rgba(255, 255, 255, 0.87);
 
     --color-primary: rgba(1, 18, 51, 1);
-    --color-parimary2: rgba(19, 60, 85, 1);
+    --color-primary2: rgba(19, 60, 85, 1);
     --color-primary3: rgba(50, 74, 95, 1);
+    --color-primary4: rgb(155, 170, 182);
+    --color-accent: rgb(136, 241, 255);
     --color-secondary: rgba(147, 22, 33, 1);
     --color-secondary2: rgba(163, 27, 27, 1);
 
-    --color-remain: rgba(53, 203, 223, 0.95);
-    --color-may: rgba(53, 203, 223, 0.7);
-    --color-leave: rgba(53, 203, 223, 0.4);
+    --color-remain: rgba(19, 60, 85, 0.95);
+    --color-may: rgba(19, 60, 85, 0.7);
+    --color-leave: rgba(19, 60, 85, 0.4);
 
-    /* RGB */
-    /* $color1: rgba(248, 90, 62, 1);
-    $color2: rgba(255, 119, 51, 1);
-    $color3: rgba(225, 86, 52, 1);
-    $color4: rgba(230, 59, 46, 1);
-    $color5: rgba(225, 230, 225, 1); */
+    --sms-builder-height: 20px;
 }
+
+/* Body */
 
 body {
     font-family: 'Roboto', sans-serif;
@@ -36,7 +28,13 @@ body {
     margin: 0;
     background-color: rgba(225, 233, 236, 0.397);
     color: var(--color-text);
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    overflow-x: hidden;
 }
+
+/* Basics */
 
 a {
     color: inherit;
@@ -44,14 +42,105 @@ a {
 }
 
 p {
-    margin: 0;
+    margin-top: 8px;
+    margin-bottom: 8px;
 }
+
+
+
+h2 {
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    font-weight: 400;
+}
+
+h3 {
+    font-size: 1.1rem;
+    text-transform: uppercase;
+}
+
+h4 {
+    text-transform: uppercase;
+}
+
+table {
+    display: block;
+    overflow: auto;
+    word-wrap: break-word;
+}
+
+
+input {
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    margin: 0;
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid rgba(228, 228, 228, 0.6);
+    margin: 3px;
+    text-transform: uppercase;
+    /* Remove inner shadows on mobile safari */
+    -webkit-appearance: none;
+}
+
+button,
+.button {
+    font-family: 'Roboto', sans-serif;
+    text-transform: uppercase;
+    font-size: 1rem;
+    margin: 0;
+    padding: 7px 15px 5px 15px;
+    border-radius: 3px;
+    border: none;
+    margin: 3px;
+    color: white;
+    background-color: var(--color-primary2);
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+button.selected,
+.button.selected {
+    background-color: var(--color-secondary2);
+}
+
+button.selected:hover,
+.button.selected:hover {
+    cursor: not-allowed;
+}
+
+button:hover,
+.button:hover {
+    transform: scale(1.01);
+}
+
+/* Utilities */
+
+.sep {
+    height: 1px;
+    background-color: var(--black);
+    margin: 10px 5px;
+    opacity: 0.5;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+
+
+
+
+/* Layout Stuff */
 
 .panels {
     display: flex;
-    max-width: 960px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .panel {
@@ -65,17 +154,24 @@ p {
     }
 }
 
-
-.sep {
-    height: 1px;
-    background-color: var(--black);
-    margin: 10px 5px;
-    opacity: 0.5;
+section>h2:first-child {
+    display: block;
+    background-color: var(--color-secondary2);
+    margin: 0;
+    padding: 8px;
+    color: var(--color-text-inverted);
+    box-shadow: 0px 5px 10px rgba(61, 61, 61, 0.397);
 }
+
+
+
+/* Sections */
+
+/* Top Matter */
 
 #under-construction {
     font-size: 0.8em;
-    background-color: var(--under-construction);
+    background-color: var(--color-accent);
     text-transform: uppercase;
     padding: 5px;
     margin: 0;
@@ -86,8 +182,6 @@ p {
 #under-construction p {
     margin: 5px 0px;
 }
-
-
 
 #presentation {
     color: var(--color-text-inverted);
@@ -107,6 +201,13 @@ p {
         left;
 }
 
+/* Bottom Matter */
+
+footer {
+    background-color: var(--color-primary4);
+    padding: 10px;
+    margin-bottom: var(--sms-builder-height);
+}
 
 nav {
     background-color: rgb(243, 243, 243);
@@ -134,139 +235,7 @@ nav ul li.active {
     font-size: 1.1rem;
 }
 
-section {}
-
-section>h2:first-child {
-    display: block;
-    background-color: var(--color-secondary2);
-    margin: 0;
-    padding: 8px;
-    color: var(--color-text-inverted);
-    box-shadow: 0px 5px 10px rgba(61, 61, 61, 0.397);
-}
-
-
-footer {
-    background-color: var(--grey);
-    padding: 10px;
-    opacity: 0.8;
-}
-
-#logo {
-    text-transform: uppercase;
-    font-size: 1.3rem;
-    font-weight: bold;
-    line-height: 1.5rem;
-    margin-bottom: 10px;
-}
-
-
-
-h2 {
-    font-size: 1.2rem;
-    text-transform: uppercase;
-}
-
-h3 {
-    font-size: 1.1rem;
-    text-transform: uppercase;
-}
-
-h4 {
-    text-transform: uppercase;
-}
-
-
-input {
-    font-family: "nta", Arial, sans-serif;
-    font-size: 13px;
-    margin: 0;
-    padding: 5px;
-    border-radius: 3px;
-    border: 1px solid rgba(228, 228, 228, 0.6);
-    margin: 3px;
-    text-transform: uppercase;
-    /* Remove inner shadows on mobile safari */
-    -webkit-appearance: none;
-}
-
-button,
-.button {
-    text-transform: uppercase;
-    font-family: "nta", Arial, sans-serif;
-    font-size: 13px;
-    margin: 0;
-    padding: 7px 15px 5px 15px;
-    border-radius: 3px;
-    border: none;
-    margin: 3px;
-    color: white;
-    background-color: var(--blue);
-    text-decoration: none;
-    display: inline-block;
-    cursor: pointer;
-}
-
-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.4;
-}
-
-
-.explainer {
-    font-style: italic;
-    font-weight: 100;
-    font-size: 0.9rem;
-}
-
-#partners {
-    font-size: 0.8rem;
-    text-align: center;
-    font-weight: bold;
-}
-
-.choices {
-    display: flex;
-    flex-direction: column;
-}
-
-.choices .option {
-    text-transform: none;
-    font-size: 1.25rem;
-}
-
-
-button.selected,
-.button.selected {
-    background-color: var(--green);
-}
-
-button.selected:hover,
-.button.selected:hover {
-    cursor: not-allowed;
-}
-
-button:hover,
-.button:hover {
-    background-color: var(--green);
-    opacity: 0.8;
-}
-
-.chosen-by {
-    margin-top: 20px;
-    font-size: 0.70rem;
-    font-weight: 100;
-    text-transform: uppercase;
-    opacity: 0.8;
-}
-
-#total-choices {
-    margin-top: 20px;
-    text-align: center;
-    font-weight: 700;
-    font-size: 1.3rem;
-}
-
+/* Section 1 : Live Results Summary */
 
 
 .main-choice-section svg path.A {
@@ -287,6 +256,73 @@ button:hover,
     font-weight: 600;
 }
 
+ol.top-ten-representatives {
+    margin: 0;
+    padding: 0;
+}
+
+ol.top-ten-representatives li {
+    margin-bottom: 3px;
+    margin-top: 3px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+ol.top-ten-representatives li:last-child {
+    border-bottom: none;
+    margin-bottom: none;
+}
+
+/* Section 2 : Make Your Choice Introduction */
+
+.optional-label {
+    color: var(--color-text-label);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+}
+
+.presentation-only {
+    color: var(--color-text-label);
+    font-size: 0.75rem;
+}
+
+/* Section 3: What should we do */
+
+
+.main-option-button button {
+    text-align: left;
+    padding: 15px 15px 30px 15px;
+    text-transform: none;
+    font-weight: 100;
+    width: 60vw;
+    position: relative;
+    font-size: 1.15rem;
+}
+
+.main-option-button button::after {
+    content: "Click to choose";
+    font-size: 0.7rem;
+    opacity: 0.6;
+    position: absolute;
+    right: 10px;
+    bottom: 10px
+}
+
+.main-option-button button.selected::after {
+    content: none;
+}
+
+.chosen-by-header,
+.main-option-chosen-by {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Section 4: Who do you trust */
+
+
 #list-of-persons-container {
     max-height: 60vh;
     min-height: 60vh;
@@ -294,7 +330,6 @@ button:hover,
 }
 
 table#list-of-persons {
-    width: 100%;
     margin-bottom: 10px;
     border-collapse: collapse;
 }
@@ -318,7 +353,7 @@ table#list-of-persons thead {
 
 table#list-of-persons thead tr th {
     /* Required to make the list of representatives scroll 'under' the headings.*/
-    background-color: white;
+    /* background-color: white; */
 }
 
 table#list-of-persons th {
@@ -337,20 +372,21 @@ table#list-of-persons td {
 }
 
 table#list-of-persons td.button {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     padding: 3px 7px 3px 7px;
     margin: 2px;
+    width: 25vw;
 }
 
-.bold {
-    font-weight: 700;
-}
+/* Section 5: Donations */
+
 
 #donation-amount-selector {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-around;
+    flex-wrap: wrap;
 }
 
 .charity-choice {
@@ -377,19 +413,20 @@ table#list-of-persons td.button {
     margin: 3px;
 }
 
-.security-questions {
+table.charity-choice-table button {
+    font-size: 0.7rem;
+    padding: 3px 7px 3px 7px;
+    margin: 2px;
+    width: 35vw;
+}
+
+/* SMS Builder */
+#sms-builder {
+    background-color: var(--color-accent);
+    position: fixed;
+    bottom: 0;
     display: flex;
-    flex-direction: column;
-}
-
-.optional-label {
-    color: var(--color-text-label);
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    margin-bottom: 10px;
-}
-
-.presentation-only {
-    color: var(--color-text-label);
-    font-size: 0.75rem;
+    width: 100vw;
+    padding: 20px;
+    height: var(--sms-builder-height);
 }

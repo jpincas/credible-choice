@@ -1,0 +1,38 @@
+.explainer {
+    font-style: italic;
+    font-weight: 100;
+    font-size: 0.9rem;
+}
+
+
+#partners {
+    font-size: 0.8rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.choices {
+    display: flex;
+    flex-direction: column;
+}
+
+.choices .option {
+    text-transform: none;
+    font-size: 1.25rem;
+}
+
+
+.chosen-by {
+    margin-top: 20px;
+    font-size: 0.70rem;
+    font-weight: 100;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+#total-choices {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+}
