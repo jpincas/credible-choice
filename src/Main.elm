@@ -789,8 +789,56 @@ liveResultsSection model =
 
 makeYourChoiceIntroduction : Model -> Html Msg
 makeYourChoiceIntroduction model =
+    let
+        explanation =
+            Html.p
+                [ Attributes.class "introduction-explanation" ]
+                [ text """You need a UK mobile to express a choice and must be willing to donate at least 50p to a listed Charity.
+You can change your mind and make a choice as many times as you like from a single mobile.
+ Only your latest choice will be shown but your total donation will be recorded.
+As you select your choice, you will see a sms build at the bottom of the screen.
+Send this text to the short number shown and your choice will shortly appear in the live results.
+                 """
+                ]
+
+        personalInfoInputs =
+            div
+                [ Attributes.class "personal-information-inputs" ]
+                [ Html.label
+                    [ Attributes.class "post-code-label" ]
+                    [ text "First part of your post-code, eg SW19" ]
+                , Html.input
+                    [ Attributes.class "post-code-input"
+                    , Events.onInput PostCodeInput
+                    , Attributes.value model.postcode
+                    , Attributes.type_ "text"
+                    , Attributes.maxlength 4
+                    ]
+                    []
+                , Html.label
+                    [ Attributes.class "birthyear-label" ]
+                    [ text "Your year of birth" ]
+                , Html.input
+                    [ Attributes.class "birthyear-input"
+                    , Events.onInput BirthYearInput
+                    , Attributes.value model.birthyear
+                    , Attributes.type_ "number"
+                    , Attributes.min "1900"
+                    , Attributes.max "2003"
+                    ]
+                    []
+                ]
+    in
     mainSection "Make your choice - Introduction"
-        [ text "I'm the introduction" ]
+        [ explanation
+        , div
+            [ Attributes.class "optional-label" ]
+            [ text "Optional information about you" ]
+        , personalInfoInputs
+        , div
+            [ Attributes.class "presentation-only" ]
+            [ text "Used for presentation only.  We do not collect any personal data, not even your mobile number." ]
+        ]
 
 
 makeYourChoiceMain : Model -> Html Msg
@@ -1041,36 +1089,6 @@ viewRepresentativeChoice model =
             , paragraph """There is no obligation whatsoever that anyone on this list should do anything and anyone on the list will be removed at their request by contacting us at remove-me@crediblechoice.co.uk (make it a picture)."""
             , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
             ]
-        ]
-
-
-viewPersonalInformation : Model -> Html Msg
-viewPersonalInformation model =
-    Html.section
-        [ Attributes.class "personal-information" ]
-        [ Html.label
-            [ Attributes.class "post-code-label" ]
-            [ text "First part of your post-code, eg SW19" ]
-        , Html.input
-            [ Attributes.class "post-code-input"
-            , Events.onInput PostCodeInput
-            , Attributes.value model.postcode
-            , Attributes.type_ "text"
-            , Attributes.maxlength 4
-            ]
-            []
-        , Html.label
-            [ Attributes.class "birthyear-label" ]
-            [ text "Your year of birth" ]
-        , Html.input
-            [ Attributes.class "birthyear-input"
-            , Events.onInput BirthYearInput
-            , Attributes.value model.birthyear
-            , Attributes.type_ "number"
-            , Attributes.min "1900"
-            , Attributes.max "2003"
-            ]
-            []
         ]
 
 
