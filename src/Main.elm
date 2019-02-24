@@ -900,10 +900,180 @@ makeYourChoiceMain model =
         [ table ]
 
 
+clickToChoose : Html msg
+clickToChoose =
+    Html.span
+        [ Attributes.class "help-text" ]
+        [ text "Click to choose" ]
+
+
 makeYourChoiceRep : Model -> Html Msg
 makeYourChoiceRep model =
+    let
+        makeRepChoice person =
+            let
+                isSelected =
+                    case model.selectedRepresentative of
+                        Nothing ->
+                            False
+
+                        Just rep ->
+                            -- TODO: This only really needs to check the code, but since I've hard coded
+                            -- that to all be the same temporarily that would make all the representatives appear
+                            -- selected.
+                            rep.name == person.name && rep.code == person.code
+            in
+            Html.tr
+                []
+                [ Html.td
+                    [ Attributes.class "button"
+                    , selectedClass isSelected
+                    , Attributes.class "representative-name"
+                    , Events.onClick <| SelectRepresentative person
+                    ]
+                    [ text person.name ]
+                , Html.td
+                    []
+                    [ text person.position ]
+                , Html.td
+                    []
+                    [ text <| formatInt person.votes ]
+                , Html.td
+                    []
+                    -- TODO: We need the associated donations from the backend somehow
+                    []
+                ]
+
+        filteredRepresentatives =
+            case String.isEmpty model.searchRepresentativeInput of
+                True ->
+                    model.people
+
+                False ->
+                    let
+                        searchString =
+                            String.toLower model.searchRepresentativeInput
+
+                        matches person =
+                            String.contains searchString <| String.toLower person.name
+                    in
+                    List.filter matches model.people
+
+        selectedRepresentatives =
+            List.take 25 filteredRepresentatives
+
+        table =
+            Html.table
+                [ Attributes.id "list-of-persons" ]
+                [ Html.thead
+                    []
+                    [ Html.tr
+                        []
+                        [ Html.th
+                            []
+                            [ text "Representative"
+                            , Html.br [] []
+                            , clickToChoose
+                            ]
+                        , Html.th [] [ text "From world of" ]
+                        , Html.th [] [ text "Chosen by" ]
+                        , Html.th [] [ text "Associated Donations" ]
+                        ]
+                    ]
+                , Html.tbody
+                    []
+                    (List.map makeRepChoice selectedRepresentatives)
+                ]
+
+        totalsRow =
+            -- Might need to make this a row in the table.
+            Html.div
+                [ Attributes.class "representatives-totals-row" ]
+                [ div
+                    []
+                    [ text "Total of all associated donations" ]
+                , div
+                    []
+                    -- TODO: Again we need this from the backend.
+                    [ text <| formatPence <| 50 ]
+                ]
+
+        title =
+            Html.h2
+                []
+                [ text "Who do you trust to represent your views on Brexit?" ]
+
+        earlyAddExplanation =
+            paragraph "You can select a person who would represent your views to parliament and the government"
+
+        displaying =
+            Html.p
+                []
+                [ text "Showing "
+                , Html.span
+                    [ Attributes.class "bold" ]
+                    [ List.length filteredRepresentatives |> formatInt |> text ]
+                , case String.isEmpty model.searchRepresentativeInput of
+                    True ->
+                        text ""
+
+                    False ->
+                        Html.span
+                            []
+                            [ text " of "
+                            , Html.span
+                                [ Attributes.class "bold" ]
+                                [ List.length model.people |> formatInt |> text ]
+                            , text " matching "
+                            , Html.span
+                                [ Attributes.class "bold" ]
+                                [ text "“"
+                                , text model.searchRepresentativeInput
+                                , text "”"
+                                ]
+                            ]
+                ]
+
+        searchInput =
+            Html.input
+                [ Attributes.type_ "text"
+                , Attributes.placeholder "Search for person"
+                , Attributes.value model.searchRepresentativeInput
+                , Events.onInput SearchRepresentativeInput
+                , Attributes.placeholder "Search"
+                ]
+                []
+
+        addRepresentative =
+            div
+                [ Attributes.id "add-person" ]
+                [ Html.input
+                    [ Attributes.type_ "text"
+                    , Attributes.placeholder "Representative name"
+                    ]
+                    []
+                , Html.button
+                    [ Attributes.class "button" ]
+                    [ text "Add" ]
+                ]
+
+        explanations =
+            div
+                []
+                [ paragraph """You may ask to add any British citizen with a Wikipedia entry to the Representative list. They must be 17 or over and be able to express their views. If they ask to be removed, we will remove them. We will manually check additions and so name may not be immediately added."""
+                , paragraph """There is no obligation whatsoever that anyone on this list should do anything and anyone on the list will be removed at their request by contacting us at remove-me@crediblechoice.uk."""
+                , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
+                ]
+    in
     mainSection "Make your choice - Who do you trust?"
-        [ text "I'm the who do you trust" ]
+        [ title
+        , earlyAddExplanation
+        , table
+        , totalsRow
+        , displaying
+        , addRepresentative
+        , explanations
+        ]
 
 
 donationSection : Model -> Html Msg
@@ -936,156 +1106,6 @@ smsBuilder model =
     div
         [ Attributes.id "sms-builder" ]
         [ viewTextCode model ]
-
-
-viewRepresentativeChoice : Model -> Html Msg
-viewRepresentativeChoice model =
-    let
-        makeRepChoice person =
-            let
-                isSelected =
-                    case model.selectedRepresentative of
-                        Nothing ->
-                            False
-
-                        Just rep ->
-                            -- TODO: This only really needs to check the code, but since I've hard coded
-                            -- that to all be the same temporarily that would make all the representatives appear
-                            -- selected.
-                            rep.name == person.name && rep.code == person.code
-            in
-            Html.tr
-                []
-                [ Html.td
-                    [ Attributes.class "button"
-                    , selectedClass isSelected
-                    , Attributes.class "representative-name"
-                    , Events.onClick <| SelectRepresentative person
-                    ]
-                    [ text person.name ]
-                , Html.td
-                    []
-                    [ text person.position ]
-                , Html.td
-                    []
-                    [ text <| formatInt person.votes ]
-                ]
-
-        filteredRepresentatives =
-            case String.isEmpty model.searchRepresentativeInput of
-                True ->
-                    model.people
-
-                False ->
-                    let
-                        searchString =
-                            String.toLower model.searchRepresentativeInput
-
-                        matches person =
-                            String.contains searchString <| String.toLower person.name
-                    in
-                    List.filter matches model.people
-    in
-    div
-        [ Attributes.class "panel" ]
-        [ Html.section
-            []
-            [ Html.h2
-                []
-                [ text "Who do you trust to represent your views?" ]
-            , paragraph "You can select a person who would represent your views to parliament and the government"
-            , div
-                [ Attributes.id "list-of-persons-container" ]
-                [ Html.table
-                    [ Attributes.id "list-of-persons" ]
-                    [ Html.thead
-                        []
-                        [ Html.tr
-                            []
-                            [ Html.th
-                                []
-                                [ text "Representative"
-                                , Html.br [] []
-                                , Html.span
-                                    [ Attributes.class "help-text" ]
-                                    [ text "Click to choose" ]
-                                ]
-                            , Html.th [] [ text "Profession" ]
-                            , Html.th [] [ text "Chosen by" ]
-                            ]
-                        ]
-                    , Html.tbody
-                        []
-                        (List.map makeRepChoice filteredRepresentatives)
-                    ]
-                ]
-            , Html.p
-                []
-                [ text "Showing "
-                , Html.span
-                    [ Attributes.class "bold" ]
-                    [ List.length filteredRepresentatives |> formatInt |> text ]
-                , case String.isEmpty model.searchRepresentativeInput of
-                    True ->
-                        text ""
-
-                    False ->
-                        Html.span
-                            []
-                            [ text " of "
-                            , Html.span
-                                [ Attributes.class "bold" ]
-                                [ List.length model.people |> formatInt |> text ]
-                            , text " matching "
-                            , Html.span
-                                [ Attributes.class "bold" ]
-                                [ text "“"
-                                , text model.searchRepresentativeInput
-                                , text "”"
-                                ]
-                            ]
-                ]
-            , Html.input
-                [ Attributes.type_ "text"
-                , Attributes.placeholder "Search for person"
-                , Attributes.value model.searchRepresentativeInput
-                , Events.onInput SearchRepresentativeInput
-                ]
-                []
-            ]
-        , Html.section
-            [ Attributes.id "add-person" ]
-            [ Html.input
-                [ Attributes.type_ "text"
-                , Attributes.placeholder "New person"
-                ]
-                []
-            , let
-                makeOption profession =
-                    Html.option
-                        [ Attributes.value profession ]
-                        [ text profession ]
-
-                professions =
-                    [ "Politician", "Writer", "Entertainer", "Sports person", "Journalist", "Actor" ]
-
-                pleaseSelect =
-                    Html.option
-                        [ Attributes.value "" ]
-                        [ text "Please select" ]
-
-                options =
-                    pleaseSelect :: List.map makeOption professions
-              in
-              Html.select [] options
-            , Html.button
-                [ Attributes.class "button" ]
-                [ text "Add" ]
-            , paragraph """You may add any British citizen with a Wikipedia entry to the Representative list. They must be 17 or over and able to express their views.  If they ask to be removed, we will remove them.  We will manually check additions and so name may not be immediately added."""
-            , paragraph """There is no obligation whatsoever that anyone on this list should do anything and anyone on the list will be removed at their request by contacting us at remove-me@crediblechoice.co.uk (make it a picture)."""
-            , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
-            ]
-        ]
 
 
 viewCharityChoice : Model -> Html Msg
