@@ -467,7 +467,11 @@ update msg model =
             noCommand { model | charities = charities }
 
         MakeCharityChoice charityId ->
-            noCommand { model | charity = Just charityId }
+            let
+                command =
+                    sendPreVote model
+            in
+            withCommands { model | charity = Just charityId } [ command ]
 
         ClearCharityChoice ->
             noCommand { model | charity = Nothing }
