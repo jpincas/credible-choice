@@ -244,43 +244,48 @@ viewTextCode model =
             text "Make a main choice to vote."
 
         Just option ->
-            case model.donation of
-                Nothing ->
-                    text "You must select a donation amount to vote"
+            case model.selectedRepresentative == Nothing of
+                True ->
+                    text "You must make a representative choice to vote. No representative is an option"
 
-                Just donationPennies ->
-                    let
-                        donation =
-                            String.fromInt donationPennies
+                False ->
+                    case model.donation of
+                        Nothing ->
+                            text "You must select a donation amount to vote"
 
-                        codeParts =
-                            codeComponents model
+                        Just donationPennies ->
+                            let
+                                donation =
+                                    String.fromInt donationPennies
 
-                        code =
-                            Html.span
-                                [ Attributes.class "text-code" ]
-                                [ Html.span
-                                    [ Attributes.class "text-code-main-choice" ]
-                                    [ text option ]
-                                , Html.span
-                                    [ Attributes.class "text-code-nonce" ]
-                                    [ text codeParts.nonce ]
-                                , Html.span
-                                    [ Attributes.class "text-code-rep" ]
-                                    [ text codeParts.repVote ]
-                                , Html.span
-                                    [ Attributes.class "text-code-charity" ]
-                                    [ text codeParts.charity ]
+                                codeParts =
+                                    codeComponents model
+
+                                code =
+                                    Html.span
+                                        [ Attributes.class "text-code" ]
+                                        [ Html.span
+                                            [ Attributes.class "text-code-main-choice" ]
+                                            [ text option ]
+                                        , Html.span
+                                            [ Attributes.class "text-code-nonce" ]
+                                            [ text codeParts.nonce ]
+                                        , Html.span
+                                            [ Attributes.class "text-code-rep" ]
+                                            [ text codeParts.repVote ]
+                                        , Html.span
+                                            [ Attributes.class "text-code-charity" ]
+                                            [ text codeParts.charity ]
+                                        ]
+                            in
+                            div
+                                [ Attributes.class "text-builder" ]
+                                [ text "CCH"
+                                , text " "
+                                , code
+                                , text " "
+                                , text donation
                                 ]
-                    in
-                    div
-                        [ Attributes.class "text-builder" ]
-                        [ text "CCH"
-                        , text " "
-                        , code
-                        , text " "
-                        , text donation
-                        ]
 
 
 sendPreVote : Model -> Cmd Msg
@@ -952,6 +957,14 @@ makeYourChoiceRep model =
                             -- that to all be the same temporarily that would make all the representatives appear
                             -- selected.
                             rep.name == person.name && rep.code == person.code
+
+                votes =
+                    case person.votes == 0 of
+                        True ->
+                            text ""
+
+                        False ->
+                            text <| formatInt person.votes
             in
             Html.tr
                 []
@@ -967,17 +980,25 @@ makeYourChoiceRep model =
                     [ text person.position ]
                 , Html.td
                     []
-                    [ text <| formatInt person.votes ]
+                    [ votes ]
                 , Html.td
                     []
                     -- TODO: We need the associated donations from the backend somehow
                     []
                 ]
 
+        people =
+            { name = "No represenative"
+            , code = "Non"
+            , position = ""
+            , votes = 0
+            }
+                :: model.people
+
         filteredRepresentatives =
             case String.isEmpty model.searchRepresentativeInput of
                 True ->
-                    model.people
+                    people
 
                 False ->
                     let
@@ -987,7 +1008,7 @@ makeYourChoiceRep model =
                         matches person =
                             String.contains searchString <| String.toLower person.name
                     in
-                    List.filter matches model.people
+                    List.filter matches people
 
         numFiltered =
             List.length filteredRepresentatives
