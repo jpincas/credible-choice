@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -11,7 +12,6 @@ const (
 	KGraphUrlBase       = "https://kgsearch.googleapis.com/v1/entities:search?"
 	KGraphApiSearchBase = "languages=en&limit=10" +
 		"&types=Person&key="
-	KGraphApiKey  = "{placeholder}" // TODO EdS: Temporarily removed - add to env variable
 	KGraphSearch  = "&query="
 	KGraphFetchId = "&ids="
 )
@@ -30,7 +30,7 @@ func searchKGraph(r *http.Request) (KGraphResponse, error) {
 
 	trimmedSearchPhrase := strings.TrimSpace(repSearchRequest.SearchPhrase)
 	kGraphSearchTerms := strings.Replace(trimmedSearchPhrase, " ", "+", -1)
-	kGraphApiUrl := KGraphUrlBase + KGraphApiSearchBase + KGraphApiKey + KGraphSearch + kGraphSearchTerms
+	kGraphApiUrl := KGraphUrlBase + KGraphApiSearchBase + os.Getenv("KNOWLEDGE_GRAPH_API_KEY") + KGraphSearch + kGraphSearchTerms
 
 	kGraphResponse, err := http.Get(kGraphApiUrl)
 	if err != nil {
@@ -46,7 +46,8 @@ func searchKGraph(r *http.Request) (KGraphResponse, error) {
 
 func fetchRepresentativeFromKGraph(r CreateRepresentativeRequest) (KGraphResponse, error) {
 	var response KGraphResponse
-	kGraphApiUrl := KGraphUrlBase + KGraphApiSearchBase + KGraphApiKey + KGraphFetchId + r.Id
+	// TODO EdS: Is this the correct way to deal with API keys?
+	kGraphApiUrl := KGraphUrlBase + KGraphApiSearchBase + os.Getenv("KNOWLEDGE_GRAPH_API_KEY") + KGraphFetchId + r.Id
 
 	fetchResponse, err := http.Get(kGraphApiUrl)
 	if err != nil {

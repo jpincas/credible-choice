@@ -110,8 +110,6 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 		r.Get("/representatives", ListTopRepresentatives)
 		r.Post("/representatives/search", SearchRepresentative)
 		r.Post("/representatives", CreateRepresentative)
-		// TODO EdS: Delete endpoint
-
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {

@@ -58,7 +58,7 @@ func ListTopRepresentatives(w http.ResponseWriter, r *http.Request) {
 // The response is in the shape: { "results" : [{ "title", "pageId"}]}
 func SearchRepresentative(w http.ResponseWriter, r *http.Request) {
 	searchResponse, err := searchWikipedia(r)
-	//searchResponse, err := searchKGraph(r) // TODO EdS: Switch back to Knowledge Graph when API key in place
+	//searchResponse, err := searchKGraph(r) // TODO EdS: Switch back to KGraph
 	if err != nil {
 		respondWithError(w, errorTypeBadRequest, err)
 		return
