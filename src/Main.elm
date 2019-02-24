@@ -1078,8 +1078,143 @@ makeYourChoiceRep model =
 
 donationSection : Model -> Html Msg
 donationSection model =
+    let
+        explanations =
+            div
+                [ Attributes.class "donation-explanation" ]
+                [ paragraph """Credible Choice does not receive any money whatsoever from your donation.  It goes directly from your mobile provider to the charity distributor. You will be charged your standard connection Fee."""
+                , Html.p
+                    [ Attributes.class "donation-permission" ]
+                    [ text "You need permission of whoever pays the mobile bill to donate." ]
+                ]
+
+        makeCharityChoice charity =
+            let
+                mId =
+                    case String.isEmpty charity.id of
+                        True ->
+                            Nothing
+
+                        False ->
+                            Just charity.id
+            in
+            Html.tr
+                [ Attributes.class "charity-choice-list-item" ]
+                [ Html.td
+                    []
+                    [ Html.button
+                        [ Attributes.class "charity-choice"
+                        , Events.onClick <| MakeCharityChoice charity.id
+                        , selectedClass <| model.charity == Just charity.id
+                        ]
+                        [ text charity.name ]
+                    ]
+                , Html.td
+                    []
+                    []
+                , Html.td
+                    []
+                    []
+                , Html.td
+                    []
+                    []
+                ]
+
+        allCharitiesChoice =
+            Html.tr
+                [ Attributes.class "charity-choice-list-item" ]
+                [ Html.td
+                    []
+                    [ Html.button
+                        [ Attributes.class "charity-choice"
+                        , Events.onClick ClearCharityChoice
+                        , selectedClass <| model.charity == Nothing
+                        ]
+                        [ text "Spread over all listed charities" ]
+                    ]
+                , Html.td
+                    []
+                    []
+                , Html.td
+                    []
+                    []
+                , Html.td
+                    []
+                    []
+                ]
+
+        charityChoices =
+            -- TODO: If we have the donation amount I can add a 'total donations row'.
+            allCharitiesChoice :: List.map makeCharityChoice model.charities
+
+        table =
+            Html.table
+                [ Attributes.class "charity-choice-table" ]
+                [ Html.thead
+                    []
+                    [ Html.tr
+                        []
+                        [ Html.th
+                            []
+                            [ text "Charity name" ]
+                        , Html.th
+                            []
+                            [ text "Number" ]
+                        , Html.th
+                            []
+                            [ text "Link" ]
+                        , Html.th
+                            []
+                            [ text "Total donations" ]
+                        ]
+                    ]
+                , Html.tbody
+                    []
+                    charityChoices
+                ]
+
+        charityLabel =
+            Html.label
+                [ Attributes.class "charity-choice-label" ]
+                [ text "Which charity would you like to donate to" ]
+
+        makeDonationOption amount =
+            let
+                selected =
+                    model.donation == Just amount
+            in
+            Html.label
+                [ Attributes.class "donation-option-label"
+                , Attributes.class "button"
+                , selectedClass selected
+                ]
+                [ text <| formatPence amount
+                , Html.input
+                    [ Attributes.class "donation-option-input"
+                    , Attributes.type_ "radio"
+                    , Events.onClick <| SelectDonationAmount amount
+                    , Attributes.selected selected
+                    ]
+                    []
+                ]
+
+        donationSelection =
+            div
+                [ Attributes.class "donation-selections" ]
+                [ Html.label
+                    []
+                    [ text "How much would you like to donate?" ]
+                , Html.div
+                    [ Attributes.id "donation-amount-selector" ]
+                    (List.map makeDonationOption [ 50, 100, 500, 1000, 2000 ])
+                ]
+    in
     mainSection "Make a Donation"
-        [ text "I'm the make a donation" ]
+        [ explanations
+        , donationSelection
+        , charityLabel
+        , table
+        ]
 
 
 validYearInput : String -> Bool
@@ -1106,84 +1241,6 @@ smsBuilder model =
     div
         [ Attributes.id "sms-builder" ]
         [ viewTextCode model ]
-
-
-viewCharityChoice : Model -> Html Msg
-viewCharityChoice model =
-    let
-        makeCharityChoice charity =
-            let
-                mId =
-                    case String.isEmpty charity.id of
-                        True ->
-                            Nothing
-
-                        False ->
-                            Just charity.id
-            in
-            Html.li
-                [ Attributes.class "charity-choice-list-item" ]
-                [ Html.button
-                    [ Attributes.class "charity-choice"
-                    , Events.onClick <| MakeCharityChoice charity.id
-                    , selectedClass <| model.charity == Just charity.id
-                    ]
-                    [ text charity.name ]
-                ]
-
-        charityChoices =
-            List.map makeCharityChoice model.charities
-
-        clearCharityChoice =
-            Html.button
-                [ Attributes.class "clear-charity-choice"
-                , Events.onClick ClearCharityChoice
-                ]
-                [ text "Clear choice" ]
-
-        makeDonationOption amount =
-            let
-                selected =
-                    model.donation == Just amount
-            in
-            Html.label
-                [ Attributes.class "donation-option-label"
-                , Attributes.class "button"
-                , selectedClass selected
-                ]
-                [ text <| formatPence amount
-                , Html.input
-                    [ Attributes.class "donation-option-input"
-                    , Attributes.type_ "radio"
-                    , Events.onClick <| SelectDonationAmount amount
-                    , Attributes.selected selected
-                    ]
-                    []
-                ]
-    in
-    div
-        [ Attributes.class "panel" ]
-        [ Html.section
-            []
-            [ Html.h2
-                []
-                [ text "How much" ]
-            , Html.div
-                [ Attributes.id "donation-amount-selector" ]
-                (List.map makeDonationOption [ 50, 100, 500, 1000, 2000 ])
-            , Html.h2
-                []
-                [ text "To which charity" ]
-            , paragraph "You may select which charity you wish to make your donation"
-            , div
-                [ Attributes.id "list-of-charities-container" ]
-                [ Html.ul
-                    [ Attributes.id "list-of-charities" ]
-                    charityChoices
-                ]
-            , clearCharityChoice
-            ]
-        ]
 
 
 viewTermsAndConditions : Html msg
