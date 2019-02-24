@@ -1240,7 +1240,98 @@ smsBuilder model =
 
 viewTermsAndConditions : Html msg
 viewTermsAndConditions =
-    text "I am the Terms and Conditions page."
+    let
+        item title contents =
+            Html.li
+                [ Attributes.class "terms-and-conditions-items" ]
+                (Html.h3 [ Attributes.class "terms-and-conditions-item-title" ] [ text title ] :: contents)
+    in
+    Html.ol
+        [ Attributes.class "terms-and-conditions-list" ]
+        [ item "Application of these Conditions of Use"
+            [ paragraph "By accessing or using any part of www.crediblechoice.uk you agree to be bound by the following conditions of use. If you do not wish to be bound by these conditions, you may not access or use www.crediblechoice.uk."
+            , paragraph "We may change these conditions at any time without any notice to you. By your continued access and use of www.crediblechoice.uk you agree to be bound by the most current version of the conditions of use. Please check these conditions periodically for any changes that have been made."
+            ]
+        , item "Copyright"
+            [ paragraph "Except where otherwise noted, the content of www.crediblechoice.uk Web pages (including the design, text, graphics and arrangement thereof) and the software used therein, is the property of and is owned and controlled by Credible Choice Ltd (CC) and is the copyright material of CC."
+            ]
+        , item "No Licence"
+            [ paragraph "Except as expressly provided, nothing contained in these conditions or anywhere on www.crediblechoice.uk shall be construed as conferring any licence under any of CC or any third party's intellectual property rights."
+            ]
+        , item "Disclaimer of Representations and Warranties"
+            [ paragraph "www.crediblechoice.uk is provided by CC on an \"as is\" and \"as and when available\" basis to users. You use www.crediblechoice.uk at your own risk."
+            , paragraph "Neither CC nor any of its officers, directors, shareholders, employees, affiliates, agents, third-party content providers, sponsors, licensers, or the like, makes any representation or warranty or condition, either express or implied, to you:"
+            , Html.ul
+                []
+                [ Html.li
+                    []
+                    [ text "That www.crediblechoice.uk will be uninterrupted or error-free" ]
+                , Html.li
+                    []
+                    [ text "That www.crediblechoice.uk or the computer server from which www.crediblechoice.uk is made available, are free of viruses or other harmful components"
+                    ]
+                , Html.li
+                    []
+                    [ text "To the accuracy, content, timeliness, completeness, legality, reliability, quality or suitability of any information, advice, content, service, search results, products or merchandise provided through www.crediblechoice.uk CC makes and you receive, no representations, warranties or conditions, express or implied, statutory or otherwise with respect to:"
+                    , Html.ol
+                        []
+                        [ Html.li
+                            []
+                            [ text "www.crediblechoice.uk, its content, merchandise, services, documents, information, items or materials provided by CC in connection with the use of www.crediblechoice.uk; or"
+                            ]
+                        , Html.li
+                            []
+                            [ text "Any goods or services or information received through or advertised on www.crediblechoice.uk or received through links provided on www.crediblechoice.uk, including without limitation no representations, warranties or conditions of merchantability, suitability, fitness for a particular purpose, non-infringement of proprietary rights or otherwise."
+                            ]
+                        ]
+                    ]
+                ]
+            , paragraph "No oral advice or written information given by CC or its affiliates, or any of its officers, directors, employees, agents, providers, merchants, sponsors, licensers, or the like, will create a representation, a warranty or condition nor should you rely on any such information or advice."
+            , paragraph "In jurisdictions that do not allow the exclusion or disclaimer of certain warranties, the above exclusion may not apply to you."
+            ]
+        , item "Provision of Advice"
+            [ paragraph "CC is not an agent for and does not vouch for those persons, companies and other organisations whose goods or services may be displayed or referred to in www.crediblechoice.uk, nor for the availability, suitability or prices of such goods and services nor for the legal entitlement, competences, professional qualifications, trade certifications, or memberships of trade associations of such persons, companies or other organisations."
+            , paragraph "CC advises users to satisfy themselves as to the exact type and nature of goods or services being offered or qualifications held by those persons, companies and other organisations whose goods or services may be displayed or referred to in www.crediblechoice.uk."
+            ]
+        , item "Limitation of Liability"
+            [ paragraph "Neither CC nor its associated content-provider organisations seek to limit or exclude liability for death or personal injury arising from their negligence."
+            , paragraph "Under no circumstances will CC or any of its officers, directors, shareholders, employees, affiliates, agents, sponsors, licensers, or any other party involved in the creation, production, maintenance or distribution of www.crediblechoice.uk be liable for any direct, indirect, incidental, special or consequential damages (including but not limited to loss of profits, business, anticipated savings, goodwill, use of data or other intangible losses) that result from either:"
+            , Html.ul
+                []
+                [ Html.li
+                    []
+                    [ text "The use and reliance on www.crediblechoice.uk; or"
+                    ]
+                , Html.li
+                    []
+                    [ text "The inability to use www.crediblechoice.uk; or"
+                    ]
+                , Html.li
+                    []
+                    [ text "Mistakes, omissions, interruptions, suspension, termination, deletion of files or email, errors, defects, viruses, delays in operation, transmission or service response time, or any failure of performance with respect to www.crediblechoice.uk including without limitation those arising from acts of God, communications failure, theft, destruction or unauthorised access to CC's records, programs or services; or"
+                    ]
+                , Html.li
+                    []
+                    [ text "Merchandise, products or services received through or advertised on www.crediblechoice.uk and merchandise, products or services received through or advertised on any links provided on www.crediblechoice.uk; or"
+                    ]
+                , Html.li
+                    []
+                    [ text "Information or advice received through or advertised on www.crediblechoice.uk and information or advice received through or advertised on any links provided on www.crediblechoice.uk; or"
+                    ]
+                , Html.li
+                    []
+                    [ text "Any information, data, text, messages and other materials that you email, post upload, reproduce, transmit or is otherwise distributed using www.crediblechoice.uk. CC is unable to ensure or guarantee the security of any information transmitted over the Internet. Any information or data which you transmit to or by using CC is done at your own risk and CC shall not be responsible or liable for any damages or injury that may result from transmitting such information."
+                    ]
+                ]
+            , paragraph "If any jurisdiction does not allow the exclusion or limitation of liability for consequential or incidental damages, liability is limited to the fullest extent permitted by law."
+            ]
+        , item "Miscellaneous"
+            [ paragraph "These conditions and any and all documents specifically referenced herein constitute the entire agreement between you and CC with respect to the subject matter hereof. If any provision contained in these conditions is determined by a court of competent jurisdiction to be illegal, invalid or otherwise unenforceable, that provision shall be severed from these conditions and the remaining provisions shall continue in full force and effect."
+            ]
+        , item "Jurisdiction and Governing Law"
+            [ paragraph "These conditions shall be governed by and construed in accordance with the laws of England. CC controls www.crediblechoice.uk from within the country of England. It can, however, be accessed from other places around the world. Although these places may have different laws from those of England, by accessing www.crediblechoice.uk you agree that the laws of England, without regard to rules relating to conflict of laws, will apply to all matters relating to your use of www.crediblechoice.uk. You and CC also agree to submit to the non-exclusive jurisdiction of the English courts, with respect to such matters. Users of www.crediblechoice.uk accessing it from places outside of England acknowledge that they do so voluntarily and are responsible for complying with local laws."
+            ]
+        ]
 
 
 viewFaqPage : Html msg
