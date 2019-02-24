@@ -516,6 +516,17 @@ view model =
                     viewNotFound
 
         header =
+            let
+                backButton =
+                    case model.route == ChoosePage of
+                        True ->
+                            text ""
+
+                        False ->
+                            Html.a
+                                [ Route.href ChoosePage ]
+                                [ text "Back" ]
+            in
             Html.header
                 []
                 [ div
@@ -527,7 +538,8 @@ view model =
                     ]
                 , div
                     [ Attributes.id "presentation" ]
-                    [ div
+                    [ backButton
+                    , div
                         [ Attributes.id "brexit"
                         , Attributes.class "bold"
                         ]
