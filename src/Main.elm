@@ -781,17 +781,20 @@ liveResultsSection model =
             in
             pieImage
 
-        viewRep person =
+        viewRep i person =
             Html.li
                 [ Attributes.class "top-ten-rep" ]
-                [ text person.name ]
+                [ Html.span [ Attributes.class "rep-position" ] [ text <| String.fromInt <| i + 1 ]
+                , Html.span [ Attributes.class "rep-name" ] [ text person.name ]
+                , Html.span [ Attributes.class "rep-score" ] [ text <| String.fromInt 1500000 ]
+                ]
 
         viewReps =
             div
                 [ Attributes.id "live-results-representatives" ]
-                [ Html.ol
+                [ Html.ul
                     [ Attributes.class "top-ten-representatives" ]
-                    (List.map viewRep <| List.take 10 model.people)
+                    (List.indexedMap viewRep <| List.take 10 model.people)
                 , div
                     [ Attributes.class "total-votes" ]
                     [ Html.label
@@ -895,53 +898,35 @@ makeYourChoiceMain model =
                 isSelected =
                     model.selectedMainOption == Just option.id
             in
-            Html.tr
-                [ Attributes.class "main-option-row" ]
-                [ Html.td
-                    [ Attributes.class "main-option-button" ]
-                    [ Html.button
-                        [ Attributes.class "option button"
-                        , selectedClass isSelected
-                        , Events.onClick <| MainOptionSelected option.id
-                        ]
-                        [ text option.description ]
+            div
+                [ Attributes.class "main-option-button" ]
+                [ Html.button
+                    [ Attributes.class "option button"
+                    , selectedClass isSelected
+                    , Events.onClick <| MainOptionSelected option.id
                     ]
-                , Html.td
-                    [ Attributes.class "main-option-chosen-by" ]
-                    [ text <| formatInt option.votes ]
+                    [ text option.description
+                    , Html.span
+                        [ Attributes.class "number-choices" ]
+                        [ text <| "Chosen by " ++ formatInt option.votes ]
+                    ]
                 ]
 
-        totalsRow =
-            Html.tr
+        totals =
+            div
                 [ Attributes.class "main-option-totals-row" ]
-                [ Html.td
-                    []
-                    [ text "Total choices so far" ]
-                , Html.td
-                    []
-                    [ text <| formatInt <| totalNumVotes model ]
+                [ Html.span [ Attributes.class "total-choices-label" ] [ text "Total choices so far" ]
+                , Html.span [ Attributes.class "total-choices-value" ] [ text <| formatInt <| totalNumVotes model ]
                 ]
 
-        table =
-            Html.table
-                [ Attributes.id "main-choice-table" ]
-                [ Html.thead
-                    []
-                    [ Html.tr
-                        []
-                        [ Html.th [] []
-                        , Html.th
-                            [ Attributes.class "chosen-by-header" ]
-                            [ text "Chosen so far by" ]
-                        ]
-                    ]
-                , Html.tbody
-                    []
-                    (List.map makeChoice model.mainOptions ++ [ totalsRow ])
-                ]
+        choices =
+            List.map makeChoice model.mainOptions ++ [ totals ]
     in
     mainSection "Make your choice - What should we do?"
-        [ div [ Attributes.class "panels" ] [ div [ Attributes.class "panel" ] [ table ] ] ]
+        [ div
+            [ Attributes.class "panels" ]
+            [ div [ Attributes.class "panel" ] choices ]
+        ]
 
 
 clickToChoose : Html msg
@@ -986,14 +971,11 @@ makeYourChoiceRep model =
                     [ text person.name ]
                 , Html.td
                     []
-                    [ text person.position ]
-                , Html.td
-                    []
                     [ votes ]
                 , Html.td
                     []
                     -- TODO: We need the associated donations from the backend somehow
-                    []
+                    [ text <| "£" ++ String.fromInt 56754 ]
                 ]
 
         people =
@@ -1095,13 +1077,12 @@ makeYourChoiceRep model =
                         []
                         [ Html.th
                             []
-                            [ text "Representative"
+                            [ text "Name"
                             , Html.br [] []
                             , clickToChoose
                             ]
-                        , Html.th [] [ text "From world of" ]
                         , Html.th [] [ text "Chosen by" ]
-                        , Html.th [] [ text "Associated Donations" ]
+                        , Html.th [] [ text "Donations" ]
                         ]
                     ]
                 , Html.tbody
@@ -1113,11 +1094,11 @@ makeYourChoiceRep model =
             -- Might need to make this a row in the table.
             Html.div
                 [ Attributes.class "representatives-totals-row" ]
-                [ div
-                    []
-                    [ text "Total of all associated donations" ]
-                , div
-                    []
+                [ Html.span
+                    [ Attributes.class "representatives-totals-label" ]
+                    [ text "Total donated" ]
+                , Html.span
+                    [ Attributes.class "representatives-totals-value" ]
                     -- TODO: Again we need this from the backend.
                     [ text <| formatPence <| 50 ]
                 ]
@@ -1161,6 +1142,7 @@ makeYourChoiceRep model =
         searchInput =
             Html.input
                 [ Attributes.type_ "text"
+                , Attributes.class "rep-search"
                 , Attributes.placeholder "Search for person"
                 , Attributes.value model.searchRepresentativeInput
                 , Events.onInput SearchRepresentativeInput
@@ -1197,10 +1179,10 @@ makeYourChoiceRep model =
                 [ title
                 , earlyAddExplanation
                 , searchInput
-                , pageSelector
                 , table
-                , totalsRow
+                , pageSelector
                 , displaying
+                , totalsRow
                 , addRepresentative
                 , explanations
                 ]
@@ -1569,9 +1551,10 @@ formatPence pennies =
         poundsString =
             String.dropRight 2 totalString
     in
-    String.join ""
-        [ "£"
-        , poundsString
-        , "."
-        , penceString
-        ]
+    case pennies < 100 of
+        True ->
+            penceString ++ "p"
+
+        False ->
+            String.join ""
+                [ "£", poundsString ]

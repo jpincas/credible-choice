@@ -15,14 +15,20 @@
     --color-may: rgba(19, 60, 85, 0.7);
     --color-leave: rgba(19, 60, 85, 0.4);
 
-    --sms-builder-height: 20px;
+    --sms-builder-height: 60px;
 }
 
 /* Body */
 
+html,
+body {
+    width: auto !important;
+    overflow-x: hidden !important
+}
+
 body {
     font-family: 'Roboto', sans-serif;
-    font-weight: 400;
+    font-weight: 300;
     font-size: 16px;
     line-height: 1.25;
     margin: 0;
@@ -30,7 +36,7 @@ body {
     color: var(--color-text);
     display: flex;
     flex-direction: column;
-    width: 100vw;
+
     overflow-x: hidden;
 }
 
@@ -46,7 +52,12 @@ p {
     margin-bottom: 8px;
 }
 
-
+h1,
+h2,
+h3,
+h4 {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
 
 h2 {
     font-size: 1.1rem;
@@ -72,13 +83,13 @@ table {
 
 input {
     font-family: 'Roboto', sans-serif;
-    font-size: 13px;
+    font-size: 1.1rem;
     margin: 0;
     padding: 5px;
     border-radius: 3px;
     border: 1px solid rgba(228, 228, 228, 0.6);
     margin: 3px;
-    text-transform: uppercase;
+
     /* Remove inner shadows on mobile safari */
     -webkit-appearance: none;
 }
@@ -86,6 +97,7 @@ input {
 button,
 .button {
     font-family: 'Roboto', sans-serif;
+    font-weight: 400;
     text-transform: uppercase;
     font-size: 1rem;
     margin: 0;
@@ -100,6 +112,7 @@ button,
     cursor: pointer;
 }
 
+
 button:disabled {
     cursor: not-allowed;
     opacity: 0.4;
@@ -107,7 +120,8 @@ button:disabled {
 
 button.selected,
 .button.selected {
-    background-color: var(--color-secondary2);
+    background-color: var(--color-accent);
+    color: var(--color-text);
 }
 
 button.selected:hover,
@@ -146,6 +160,8 @@ button:hover,
 .panel {
     flex: 1;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 @media only screen and (max-width: 700px) {
@@ -185,7 +201,7 @@ section>h2:first-child {
 
 #presentation {
     color: var(--color-text-inverted);
-    padding: 20px;
+    padding: 10px 20px;
     font-size: 2rem;
     text-transform: uppercase;
     margin: 0;
@@ -209,9 +225,13 @@ footer {
     margin-bottom: var(--sms-builder-height);
 }
 
+footer #footer-title {
+    font-weight: 700;
+}
+
 nav {
-    background-color: rgb(243, 243, 243);
-    padding: 5px 15px;
+    font-weight: 400;
+    font-size: 0.9rem;
 }
 
 nav ul {
@@ -224,7 +244,6 @@ nav ul {
 
 nav ul li {
     text-transform: uppercase;
-    font-size: 0.8em;
 }
 
 nav ul li.active {
@@ -256,20 +275,50 @@ nav ul li.active {
     font-weight: 600;
 }
 
-ol.top-ten-representatives {
+#live-results-representatives {
+    background-color: var(--color-primary2);
+    padding: 10px;
+    color: var(--color-text-inverted);
+    border-radius: 5px;
+}
+
+ul.top-ten-representatives {
     margin: 0;
     padding: 0;
+    margin-bottom: 5px;
+    padding: bottom;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-ol.top-ten-representatives li {
-    margin-bottom: 3px;
-    margin-top: 3px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+ul.top-ten-representatives li {
+    margin: 5px 0px;
 }
 
-ol.top-ten-representatives li:last-child {
-    border-bottom: none;
-    margin-bottom: none;
+ul.top-ten-representatives li:last-child {}
+
+.top-ten-rep .rep-position {
+    font-weight: 700;
+    color: white;
+    width: 30px;
+    display: inline-block;
+}
+
+.top-ten-rep .rep-score {
+    margin-left: 10px;
+    font-size: 0.75rem;
+    opacity: 0.65;
+}
+
+.total-votes,
+.total-charity {
+    font-weight: 400;
+    color: var(--color-accent);
+}
+
+.total-votes label,
+.total-charity label {
+    margin-right: 20px;
+    color: white;
 }
 
 /* Section 2 : Make Your Choice Introduction */
@@ -278,7 +327,22 @@ ol.top-ten-representatives li:last-child {
     color: var(--color-text-label);
     text-transform: uppercase;
     font-size: 0.8rem;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.personal-information-inputs {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.personal-information-inputs input {
+    /* width: 50%; */
+}
+
+.personal-information-inputs>div {
+    display: flex;
+    flex-direction: column;
 }
 
 .presentation-only {
@@ -293,10 +357,21 @@ ol.top-ten-representatives li:last-child {
     text-align: left;
     padding: 15px 15px 30px 15px;
     text-transform: none;
-    font-weight: 100;
-    width: 60vw;
     position: relative;
     font-size: 1.15rem;
+    margin: 10px 0px;
+}
+
+.main-option-button span.number-choices {
+    position: absolute;
+    bottom: -10px;
+    left: -5px;
+    background-color: var(--color-secondary2);
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-size: 1rem;
+    font-weight: 300;
+    color: white;
 }
 
 .main-option-button button::after {
@@ -320,6 +395,18 @@ ol.top-ten-representatives li:last-child {
     text-transform: uppercase;
 }
 
+
+.main-option-totals-row {
+    margin-top: 20px;
+    font-weight: 400;
+}
+
+.main-option-totals-row .total-choices-value {
+    font-weight: 700;
+    margin-left: 20px;
+}
+
+
 /* Section 4: Who do you trust */
 
 
@@ -329,6 +416,8 @@ ol.top-ten-representatives li:last-child {
     overflow-y: auto;
 }
 
+
+
 table#list-of-persons {
     margin-bottom: 10px;
     border-collapse: collapse;
@@ -337,8 +426,8 @@ table#list-of-persons {
 table#list-of-persons th,
 table#list-of-persons td {
     text-align: left;
-    width: 100%;
     box-sizing: border-box;
+    padding: 3px;
 }
 
 table#list-of-persons td.representative-name {
@@ -375,8 +464,56 @@ table#list-of-persons td.button {
     font-size: 0.7rem;
     padding: 3px 7px 3px 7px;
     margin: 2px;
-    width: 25vw;
+    width: 35vw;
 }
+
+.rep-page-selector {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: row;
+}
+
+/* Hack to get all the button text and counter text to line up */
+.rep-page-selector * {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.rep-page-selector button {
+    font-size: 0.6rem;
+    color: var(--color-text);
+    display: flex;
+    flex-direction: row;
+    background-color: transparent;
+    border: 1px solid var(--color-primary);
+}
+
+.representatives-totals-row {
+    font-weight: 400px;
+    border-top: 1px solid var(--color-primary4);
+    border-bottom: 1px solid var(--color-primary4);
+    padding: 5px 0px;
+    margin-bottom: 10px;
+}
+
+.representatives-totals-value {
+    font-weight: 700;
+    margin-left: 20px;
+}
+
+#add-person {
+    display: flex;
+    flex-direction: column;
+}
+
+#add-person button {
+    background-color: transparent;
+    color: var(--color-primary);
+}
+
+
+
 
 /* Section 5: Donations */
 
@@ -390,7 +527,6 @@ table#list-of-persons td.button {
 }
 
 .charity-choice {
-    width: 100%;
     box-sizing: border-box;
 }
 
@@ -398,20 +534,11 @@ table#list-of-persons td.button {
     display: none;
 }
 
-#donation-options {
-    display: flex;
-    flex-direction: column;
+#donation-amount-selector .button {
+    text-transform: lowercase;
 }
 
-#donation-options {
-    display: flex;
-    flex-direction: column;
-}
 
-#donation-options div {
-    font-size: 0.9rem;
-    margin: 3px;
-}
 
 table.charity-choice-table button {
     font-size: 0.7rem;
@@ -422,11 +549,16 @@ table.charity-choice-table button {
 
 /* SMS Builder */
 #sms-builder {
-    background-color: var(--color-accent);
+    color: white;
+    font-weight: 400;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    background-color: var(--color-primary);
     position: fixed;
     bottom: 0;
     display: flex;
-    width: 100vw;
-    padding: 20px;
     height: var(--sms-builder-height);
+    padding: 0px 5px;
 }
