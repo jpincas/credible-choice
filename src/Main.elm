@@ -523,6 +523,107 @@ noCommand model =
 view : Model -> Browser.Document Msg
 view model =
     let
+        displayConstruction =
+            model.route /= FaqPage && constructionUrl
+
+        constructionUrl =
+            String.startsWith "www" model.url.host || String.startsWith "crediblechoice.uk" model.url.host
+    in
+    case displayConstruction of
+        True ->
+            viewUnderConstructionPage
+
+        False ->
+            viewTemporary model
+
+
+viewUnderConstructionPage : Browser.Document Msg
+viewUnderConstructionPage =
+    let
+        body =
+            div
+                [ Attributes.class "under-construction-info" ]
+                [ paragraph "We are still under construction."
+                , Html.p
+                    []
+                    [ text "For now you can see "
+                    , Html.a
+                        [ Route.href FaqPage ]
+                        [ text "our FAQ " ]
+                    ]
+                , Html.p
+                    []
+                    [ Html.h4
+                        []
+                        [ text "General enquiries" ]
+                    , div
+                        []
+                        [ text "Email: "
+                        , Html.a
+                            [ Attributes.href "mailto:info@crediblechoice.uk" ]
+                            [ text "info@crediblechoice.uk" ]
+                        ]
+                    , div
+                        []
+                        [ text "Phone: 07894 158169" ]
+                    ]
+                ]
+
+        header =
+            viewHeader False
+    in
+    { title = "Credible Choice - Under Construction"
+    , body = [ header, body ]
+    }
+
+
+viewHeader : Bool -> Html Msg
+viewHeader showBackButton =
+    let
+        backButton =
+            case showBackButton of
+                True ->
+                    text ""
+
+                False ->
+                    Html.a
+                        [ Route.href ChoosePage ]
+                        [ text "Back" ]
+    in
+    Html.header
+        []
+        [ div
+            [ Attributes.id "under-construction" ]
+            [ Html.h2 [] [ text "Under construction" ]
+            , Html.p
+                []
+                [ text "This site is in test mode.  It will go live at 01:01 on March 1st 2019 - "
+                , Html.a
+                    [ Route.href FaqPage ]
+                    [ text "See FAQ " ]
+                ]
+            ]
+        , div
+            [ Attributes.id "presentation" ]
+            [ backButton
+            , div
+                [ Attributes.id "brexit"
+                , Attributes.class "bold"
+                ]
+                [ text "Brexit" ]
+            , div
+                [ Attributes.id "slogan" ]
+                [ text "Make your voice heard today" ]
+            , div
+                [ Attributes.id "twitter-link" ]
+                []
+            ]
+        ]
+
+
+viewTemporary : Model -> Browser.Document Msg
+viewTemporary model =
+    let
         contents =
             case model.route of
                 ChoosePage ->
@@ -545,45 +646,10 @@ view model =
 
         header =
             let
-                backButton =
-                    case model.route == ChoosePage of
-                        True ->
-                            text ""
-
-                        False ->
-                            Html.a
-                                [ Route.href ChoosePage ]
-                                [ text "Back" ]
+                showBackButton =
+                    model.route == ChoosePage
             in
-            Html.header
-                []
-                [ div
-                    [ Attributes.id "under-construction" ]
-                    [ Html.h2 [] [ text "Under construction" ]
-                    , Html.p
-                        []
-                        [ text "This site is in test mode.  It will go live at 01:01 on March 1st 2019 - "
-                        , Html.a
-                            [ Route.href FaqPage ]
-                            [ text "See FAQ " ]
-                        ]
-                    ]
-                , div
-                    [ Attributes.id "presentation" ]
-                    [ backButton
-                    , div
-                        [ Attributes.id "brexit"
-                        , Attributes.class "bold"
-                        ]
-                        [ text "Brexit" ]
-                    , div
-                        [ Attributes.id "slogan" ]
-                        [ text "Make your voice heard today" ]
-                    , div
-                        [ Attributes.id "twitter-link" ]
-                        []
-                    ]
-                ]
+            viewHeader showBackButton
 
         navigation =
             let

@@ -199,6 +199,11 @@ section>h2:first-child {
     margin: 5px 0px;
 }
 
+.under-construction-info {
+    padding: 1em;
+    margin: auto;
+}
+
 #presentation {
     color: var(--color-text-inverted);
     padding: 10px 20px;
