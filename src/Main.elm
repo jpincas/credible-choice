@@ -582,10 +582,10 @@ viewHeader showBackButton =
     let
         backButton =
             case showBackButton of
-                True ->
+                False ->
                     text ""
 
-                False ->
+                True ->
                     Html.a
                         [ Route.href ChoosePage ]
                         [ text "Back" ]
@@ -647,7 +647,7 @@ viewTemporary model =
         header =
             let
                 showBackButton =
-                    model.route == ChoosePage
+                    model.route /= ChoosePage
             in
             viewHeader showBackButton
 
