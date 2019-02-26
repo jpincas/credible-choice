@@ -22,6 +22,7 @@ import Random.Char
 import Random.Extra
 import Route exposing (Route(..))
 import Shape
+import Time
 import TypedSvg
 import TypedSvg.Attributes as SvgAttributes
 import TypedSvg.Core
@@ -42,8 +43,15 @@ main =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions =
-    always Sub.none
+subscriptions _ =
+    let
+        minute =
+            60 * second
+
+        second =
+            1000
+    in
+    Time.every minute ResultsTick
 
 
 type alias ProgramFlags =
@@ -116,6 +124,7 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | NonceGenerated Char
+    | ResultsTick Time.Posix
     | MainOptionSelected MainOptionId
     | PostCodeInput String
     | BirthYearInput String
@@ -426,6 +435,9 @@ update msg model =
 
         NonceGenerated char ->
             noCommand { model | nonce = char }
+
+        ResultsTick _ ->
+            withCommands model [ getResults ]
 
         MainOptionSelected optionId ->
             -- Note we're not updating the votes here, we do that in the view function for now,
