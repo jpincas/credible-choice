@@ -961,13 +961,24 @@ liveResultsSection model sortedPeople =
                         ( labelX, labelY ) =
                             Shape.centroid { arc | innerRadius = radius, outerRadius = radius }
 
+                        percentage =
+                            (100 * mainOption.votes) // model.totalVotes
+
+                        labelText =
+                            String.join ""
+                                [ mainOption.name
+                                , "("
+                                , String.fromInt percentage
+                                , "%)"
+                                ]
+
                         label =
                             TypedSvg.text_
                                 [ SvgAttributes.transform [ SvgTypes.Translate labelX labelY ]
-                                , SvgAttributes.dy (SvgTypes.em 2.0)
+                                , SvgAttributes.dy (SvgTypes.em 1.5)
                                 , SvgAttributes.textAnchor SvgTypes.AnchorMiddle
                                 ]
-                                [ TypedSvg.Core.text mainOption.name ]
+                                [ TypedSvg.Core.text labelText ]
                     in
                     ( slice, label )
 
@@ -988,7 +999,7 @@ liveResultsSection model sortedPeople =
                     TypedSvg.svg
                         [ SvgAttributes.viewBox 0 0 width height ]
                         [ TypedSvg.g
-                            [ SvgAttributes.transform [ SvgTypes.Translate (width / 2) (height / 2) ] ]
+                            [ SvgAttributes.transform [ SvgTypes.Translate (width / 2) ((height / 2) - 30) ] ]
                             [ TypedSvg.g [] slices
                             , TypedSvg.g [] labels
                             ]
