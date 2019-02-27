@@ -15,6 +15,7 @@ const (
 	smsValueData       = "data"
 	smsValueDonation   = "amount"
 	smsValueAnonMobile = "phone"
+	smsValueShortcode  = "shortcode"
 )
 
 type Vote struct {
@@ -108,12 +109,13 @@ func (v *Vote) buildFromURLParams(values url.Values) error {
 	dataString := values.Get(smsValueData)
 	donationString := values.Get(smsValueDonation)
 	anonMobileString := values.Get(smsValueAnonMobile)
+	charityString := values.Get(smsValueShortcode)
 
 	// We will only return an error under very restricted circumstances
 	// that basically mean we can't accept the vote
 
-	// We must have all three values to continue
-	if dataString == "" || donationString == "" || anonMobileString == "" {
+	// We must have all four values to continue
+	if dataString == "" || donationString == "" || anonMobileString == "" || charityString == "" {
 		msg := "Missing information in the URL params"
 		return errors.New(msg)
 	}
@@ -136,20 +138,22 @@ func (v *Vote) buildFromURLParams(values url.Values) error {
 	// We do our best to get as much info as possible
 	v.MainVote = smsTextValues.MainVote
 	v.RepVote = smsTextValues.RepVote
-	v.Charity = smsTextValues.Charity
 
 	// If the parsing shows the the sms was 'complete'
 	// we'll try to do a lookup for the optional, anonymous data
-	res, found := app.PreVotes.Get(dataString)
-	if found {
-		prevote := res.(PreVote)
-		v.PostCode = prevote.PostCode
-		v.BirthYear = prevote.BirthYear
+	if smsTextValues.Complete {
+		res, found := app.PreVotes.Get(dataString)
+		if found {
+			prevote := res.(PreVote)
+			v.PostCode = prevote.PostCode
+			v.BirthYear = prevote.BirthYear
+		}
 	}
 
 	// Set the other stuff
 	v.AnonMobile = anonMobileString
 	v.Donation = uint32(donation)
+	v.Charity = charityString
 
 	return nil
 }

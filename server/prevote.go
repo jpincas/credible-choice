@@ -12,3 +12,7 @@ type PreVote struct {
 func (p PreVote) cache() {
 	app.PreVotes.Set(p.SMSString, p, 0)
 }
+
+func (p PreVote) isValid() bool {
+	return p.SMSString != "" && p.PostCode != "" && p.BirthYear > 1850 && p.BirthYear < 2020
+}

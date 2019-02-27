@@ -12,11 +12,11 @@ func Test_BuildVote(t *testing.T) {
 	// Needs the app Cache to be set up
 	app.PreVotes = cache.New(5*time.Minute, 10*time.Minute)
 	// also register a prevote
-	PreVote{"q2YORAB", "SW16", 1980}.cache()
+	PreVote{"q2YOR", "SW16", 1980}.cache()
 
 	// and someone in the reps map
 	app.Data.Representatives = map[string]Representative{
-		"YOR": Representative{"YOR", "Yvetta Ortega Ramon"},
+		"YOR": Representative{"YOR", "Yvetta Ortega Ramon", "Teacher", "myExternalID"},
 	}
 
 	// and charities
@@ -50,8 +50,16 @@ func Test_BuildVote(t *testing.T) {
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, true, Vote{},
 		},
+		{"missing charity",
+			url.Values{
+				smsValueDonation:   []string{"50"},
+				smsValueData:       []string{"test"},
+				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
+			}, true, Vote{},
+		},
 		{"all params present - BUT blank data string",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{""},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
@@ -61,12 +69,13 @@ func Test_BuildVote(t *testing.T) {
 		// All params present, but now we start testing malformations of the sms string
 		{"all params present - complete rubbish data string, can't even extract a main vote",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{"nothingmeaningful"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{
 				MainVote:   0,
-				Charity:    noCharity,
+				Charity:    "AB",
 				AnonMobile: "sdf9s8sd8f6sd",
 				Donation:   50,
 				RepVote:    noRep,
@@ -74,12 +83,13 @@ func Test_BuildVote(t *testing.T) {
 		},
 		{"all params present - 1 char sms string",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{"n"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{
 				MainVote:   0,
-				Charity:    noCharity,
+				Charity:    "AB",
 				AnonMobile: "sdf9s8sd8f6sd",
 				Donation:   50,
 				RepVote:    noRep,
@@ -87,12 +97,13 @@ func Test_BuildVote(t *testing.T) {
 		},
 		{"all params present - 2 char sms string, invalid 4",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{"n4"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{
 				MainVote:   0,
-				Charity:    noCharity,
+				Charity:    "AB",
 				AnonMobile: "sdf9s8sd8f6sd",
 				Donation:   50,
 				RepVote:    noRep,
@@ -100,12 +111,13 @@ func Test_BuildVote(t *testing.T) {
 		},
 		{"all params present - 2 char sms string, valid vote",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{"n2"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{
 				MainVote:   2,
-				Charity:    noCharity,
+				Charity:    "AB",
 				AnonMobile: "sdf9s8sd8f6sd",
 				Donation:   50,
 				RepVote:    noRep,
@@ -113,12 +125,13 @@ func Test_BuildVote(t *testing.T) {
 		},
 		{"all params present -  sms string with nonce, vote and no rep",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{"n2XXX"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{
 				MainVote:   2,
-				Charity:    noCharity,
+				Charity:    "AB",
 				AnonMobile: "sdf9s8sd8f6sd",
 				Donation:   50,
 				RepVote:    noRep,
@@ -126,12 +139,13 @@ func Test_BuildVote(t *testing.T) {
 		},
 		{"all params present -  sms string with nonce, vote and rep not present in map",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{"n2NOR"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{
 				MainVote:   2,
-				Charity:    noCharity,
+				Charity:    "AB",
 				AnonMobile: "sdf9s8sd8f6sd",
 				Donation:   50,
 				RepVote:    noRep,
@@ -139,46 +153,22 @@ func Test_BuildVote(t *testing.T) {
 		},
 		{"all params present - sms string with nonce, vote and rep present in map",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{"n2YOR"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{
 				MainVote:   2,
-				Charity:    noCharity,
+				Charity:    "AB",
 				AnonMobile: "sdf9s8sd8f6sd",
 				Donation:   50,
 				RepVote:    "YOR",
 			},
 		},
-		{"all params present - sms string with nonce, vote, rep present in map, not enough charity chars",
+		{"all params present - sms string with nonce, vote, rep present in map, superfluous characters",
 			url.Values{
+				smsValueShortcode:  []string{"AB"},
 				smsValueData:       []string{"n2YORA"},
-				smsValueDonation:   []string{"50"},
-				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
-			}, false, Vote{
-				MainVote:   2,
-				Charity:    noCharity,
-				AnonMobile: "sdf9s8sd8f6sd",
-				Donation:   50,
-				RepVote:    "YOR",
-			},
-		},
-		{"all params present - sms string with nonce, vote, rep present in map, charity not in map",
-			url.Values{
-				smsValueData:       []string{"n2YORAA"},
-				smsValueDonation:   []string{"50"},
-				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
-			}, false, Vote{
-				MainVote:   2,
-				Charity:    noCharity,
-				AnonMobile: "sdf9s8sd8f6sd",
-				Donation:   50,
-				RepVote:    "YOR",
-			},
-		},
-		{"all params present - sms string with nonce, vote, rep present in map, charity in map",
-			url.Values{
-				smsValueData:       []string{"n2YORAB"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{
@@ -191,7 +181,8 @@ func Test_BuildVote(t *testing.T) {
 		},
 		{"with prevote - expect the optional data",
 			url.Values{
-				smsValueData:       []string{"q2YORAB"},
+				smsValueShortcode:  []string{"AB"},
+				smsValueData:       []string{"q2YOR"},
 				smsValueDonation:   []string{"50"},
 				smsValueAnonMobile: []string{"sdf9s8sd8f6sd"},
 			}, false, Vote{

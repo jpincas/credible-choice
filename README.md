@@ -40,43 +40,61 @@ Then just run:
 And find the site at http://localhost:6002
 
 
-## Message Design / SMS Format
+## Prevote
+
+This is a sort of 'intention to vote' that is sent to our server by the app.  The sole purpose is to register optional data (postcode / birth year) that will be cross referenced against incoming sms votes.
+
+```golang
+type PreVote struct {
+	SMSString string `json:"smsString"`
+	PostCode  string `json:"postcode"` // first part only, e.g. SW16
+	BirthYear uint16 `json:"birthYear"` // e.g. 1980
+}
+```
+
+## Main Vote
 
 We want to embed the sms message into a concatenated string representing the following data:
 
 ```golang
 type Vote struct {
-    MainVote uint8 // 1 digit (1,2,3)
-    RepVote string // 3 characters (unique, composed from name and surname)
-    Charity string // 2 characters
-    PostCode string // 3-4 characters, valid UK post code prefix
-    BirthYear uint16 // Hopefully somewhere between 1900 and 2002
-    Donation int32  // How many pence were donated
+	tormenta.Model
+
+	// Choices
+	MainVote uint8  `json:"mainVote"`
+	RepVote  string `json:"repVote"`
+	Charity  string `json:"charity"`
+
+	// Anonymous data
+	AnonMobile string `json:"anonMobile"`
+	PostCode   string `json:"postcode"`
+	BirthYear  uint16 `json:"birthYear"`
+	Donation   pence  `json:"donation"`
 }
 ```
 
-Only the main vote, rep vote and charity choice are encoded in the SMS.  They are encoded into a string like `q / 1 / RBR / AD  -> q1RBRAD`.  Where `q` is a random nonce drawn from `a-z, A-Z, 0-9`.  
+Only the main vote and rep vote are encoded in the SMS.  They are encoded into a string like `q / 1 / RBR -> q1RBR`.  Where `q` is a random nonce drawn from `a-z, A-Z, 0-9`.  
 
-The donation amount needs to be added outside this concatenated string so that the gateway can parse it.  
+The donation amount needs to be added outside this concatenated string so that the gateway can parse it.
+
+The charity choice is the shortcode set up by the charity with DONR, e.g a charity called 'My Amazing Charity' might have picked `MAC`
 
 The year of birth and postcode are not encoded in the SMS, they are passed to the api in a 'pre-vote'.
 
-Thus, the full text would look like `CCH q1RBRAD 50`, where 'CHOICE' is our unique campaign keyword to be assigned by the gateway.  This is equivalent to:
+Thus, the full text would look like `MAC q1RBR 50`.  This is equivalent to:
 
 ```golang
 Vote{
     MainVote: 1,
     RepVote: "RBR",
-    Charity: "AD",
+    Charity: "MAC",
+    Donation: 50,
     PostCode: "SW16", // from the prevote
     BirthYear: 1980, // from the prevote
-    Donation: 50,
 }
 ```
 
-The rep vote is optional - it will default to `NIL`
-The charity choice is optional - it will default to `AL`
-The year and postcode are both optional - they will not appear at all if not entered.  We will have to be careful with the parser to pick up the right information. Years start with a number and postcodes with a letter, so use that.
+- We are using `XXX` as a no-rep choice
 
 
 API: all of this information will get posted to the endpoint of our choosing by GET request and with the data encoded in URL parameters.  More info on that to come.

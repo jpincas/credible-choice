@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -25,6 +26,29 @@ func GetResults(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterPreVote(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		respondWithError(w, errorTypeBodyRead, err)
+		return
+	}
+
+	var p PreVote
+
+	err = json.Unmarshal(b, &p)
+	if err != nil {
+		respondWithError(w, errorTypeInvalidBody, err)
+		return
+	}
+
+	// If the prevote is not valid, then there has been an issue with the JSON
+	// sent from the app
+	if !p.isValid() {
+		respondWithError(w, errorTypeInvalidBody, err)
+		return
+	}
+
+	p.cache()
 	respondOK(w)
 }
 
