@@ -882,11 +882,19 @@ selectedClass b =
 viewChoose : Model -> Html Msg
 viewChoose model =
     let
+        numVotes person =
+            Dict.get person.code model.representativeVotes
+                |> Maybe.withDefault 0
+
+        sortedPeople =
+            model.people
+                |> List.sortBy numVotes
+
         sections =
-            [ liveResultsSection model
+            [ liveResultsSection model sortedPeople
             , makeYourChoiceIntroduction model
             , makeYourChoiceMain model
-            , makeYourChoiceRep model
+            , makeYourChoiceRep model sortedPeople
             , donationSection model
             , smsBuilder model
             ]
@@ -914,8 +922,12 @@ totalNumVotes model =
     List.map .votes model.mainOptions |> List.sum
 
 
-liveResultsSection : Model -> Html Msg
-liveResultsSection model =
+type alias SortedPeople =
+    List Person
+
+
+liveResultsSection : Model -> SortedPeople -> Html Msg
+liveResultsSection model sortedPeople =
     let
         viewPie =
             let
@@ -924,7 +936,9 @@ liveResultsSection model =
                     , endAngle = 2 * pi
                     , padAngle = 0
                     , sortingFn = Basics.compare
-                    , valueFn = identity
+
+                    -- TODO: This is just so that the part chart displays even when there are zero votes.
+                    , valueFn = max 10
                     , innerRadius = 0
                     , outerRadius = 100
                     , cornerRadius = 0
@@ -983,11 +997,16 @@ liveResultsSection model =
             pieImage
 
         viewRep i person =
+            let
+                votes =
+                    Dict.get person.code model.representativeVotes
+                        |> formatMaybeInt
+            in
             Html.li
                 [ Attributes.class "top-ten-rep" ]
                 [ Html.span [ Attributes.class "rep-position" ] [ text <| String.fromInt <| i + 1 ]
                 , Html.span [ Attributes.class "rep-name" ] [ text person.name ]
-                , Html.span [ Attributes.class "rep-score" ] [ text <| String.fromInt 1500000 ]
+                , Html.span [ Attributes.class "rep-score" ] [ votes ]
                 ]
 
         viewReps =
@@ -995,7 +1014,7 @@ liveResultsSection model =
                 [ Attributes.id "live-results-representatives" ]
                 [ Html.ul
                     [ Attributes.class "top-ten-representatives" ]
-                    (List.indexedMap viewRep <| List.take 10 model.people)
+                    (List.indexedMap viewRep <| List.take 10 sortedPeople)
                 , div
                     [ Attributes.class "total-votes" ]
                     [ Html.label
@@ -1137,8 +1156,8 @@ clickToChoose =
         [ text "Click to choose" ]
 
 
-makeYourChoiceRep : Model -> Html Msg
-makeYourChoiceRep model =
+makeYourChoiceRep : Model -> SortedPeople -> Html Msg
+makeYourChoiceRep model sortedPeople =
     let
         makeRepChoice person =
             let
@@ -1178,7 +1197,7 @@ makeYourChoiceRep model =
             , position = ""
             , suspended = False
             }
-                :: model.people
+                :: sortedPeople
 
         filteredRepresentatives =
             case String.isEmpty model.searchRepresentativeInput of
@@ -1323,7 +1342,7 @@ makeYourChoiceRep model =
                             [ text " of "
                             , Html.span
                                 [ Attributes.class "bold" ]
-                                [ List.length model.people |> formatInt |> text ]
+                                [ List.length sortedPeople |> formatInt |> text ]
                             , text " matching "
                             , Html.span
                                 [ Attributes.class "bold" ]
@@ -1712,6 +1731,16 @@ formatNumberLocale =
     , positivePrefix = ""
     , positiveSuffix = ""
     }
+
+
+formatMaybeInt : Maybe Int -> Html msg
+formatMaybeInt mI =
+    case mI of
+        Nothing ->
+            text ""
+
+        Just i ->
+            text <| formatInt i
 
 
 formatInt : Int -> String
