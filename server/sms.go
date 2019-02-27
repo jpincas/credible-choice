@@ -5,37 +5,26 @@ import "strconv"
 type SMSTextValues struct {
 	MainVote uint8  `json:"mainVote"`
 	RepVote  string `json:"repVote"`
-	Charity  string `json:"charity"`
 	Complete bool   `json:"-"`
 }
 
 const (
-	noVote    = uint8(0)
-	noRep     = "XXX"
-	noCharity = "AL"
+	noVote = uint8(0)
+	noRep  = "XXX"
 )
 
-// q / 1 / RBR / AD (optional)  -> q1RBRAD
+// q / 1 / RBR  -> q1RBR
 
 func (s *SMSTextValues) mustParse(smsTextString string) {
-	charity := noCharity
 	repVote := noRep
 	mainVote := noVote
-
-	// All the info is there
-	if len(smsTextString) >= 7 {
-		charity = string(smsTextString[5:7])
-		if _, ok := app.Data.Charities[charity]; !ok {
-			charity = noCharity
-		}
-		s.Complete = true
-	}
 
 	if len(smsTextString) >= 5 {
 		repVote = string(smsTextString[2:5])
 		if _, ok := app.Data.Representatives[repVote]; !ok {
 			repVote = noRep
 		}
+		s.Complete = true
 	}
 
 	if len(smsTextString) >= 2 {
@@ -54,6 +43,5 @@ func (s *SMSTextValues) mustParse(smsTextString string) {
 
 	s.MainVote = mainVote
 	s.RepVote = repVote
-	s.Charity = charity
 	return
 }
