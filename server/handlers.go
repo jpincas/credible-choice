@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"github.com/go-chi/chi"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -75,12 +75,27 @@ func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
+// The response is in the shape:
+// {[
+//	"AIA": {
+//		"id": "AIA",
+//		"name": "Armando Iannucci",
+//		"profession": "Satirist",
+//		"externalId": "01wd3l",
+//		"suspended": false
+//  }]}
 func ListRepresentatives(w http.ResponseWriter, r *http.Request) {
 	respond(w, app.Data.Representatives)
 }
 
-// The request is in the shape: { "searchTerms" }
-// The response is in the shape: { "results" : [{ "title", "pageId"}]}
+// The request is in the shape: { "searchTerms" : "jeremy corbyn"}
+// The response is in the shape:
+// { "results" :
+//  	[{ "title" : "Jeremy Corbyn",
+// 		   "pageId" : "025m87",
+// 		   "description": "Leader of the Labour Party"
+// 	    ]}
+// }
 func SearchRepresentative(w http.ResponseWriter, r *http.Request) {
 	searchResponse, err := searchKGraph(r)
 	if err != nil {
@@ -93,7 +108,7 @@ func SearchRepresentative(w http.ResponseWriter, r *http.Request) {
 	respond(w, response)
 }
 
-// The request is in the shape { "wikiId": 123}
+// The request is in the shape { "pageId": "025m87" }
 func CreateRepresentative(w http.ResponseWriter, r *http.Request) {
 	var repCreateRequest CreateRepresentativeRequest
 	json.NewDecoder(r.Body).Decode(&repCreateRequest)
