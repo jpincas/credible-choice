@@ -25,6 +25,7 @@ func generateRepresentativeId(name string) (string, error) {
 	} else {
 		secondName = names[0][1:]
 	}
+	// TODO EdS: Do not allow special characters - currently fullstops allowed!
 
 	for i := 0; i < len(firstName); i++ {
 		for j := 0; j < len(secondName)-1; j++ {

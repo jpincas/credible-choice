@@ -24,6 +24,7 @@ const (
 	errorTypeEntityInvalid                          = "entity did not pass validations"
 	errorTypeCannotExecuteAction                    = "action cannot be executed on this entity"
 	errorTypeCannotExecuteActionOnEntityInThatState = "action cannot be executed on this entity due to its state"
+	errorTypeInvalidId                              = "Id invalid"
 )
 
 type ErrorResponse struct {
@@ -88,6 +89,14 @@ func respondCreated(w http.ResponseWriter) {
 	return
 }
 
+func respondNotFound(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+}
+
+func respondNoContent(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func lookupErrorCode(errorType string) int {
 	code, ok := ErrorCodeLookup[errorType]
 	if !ok {
@@ -140,10 +149,13 @@ func (r *RepresentativeSearchResponse) buildSearchResponseFromWikipedia(wikiResp
 
 func (r *RepresentativeSearchResponse) buildSearchResponseFromKGraph(kGraphResponse KGraphResponse) {
 	for _, p := range kGraphResponse.ItemListElements {
-		res := &representativeSearchResult{}
-		res.PageId = strings.Replace(p.Person.Id, "kg:", "", 1)
-		res.Title = p.Person.Name
-		res.Profession = p.Person.Description
-		r.Results = append(r.Results, *res)
+		formattedId := strings.Replace(p.Person.Id, "kg:/m/", "", 1)
+		if _, ok := app.Data.SuspendedReps[formattedId]; !ok {
+			res := &representativeSearchResult{}
+			res.PageId = formattedId
+			res.Title = p.Person.Name
+			res.Profession = p.Person.Description
+			r.Results = append(r.Results, *res)
+		}
 	}
 }

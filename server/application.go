@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -38,11 +39,14 @@ type Config struct {
 	VoteWebhook      string `json:"voteWebhook"`
 	VoteToBlockchain bool   `json:"voteToBlockchain"`
 	BlockchainHost   string `json:"blockchainHost"`
+	KGraphAPIKey  string `json:"kGraphAPIKey"`
 }
 
 type Data struct {
-	Charities       map[string]Charity
+	Charities map[string]Charity
+	// Representatives has internal id as the key whilst SuspendedReps has the external id as the key
 	Representatives map[string]Representative
+	SuspendedReps   map[string]Representative
 }
 
 func runApplication(configFile string) {
@@ -109,9 +113,10 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 		r.Get("/recentvotes", ListRecentVotes)
 		r.Get("/results", GetResults)
 		r.Post("/prevote", RegisterPreVote)
-		r.Get("/representatives", ListTopRepresentatives)
+		r.Get("/representatives", ListRepresentatives)
 		r.Post("/representatives/search", SearchRepresentative)
 		r.Post("/representatives", CreateRepresentative)
+		r.Delete("/representatives/{id:[A-Z]+}", SuspendRepresentative)
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {
@@ -163,15 +168,16 @@ func (a *Application) readCharities() error {
 }
 
 func (a *Application) readRepresentatives() error {
-	f, err := os.Open(a.Config.DataDirectory + "/representatives.csv")
+	seedFile, err := os.Open(a.Config.DataDirectory + "/representatives_seed.csv")
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer seedFile.Close()
 
-	csvr := csv.NewReader(f)
+	csvr := csv.NewReader(seedFile)
 
 	representatives := map[string]Representative{}
+	suspendRepresentatives := map[string]Representative{}
 	for {
 		record, err := csvr.Read()
 		// Stop at EOF.
@@ -184,13 +190,52 @@ func (a *Application) readRepresentatives() error {
 		id := record[0]
 		title := record[1]
 		profession := record[2]
-		wikiId := record[3]
+		externalId := record[3]
+		suspended, err := strconv.ParseBool(record[4])
+		// TODO EdS: handle err
 
-		representatives[id] = Representative{id, title, profession, wikiId}
+		representatives[id] = Representative{id, title, profession, externalId, suspended}
+		if suspended {
+			suspendRepresentatives[externalId] = Representative{id, title, profession, externalId, suspended}
+		}
 	}
 
-	Log(LogModuleStartup, true, "Read in list of representatives OK", nil)
+	Log(LogModuleStartup, true, "Read in seed list of representatives OK", nil)
+
+	// TODO EdS: Refactor this function - probably do not need two csv's
+	dbFile, err := os.Open(a.Config.DataDirectory + "/representatives_db.csv")
+	if err != nil {
+		return err
+	}
+	defer dbFile.Close()
+
+	csvr = csv.NewReader(dbFile)
+
+	for {
+		record, err := csvr.Read()
+		// Stop at EOF.
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		id := record[0]
+		title := record[1]
+		profession := record[2]
+		externalId := record[3]
+		suspended, err := strconv.ParseBool(record[4])
+
+		representatives[id] = Representative{id, title, profession, externalId, suspended}
+		if suspended {
+			suspendRepresentatives[externalId] = Representative{id, title, profession, externalId, suspended}
+		}
+	}
+
+	Log(LogModuleStartup, true, "Read in db list of representatives OK", nil)
+
 	a.Data.Representatives = representatives
+	a.Data.SuspendedReps = suspendRepresentatives
 	return nil
 }
 

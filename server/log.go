@@ -22,6 +22,7 @@ const (
 	LogModuleRepresentative = "representative"
 	LogModuleWiki           = "wiki"
 	LogModuleBlockchain     = "blockchain"
+	LogModuleCsv            = "csv"
 )
 
 // LogEntry represents an entry into the system log
