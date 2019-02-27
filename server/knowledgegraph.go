@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -13,7 +12,7 @@ const (
 	KGraphApiSearchBase = "languages=en&limit=10" +
 		"&types=Person&key="
 	KGraphSearch  = "&query="
-	KGraphFetchId = "&ids="
+	KGraphFetchId = "&ids=/m/"
 )
 
 func searchKGraph(r *http.Request) (KGraphResponse, error) {
@@ -30,12 +29,13 @@ func searchKGraph(r *http.Request) (KGraphResponse, error) {
 
 	trimmedSearchPhrase := strings.TrimSpace(repSearchRequest.SearchPhrase)
 	kGraphSearchTerms := strings.Replace(trimmedSearchPhrase, " ", "+", -1)
-	kGraphApiUrl := KGraphUrlBase + KGraphApiSearchBase + os.Getenv("KNOWLEDGE_GRAPH_API_KEY") + KGraphSearch + kGraphSearchTerms
+	kGraphApiUrl := KGraphUrlBase + KGraphApiSearchBase + app.Config.KGraphAPIKey + KGraphSearch + kGraphSearchTerms
 
 	kGraphResponse, err := http.Get(kGraphApiUrl)
 	if err != nil {
 		return response, err
 	}
+	defer kGraphResponse.Body.Close()
 
 	if err := json.NewDecoder(kGraphResponse.Body).Decode(&response); err != nil {
 		return response, err
@@ -46,13 +46,13 @@ func searchKGraph(r *http.Request) (KGraphResponse, error) {
 
 func fetchRepresentativeFromKGraph(r CreateRepresentativeRequest) (KGraphResponse, error) {
 	var response KGraphResponse
-	// TODO EdS: Is this the correct way to deal with API keys?
-	kGraphApiUrl := KGraphUrlBase + KGraphApiSearchBase + os.Getenv("KNOWLEDGE_GRAPH_API_KEY") + KGraphFetchId + r.Id
+	kGraphApiUrl := KGraphUrlBase + KGraphApiSearchBase + app.Config.KGraphAPIKey + KGraphFetchId + r.Id
 
 	fetchResponse, err := http.Get(kGraphApiUrl)
 	if err != nil {
 		return response, err
-	}
+	} // TODO EdS: If empty make 404 not 500
+	defer fetchResponse.Body.Close()
 
 	if err := json.NewDecoder(fetchResponse.Body).Decode(&response); err != nil {
 		return response, err
