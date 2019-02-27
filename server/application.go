@@ -106,14 +106,17 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.Throttle(100))
+	r.Use(noCache)
 
 	// Set up routes
 	r.Route("/appapi", func(r chi.Router) {
-		r.Get("/charities", ListCharities)
-		r.Get("/recentvotes", ListRecentVotes)
-		r.Get("/results", GetResults)
+		r.With(cacheFor1Hour).Get("/charities", ListCharities)
+		r.With(cacheFor1Minute).Get("/recentvotes", ListRecentVotes)
+		r.With(cacheFor1Minute).Get("/results", GetResults)
+		r.With(cacheFor1Minute).Get("/representatives", ListRepresentatives)
+
 		r.Post("/prevote", RegisterPreVote)
-		r.Get("/representatives", ListRepresentatives)
 		r.Post("/representatives/search", SearchRepresentative)
 		r.Post("/representatives", CreateRepresentative)
 		r.Delete("/representatives/{id:[A-Z]+}", SuspendRepresentative)
@@ -248,6 +251,7 @@ func (a *Application) scheduleJobs() {
 	a.Scheduler = cron.New()
 
 	a.Scheduler.AddFunc("@every 5m", func() { updateResults() })
+	a.Scheduler.AddFunc("@every 1h", func() { a.readCharities() })
 
 	a.Scheduler.Start()
 
