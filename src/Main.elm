@@ -17,6 +17,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Path
+import Ports
 import Random
 import Random.Char
 import Random.Extra
@@ -50,8 +51,27 @@ subscriptions _ =
 
         second =
             1000
+
+        tickSub =
+            Time.every minute ResultsTick
+
+        restoreSavedData mValue =
+            case mValue of
+                Nothing ->
+                    ChoicesRestored <| Err "No saved data."
+
+                Just value ->
+                    case Decode.decodeValue savedDataDecoder value of
+                        Err error ->
+                            ChoicesRestored <| Err <| Decode.errorToString error
+
+                        Ok data ->
+                            ChoicesRestored <| Ok data
+
+        getChoicesSub =
+            Ports.getChoices restoreSavedData
     in
-    Time.every minute ResultsTick
+    Sub.batch [ tickSub, getChoicesSub ]
 
 
 type alias ProgramFlags =
@@ -67,7 +87,7 @@ type alias Model =
     , postcode : String
     , birthyear : String
     , people : List Person
-    , selectedRepresentative : Maybe Person
+    , selectedRepresentative : Maybe PersonCode
     , searchRepresentativeInput : String
     , representativePage : Int
     , nonce : Char
@@ -75,6 +95,27 @@ type alias Model =
     , charities : List Charity
     , donation : Maybe Pennies
     }
+
+
+type alias SavedData =
+    { postcode : String
+    , birthyear : String
+    , mainOption : Maybe MainOptionId
+    , representative : Maybe PersonCode
+    , charity : Maybe CharityId
+    , donation : Maybe Pennies
+    }
+
+
+savedDataDecoder : Decoder SavedData
+savedDataDecoder =
+    Decode.succeed SavedData
+        |> Pipeline.required "postcode" Decode.string
+        |> Pipeline.required "birthyear" Decode.string
+        |> Pipeline.required "mainOption" (Decode.nullable Decode.string)
+        |> Pipeline.required "representative" (Decode.nullable Decode.string)
+        |> Pipeline.required "charity" (Decode.nullable Decode.string)
+        |> Pipeline.required "donation" (Decode.nullable Decode.int)
 
 
 type alias CharityId =
@@ -108,11 +149,15 @@ type alias PersonName =
     String
 
 
+type alias PersonCode =
+    String
+
+
 type alias Person =
     { name : PersonName
-    , code : String
+    , code : PersonCode
     , position : String
-    , votes : Int
+    , suspended : Bool
     }
 
 
@@ -130,8 +175,7 @@ type Msg
     | BirthYearInput String
     | ResultsReceived (HttpResult ResultsPayload)
     | PeopleReceived (HttpResult (List Person))
-    | SelectRepresentative Person
-    | ClearRepresentativeChoice
+    | SelectRepresentative PersonCode
     | SearchRepresentativeInput String
     | RepPageNext
     | RepPagePrev
@@ -139,7 +183,7 @@ type Msg
     | PrevoteResponse (HttpResult ())
     | CharitiesReceived (HttpResult (List Charity))
     | MakeCharityChoice CharityId
-    | ClearCharityChoice
+    | ChoicesRestored (Result String SavedData)
 
 
 type alias ResultsPayload =
@@ -186,20 +230,21 @@ getPeople : Cmd Msg
 getPeople =
     let
         url =
-            "/static/data/people.json"
+            "/appapi/representatives"
 
         expect =
             Http.expectJson PeopleReceived peopleDecoder
 
         peopleDecoder =
-            Decode.list personDecoder
+            Decode.keyValuePairs personDecoder
+                |> Decode.map (List.map Tuple.second)
 
         personDecoder =
             Decode.succeed Person
-                |> Pipeline.required "Representative" Decode.string
-                |> Pipeline.hardcoded "CODE1"
-                |> Pipeline.required "Profession" Decode.string
-                |> Pipeline.required "ChosenBy" Decode.int
+                |> Pipeline.required "name" Decode.string
+                |> Pipeline.required "id" Decode.string
+                |> Pipeline.required "profession" Decode.string
+                |> Pipeline.required "suspended" Decode.bool
     in
     Http.get { url = url, expect = expect }
 
@@ -225,6 +270,32 @@ getCharities =
     Http.get { url = url, expect = expect }
 
 
+saveChoices : Model -> Cmd Msg
+saveChoices model =
+    let
+        encodeMaybe encoder mA =
+            Maybe.map encoder mA
+                |> Maybe.withDefault Encode.null
+
+        nullableString =
+            encodeMaybe Encode.string
+
+        nullableInt =
+            encodeMaybe Encode.int
+
+        value =
+            Encode.object
+                [ ( "postcode", Encode.string model.postcode )
+                , ( "birthyear", Encode.string model.birthyear )
+                , ( "mainOption", nullableString model.selectedMainOption )
+                , ( "representative", nullableString model.selectedRepresentative )
+                , ( "charity", nullableString model.charity )
+                , ( "donation", nullableInt model.donation )
+                ]
+    in
+    Ports.putCurrentChoices value
+
+
 type alias CodeComponents =
     { nonce : String
     , repVote : String
@@ -235,13 +306,7 @@ type alias CodeComponents =
 codeComponents : Model -> CodeComponents
 codeComponents model =
     { nonce = String.fromChar model.nonce
-    , repVote =
-        case model.selectedRepresentative of
-            Nothing ->
-                "XXX"
-
-            Just rep ->
-                rep.code
+    , repVote = Maybe.withDefault "XXX" model.selectedRepresentative
     , charity = Maybe.withDefault "" model.charity
     }
 
@@ -407,8 +472,16 @@ init () url key =
 
         initNonce =
             Random.generate NonceGenerated generator
+
+        commands =
+            [ getResults
+            , getPeople
+            , initNonce
+            , getCharities
+            , Ports.restoreChoices ()
+            ]
     in
-    withCommands initialModel [ getResults, getPeople, initNonce, getCharities ]
+    withCommands initialModel commands
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -439,12 +512,34 @@ update msg model =
         ResultsTick _ ->
             withCommands model [ getResults ]
 
-        MainOptionSelected optionId ->
-            -- Note we're not updating the votes here, we do that in the view function for now,
-            -- but ultimately it will be when receieve a successful response from the server, which
-            -- should include the new number of votes.
-            noCommand { model | selectedMainOption = Just optionId }
+        ChoicesRestored (Err _) ->
+            noCommand model
 
+        ChoicesRestored (Ok savedData) ->
+            let
+                newModel =
+                    { model
+                        | postcode = savedData.postcode
+                        , birthyear = savedData.birthyear
+                        , selectedMainOption = savedData.mainOption
+                        , selectedRepresentative = savedData.representative
+                        , charity = savedData.charity
+                        , donation = savedData.donation
+                    }
+            in
+            noCommand newModel
+
+        MainOptionSelected optionId ->
+            let
+                newModel =
+                    { model | selectedMainOption = Just optionId }
+            in
+            withCommands newModel [ saveChoices newModel ]
+
+        -- In theory we could locally store the choices for both these inputs,
+        -- however, that means we'll do it with each keypress. Probably okay, but
+        -- since this is the first choice relatively unlikely that they do this last,
+        -- and if so, it just means it won't be saved, that's all. (We could save onBlur).
         PostCodeInput input ->
             noCommand { model | postcode = input }
 
@@ -485,19 +580,22 @@ update msg model =
 
         MakeCharityChoice charityId ->
             let
-                command =
-                    sendPreVote model
+                newModel =
+                    { model | charity = Just charityId }
+
+                commands =
+                    [ sendPreVote newModel
+                    , saveChoices newModel
+                    ]
             in
-            withCommands { model | charity = Just charityId } [ command ]
+            withCommands newModel commands
 
-        ClearCharityChoice ->
-            noCommand { model | charity = Nothing }
-
-        SelectRepresentative person ->
-            noCommand { model | selectedRepresentative = Just person }
-
-        ClearRepresentativeChoice ->
-            noCommand { model | selectedRepresentative = Nothing }
+        SelectRepresentative personCode ->
+            let
+                newModel =
+                    { model | selectedRepresentative = Just personCode }
+            in
+            withCommands newModel [ saveChoices newModel ]
 
         RepPageNext ->
             noCommand { model | representativePage = model.representativePage + 1 }
@@ -509,7 +607,11 @@ update msg model =
             noCommand { model | searchRepresentativeInput = input, representativePage = 0 }
 
         SelectDonationAmount pennies ->
-            noCommand { model | donation = Just pennies }
+            let
+                newModel =
+                    { model | donation = Just pennies }
+            in
+            withCommands newModel [ saveChoices newModel ]
 
         -- Strange but there isn't really anything to do upon receiving the prevote
         -- response, we cannot really take any interesting action or give any interesting
@@ -1020,47 +1122,29 @@ makeYourChoiceRep model =
         makeRepChoice person =
             let
                 isSelected =
-                    case model.selectedRepresentative of
-                        Nothing ->
-                            False
-
-                        Just rep ->
-                            -- TODO: This only really needs to check the code, but since I've hard coded
-                            -- that to all be the same temporarily that would make all the representatives appear
-                            -- selected.
-                            rep.name == person.name && rep.code == person.code
-
-                votes =
-                    case person.votes == 0 of
-                        True ->
-                            text ""
-
-                        False ->
-                            text <| formatInt person.votes
+                    model.selectedRepresentative == Just person.code
             in
-            Html.tr
-                []
-                [ Html.td
-                    [ Attributes.class "button"
-                    , selectedClass isSelected
-                    , Attributes.class "representative-name"
-                    , Events.onClick <| SelectRepresentative person
-                    ]
-                    [ text person.name ]
-                , Html.td
-                    []
-                    [ votes ]
-                , Html.td
-                    []
-                    -- TODO: We need the associated donations from the backend somehow
-                    [ text <| "£" ++ String.fromInt 56754 ]
-                ]
+            case person.suspended of
+                True ->
+                    text ""
+
+                False ->
+                    Html.tr
+                        []
+                        [ Html.td
+                            [ Attributes.class "button"
+                            , selectedClass isSelected
+                            , Attributes.class "representative-name"
+                            , Events.onClick <| SelectRepresentative person.code
+                            ]
+                            [ text person.name ]
+                        ]
 
         people =
             { name = "No represenative"
-            , code = "Non"
+            , code = "XXX"
             , position = ""
-            , votes = 0
+            , suspended = False
             }
                 :: model.people
 
@@ -1159,8 +1243,6 @@ makeYourChoiceRep model =
                             , Html.br [] []
                             , clickToChoose
                             ]
-                        , Html.th [] [ text "Chosen by" ]
-                        , Html.th [] [ text "Donations" ]
                         ]
                     ]
                 , Html.tbody
