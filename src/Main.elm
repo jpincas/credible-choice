@@ -157,7 +157,7 @@ type alias Person =
     { name : PersonName
     , code : PersonCode
     , position : String
-    , votes : Int
+    , suspended : Bool
     }
 
 
@@ -230,20 +230,21 @@ getPeople : Cmd Msg
 getPeople =
     let
         url =
-            "/static/data/people.json"
+            "/appapi/representatives"
 
         expect =
             Http.expectJson PeopleReceived peopleDecoder
 
         peopleDecoder =
-            Decode.list personDecoder
+            Decode.keyValuePairs personDecoder
+                |> Decode.map (List.map Tuple.second)
 
         personDecoder =
             Decode.succeed Person
-                |> Pipeline.required "Representative" Decode.string
-                |> Pipeline.hardcoded "CODE1"
-                |> Pipeline.required "Profession" Decode.string
-                |> Pipeline.required "ChosenBy" Decode.int
+                |> Pipeline.required "name" Decode.string
+                |> Pipeline.required "id" Decode.string
+                |> Pipeline.required "profession" Decode.string
+                |> Pipeline.required "suspended" Decode.bool
     in
     Http.get { url = url, expect = expect }
 
@@ -1122,38 +1123,28 @@ makeYourChoiceRep model =
             let
                 isSelected =
                     model.selectedRepresentative == Just person.code
-
-                votes =
-                    case person.votes == 0 of
-                        True ->
-                            text ""
-
-                        False ->
-                            text <| formatInt person.votes
             in
-            Html.tr
-                []
-                [ Html.td
-                    [ Attributes.class "button"
-                    , selectedClass isSelected
-                    , Attributes.class "representative-name"
-                    , Events.onClick <| SelectRepresentative person.code
-                    ]
-                    [ text person.name ]
-                , Html.td
-                    []
-                    [ votes ]
-                , Html.td
-                    []
-                    -- TODO: We need the associated donations from the backend somehow
-                    [ text <| "£" ++ String.fromInt 56754 ]
-                ]
+            case person.suspended of
+                True ->
+                    text ""
+
+                False ->
+                    Html.tr
+                        []
+                        [ Html.td
+                            [ Attributes.class "button"
+                            , selectedClass isSelected
+                            , Attributes.class "representative-name"
+                            , Events.onClick <| SelectRepresentative person.code
+                            ]
+                            [ text person.name ]
+                        ]
 
         people =
             { name = "No represenative"
             , code = "XXX"
             , position = ""
-            , votes = 0
+            , suspended = False
             }
                 :: model.people
 
@@ -1252,8 +1243,6 @@ makeYourChoiceRep model =
                             , Html.br [] []
                             , clickToChoose
                             ]
-                        , Html.th [] [ text "Chosen by" ]
-                        , Html.th [] [ text "Donations" ]
                         ]
                     ]
                 , Html.tbody
