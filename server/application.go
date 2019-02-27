@@ -39,7 +39,7 @@ type Config struct {
 	VoteWebhook      string `json:"voteWebhook"`
 	VoteToBlockchain bool   `json:"voteToBlockchain"`
 	BlockchainHost   string `json:"blockchainHost"`
-	KGraphAPIKey  string `json:"kGraphAPIKey"`
+	KGraphAPIKey     string `json:"kGraphAPIKey"`
 }
 
 type Data struct {
@@ -60,12 +60,6 @@ func runApplication(configFile string) {
 	// Init results maps
 	app.Results = initResults()
 
-	// Startup jobs
-	go app.runStartupJobs()
-
-	// Job Scheduler
-	app.scheduleJobs()
-
 	// Cache
 	app.PreVotes = cache.New(5*time.Minute, 10*time.Minute)
 
@@ -84,6 +78,12 @@ func runApplication(configFile string) {
 
 	// Read in fixed data
 	app.initFixedData()
+
+	// Startup jobs
+	go app.runStartupJobs()
+
+	// Job Scheduler
+	app.scheduleJobs()
 
 	// Run the server
 	Log(LogModuleStartup, true, fmt.Sprintf("Starting server on port %v", app.Config.Port), nil)

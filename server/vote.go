@@ -39,7 +39,7 @@ type Vote struct {
 	Donation   pence  `json:"donation"`
 
 	// Gateway meta data
-	TransactionID string `json:"-"`
+	TransactionID string `tormenta:"noindex" json:"-"`
 }
 
 func (incomingVote Vote) save(rawDataString string) error {
@@ -87,35 +87,16 @@ func (incomingVote Vote) save(rawDataString string) error {
 }
 
 func (v Vote) addToResults() {
-	// Main choice
 	app.Results.MainVote[v.MainVote] = app.Results.MainVote[v.MainVote] + 1
-
-	// Rep Choice
-	app.Results.RepVote[v.RepVote] = RepVoteResult{
-		ChosenByCount: app.Results.RepVote[v.RepVote].ChosenByCount + 1,
-		Donation:      app.Results.RepVote[v.RepVote].Donation + v.Donation,
-	}
-
-	app.Results.Charity[v.Charity] = CharityResult{
-		ChosenByCount: app.Results.Charity[v.Charity].ChosenByCount + 1,
-		Donation:      app.Results.Charity[v.Charity].Donation + v.Donation,
-	}
+	app.Results.RepVote[v.RepVote] = app.Results.RepVote[v.RepVote] + 1
+	app.Results.Charity[v.Charity] = app.Results.Charity[v.Charity] + 1
 }
 
 func (v Vote) subtractFromResults() {
 	// Main choice
 	app.Results.MainVote[v.MainVote] = app.Results.MainVote[v.MainVote] - 1
-
-	// Rep Choice
-	app.Results.RepVote[v.RepVote] = RepVoteResult{
-		ChosenByCount: app.Results.RepVote[v.RepVote].ChosenByCount - 1,
-		Donation:      app.Results.RepVote[v.RepVote].Donation - v.Donation,
-	}
-
-	app.Results.Charity[v.Charity] = CharityResult{
-		ChosenByCount: app.Results.Charity[v.Charity].ChosenByCount - 1,
-		Donation:      app.Results.Charity[v.Charity].Donation - v.Donation,
-	}
+	app.Results.RepVote[v.RepVote] = app.Results.RepVote[v.RepVote] - 1
+	app.Results.Charity[v.Charity] = app.Results.Charity[v.Charity] - 1
 }
 
 func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
