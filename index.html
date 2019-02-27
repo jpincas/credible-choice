@@ -21,6 +21,21 @@
         dateTimeNow: Date.now()
       }
     });
+
+    var choices_key = "choices";
+
+    // port putCurrentChoices : Encode.Value -> Cmd msg
+    app.ports.putCurrentChoices.subscribe(function (choices) {
+      localStorage.setItem(choices_key, JSON.stringify(choices));
+    });
+
+    // port restoreChoices : Cmd msg
+    app.ports.restoreChoices.subscribe(function () {
+      // port getChoices : (Maybe Encode.Value -> msg) -> Sub msg
+      app.ports.getChoices.send(JSON.parse(localStorage.getItem(choices_key)));
+    });
+
+
   </script>
 </body>
 
