@@ -7,6 +7,7 @@ To convert the spreadsheet of people into json I had to do the following:
 
 # Adding dns
 now dns add crediblechoice.uk "@" MX crediblechoice-uk.mail.protection.outlook.com
+now dns add crediblechoice.uk dev A 51.15.70.20
 
 # Front-end work
     [x] Create the pages as in the spreadsheet
