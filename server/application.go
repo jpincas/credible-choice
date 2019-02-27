@@ -248,6 +248,7 @@ func (a *Application) scheduleJobs() {
 	a.Scheduler = cron.New()
 
 	a.Scheduler.AddFunc("@every 5m", func() { updateResults() })
+	a.Scheduler.AddFunc("@every 1h", func() { a.readCharities() })
 
 	a.Scheduler.Start()
 
