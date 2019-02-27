@@ -87,12 +87,16 @@ type alias Model =
     , postcode : String
     , birthyear : String
     , people : List Person
+    , representativeVotes : Dict PersonCode Int
     , selectedRepresentative : Maybe PersonCode
     , searchRepresentativeInput : String
     , representativePage : Int
     , nonce : Char
     , charity : Maybe CharityId
     , charities : List Charity
+    , charityVotes : Dict CharityId Int
+    , totalVotes : Int
+    , totalDonations : Pennies
     , donation : Maybe Pennies
     }
 
@@ -187,9 +191,11 @@ type Msg
 
 
 type alias ResultsPayload =
-    { mainVote : Dict String Int
-    , repVote : Dict String DonateVote
-    , charity : Dict String DonateVote
+    { mainVote : Dict MainOptionId Int
+    , repVote : Dict PersonCode Int
+    , charity : Dict CharityId Int
+    , totalVotes : Int
+    , totalDonations : Pennies
     }
 
 
@@ -197,8 +203,10 @@ resultsPayloadDecoder : Decoder ResultsPayload
 resultsPayloadDecoder =
     Decode.succeed ResultsPayload
         |> Pipeline.required "MainVote" (Decode.dict Decode.int)
-        |> Pipeline.required "RepVote" (Decode.dict donateVoteDecoder)
-        |> Pipeline.required "Charity" (Decode.dict donateVoteDecoder)
+        |> Pipeline.required "RepVote" (Decode.dict Decode.int)
+        |> Pipeline.required "Charity" (Decode.dict Decode.int)
+        |> Pipeline.required "TotalVotes" Decode.int
+        |> Pipeline.required "TotalDonations" Decode.int
 
 
 type alias DonateVote =
@@ -433,12 +441,16 @@ init () url key =
             , postcode = ""
             , birthyear = ""
             , people = []
+            , representativeVotes = Dict.empty
             , selectedRepresentative = Nothing
             , representativePage = 0
             , searchRepresentativeInput = ""
             , nonce = 'q'
             , charity = Nothing
             , charities = []
+            , charityVotes = Dict.empty
+            , totalVotes = 0
+            , totalDonations = 0
             , donation = Nothing
             }
 
@@ -562,8 +574,17 @@ update msg model =
 
                 newMainOptions =
                     List.map updateMainOptionVotes model.mainOptions
+
+                newModel =
+                    { model
+                        | mainOptions = newMainOptions
+                        , representativeVotes = results.repVote
+                        , charityVotes = results.charity
+                        , totalVotes = results.totalVotes
+                        , totalDonations = results.totalDonations
+                    }
             in
-            noCommand { model | mainOptions = newMainOptions }
+            noCommand newModel
 
         PeopleReceived (Err _) ->
             -- TODO: I guess we should have some kind of re-download button or something.
@@ -980,7 +1001,7 @@ liveResultsSection model =
                     [ Html.label
                         []
                         [ text "Total number of choices" ]
-                    , text <| formatInt <| totalNumVotes model
+                    , text <| formatInt model.totalVotes
                     ]
                 , div
                     [ Attributes.class "total-charity" ]
@@ -989,7 +1010,7 @@ liveResultsSection model =
                         [ text "Total raised for charity" ]
 
                     -- TODO: Obviously we need to get this from somewhere?
-                    , text <| formatPence 50
+                    , text <| formatPence model.totalDonations
                     ]
                 ]
     in
@@ -1096,7 +1117,7 @@ makeYourChoiceMain model =
             div
                 [ Attributes.class "main-option-totals-row" ]
                 [ Html.span [ Attributes.class "total-choices-label" ] [ text "Total choices so far" ]
-                , Html.span [ Attributes.class "total-choices-value" ] [ text <| formatInt <| totalNumVotes model ]
+                , Html.span [ Attributes.class "total-choices-value" ] [ text <| formatInt model.totalVotes ]
                 ]
 
         choices =
@@ -1123,6 +1144,14 @@ makeYourChoiceRep model =
             let
                 isSelected =
                     model.selectedRepresentative == Just person.code
+
+                votes =
+                    case Dict.get person.code model.representativeVotes of
+                        Nothing ->
+                            text ""
+
+                        Just x ->
+                            text <| formatInt x
             in
             case person.suspended of
                 True ->
@@ -1138,6 +1167,9 @@ makeYourChoiceRep model =
                             , Events.onClick <| SelectRepresentative person.code
                             ]
                             [ text person.name ]
+                        , Html.td
+                            []
+                            [ votes ]
                         ]
 
         people =
@@ -1243,6 +1275,9 @@ makeYourChoiceRep model =
                             , Html.br [] []
                             , clickToChoose
                             ]
+                        , Html.th
+                            []
+                            [ text "Chosen by" ]
                         ]
                     ]
                 , Html.tbody
@@ -1371,6 +1406,14 @@ donationSection model =
 
                         False ->
                             Just charity.id
+
+                votes =
+                    case Dict.get charity.id model.charityVotes of
+                        Nothing ->
+                            text ""
+
+                        Just x ->
+                            text <| formatInt x
             in
             Html.tr
                 [ Attributes.class "charity-choice-list-item" ]
@@ -1385,13 +1428,7 @@ donationSection model =
                     ]
                 , Html.td
                     []
-                    []
-                , Html.td
-                    []
-                    []
-                , Html.td
-                    []
-                    []
+                    [ votes ]
                 ]
 
         allCharitiesChoice =
@@ -1406,12 +1443,6 @@ donationSection model =
                         ]
                         [ text "Spread over all listed charities" ]
                     ]
-                , Html.td
-                    []
-                    []
-                , Html.td
-                    []
-                    []
                 , Html.td
                     []
                     []
@@ -1433,13 +1464,7 @@ donationSection model =
                             [ text "Charity name" ]
                         , Html.th
                             []
-                            [ text "Number" ]
-                        , Html.th
-                            []
-                            [ text "Link" ]
-                        , Html.th
-                            []
-                            [ text "Total donations" ]
+                            [ text "Chosen by" ]
                         ]
                     ]
                 , Html.tbody
