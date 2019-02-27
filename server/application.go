@@ -31,11 +31,13 @@ type Application struct {
 }
 
 type Config struct {
-	Port          int    `json:"port"`
-	TestMode      bool   `json:"testMode"`
-	DBDirectory   string `json:"dbDirectory"`
-	DataDirectory string `json:"dataDirectory"`
-	VoteWebhook   string `json:"voteWebhook"`
+	Port             int    `json:"port"`
+	TestMode         bool   `json:"testMode"`
+	DBDirectory      string `json:"dbDirectory"`
+	DataDirectory    string `json:"dataDirectory"`
+	VoteWebhook      string `json:"voteWebhook"`
+	VoteToBlockchain bool   `json:"voteToBlockchain"`
+	BlockchainHost   string `json:"blockchainHost"`
 }
 
 type Data struct {

@@ -1,9 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/jpincas/tormenta"
 )
@@ -16,6 +21,7 @@ const (
 	smsValueDonation   = "amount"
 	smsValueAnonMobile = "phone"
 	smsValueShortcode  = "shortcode"
+	smsTxIDString      = "transactionid"
 )
 
 type Vote struct {
@@ -31,9 +37,12 @@ type Vote struct {
 	PostCode   string `json:"postcode"`
 	BirthYear  uint16 `json:"birthYear"`
 	Donation   pence  `json:"donation"`
+
+	// Gateway meta data
+	TransactionID string `json:"-"`
 }
 
-func (incomingVote Vote) save() error {
+func (incomingVote Vote) save(rawDataString string) error {
 	// Attempt to load existing vote for this mobile number
 	// If there is nothing there, then we just start with a zero struct
 	// If there is already a vote there, then we'll work off that as a base
@@ -66,6 +75,10 @@ func (incomingVote Vote) save() error {
 	_, err = app.DB.Save(&vote)
 	if err != nil {
 		return err
+	}
+
+	if app.Config.VoteToBlockchain {
+		vote.sendToBlockchain(rawDataString)
 	}
 
 	// Now (re)impact the results with the final vote
@@ -105,11 +118,12 @@ func (v Vote) subtractFromResults() {
 	}
 }
 
-func (v *Vote) buildFromURLParams(values url.Values) error {
+func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
 	dataString := values.Get(smsValueData)
 	donationString := values.Get(smsValueDonation)
 	anonMobileString := values.Get(smsValueAnonMobile)
 	charityString := values.Get(smsValueShortcode)
+	transactionIDString := values.Get(smsTxIDString)
 
 	// We will only return an error under very restricted circumstances
 	// that basically mean we can't accept the vote
@@ -117,13 +131,13 @@ func (v *Vote) buildFromURLParams(values url.Values) error {
 	// We must have all four values to continue
 	if dataString == "" || donationString == "" || anonMobileString == "" || charityString == "" {
 		msg := "Missing information in the URL params"
-		return errors.New(msg)
+		return "", errors.New(msg)
 	}
 
 	// And the donation amount must be valid
 	donation, err := strconv.Atoi(donationString)
 	if err != nil {
-		return errors.New("Donation amount is invalid format")
+		return "", errors.New("Donation amount is invalid format")
 	}
 
 	// Attempt to parse the concatenated data string from the SMS
@@ -154,12 +168,45 @@ func (v *Vote) buildFromURLParams(values url.Values) error {
 	v.AnonMobile = anonMobileString
 	v.Donation = uint32(donation)
 	v.Charity = charityString
+	v.TransactionID = transactionIDString
 
-	return nil
+	return dataString, nil
 }
 
 func getRecentVotes() ([]Vote, error) {
 	var votes []Vote
 	_, err := app.DB.Find(&votes).Reverse().Limit(50).Run()
 	return votes, err
+}
+
+// sendToBlockchain attempts
+func (v Vote) sendToBlockchain(rawDataString string) {
+	blockchainVote := BlockchainVoteContainer{
+		Vote: BlockchainVote{
+			MainVote:  v.MainVote,
+			RepVote:   v.RepVote,
+			Charity:   v.Charity,
+			PostCode:  v.PostCode,
+			BirthYear: v.BirthYear,
+			Donation:  v.Donation,
+		},
+		AnonMobile:    v.AnonMobile,
+		SMSCode:       rawDataString,
+		TransactionID: v.TransactionID,
+		VotedAt:       time.Now().UTC(),
+	}
+
+	// Marshall blockchain vote to JSON
+	jsonStr, err := json.Marshal(blockchainVote)
+	if err != nil {
+		Log(LogModuleBlockchain, false, "Error marshalling blockchain vote to JSON", err)
+	}
+
+	// Send it off
+	res, err := http.Post(blockchainURL(blockchainVoteEndpoint), "application/json", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		Log(LogModuleBlockchain, false, "Error POSTing vote to blockchain", err)
+	} else if res.StatusCode != http.StatusOK {
+		Log(LogModuleBlockchain, false, fmt.Sprintf("Received non 200 status code (%v) from blockchain", res.StatusCode), nil)
+	}
 }
