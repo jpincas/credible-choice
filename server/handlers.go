@@ -63,6 +63,7 @@ func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 	// not if there's some internal issue parsing the data string
 	rawDataString, err := vote.buildFromURLParams(query)
 	if err != nil {
+		Log(LogModuleHandlers, false, "Error building vote from incoming notification", err)
 		respondWithError(w, errorTypeBadRequest, err)
 		return
 	}
