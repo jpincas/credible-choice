@@ -1,15 +1,12 @@
 module Main exposing (main)
 
-import Array exposing (Array)
 import Browser
-import Browser.Dom
-import Browser.Events
 import Browser.Navigation as Nav
-import Color exposing (Color)
+import Color
 import Dict exposing (Dict)
 import FormatNumber
 import FormatNumber.Locales
-import Html exposing (Attribute, Html, div, text)
+import Html exposing (Html, div, text)
 import Html.Attributes as Attributes
 import Html.Events as Events
 import Http
@@ -241,19 +238,6 @@ resultsPayloadDecoder =
         |> Pipeline.required "Charity" (Decode.dict Decode.int)
         |> Pipeline.required "TotalVotes" Decode.int
         |> Pipeline.required "TotalDonations" Decode.int
-
-
-type alias DonateVote =
-    { votes : Int
-    , amountDonated : Int
-    }
-
-
-donateVoteDecoder : Decoder DonateVote
-donateVoteDecoder =
-    Decode.succeed DonateVote
-        |> Pipeline.required "chosenBy" Decode.int
-        |> Pipeline.required "amountDonated" Decode.int
 
 
 getResults : Cmd Msg
@@ -1040,11 +1024,6 @@ mainSection titleText contents =
         (title :: contents)
 
 
-totalNumVotes : Model -> Int
-totalNumVotes model =
-    List.map .votes model.mainOptions |> List.sum
-
-
 type alias SortedPeople =
     List Person
 
@@ -1613,14 +1592,6 @@ donationSection model =
 
         makeCharityChoice charity =
             let
-                mId =
-                    case String.isEmpty charity.id of
-                        True ->
-                            Nothing
-
-                        False ->
-                            Just charity.id
-
                 votes =
                     case Dict.get charity.id model.charityVotes of
                         Nothing ->

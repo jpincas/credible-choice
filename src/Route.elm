@@ -9,7 +9,7 @@ module Route exposing
 import Html
 import Html.Attributes
 import Url
-import Url.Parser as Parser exposing ((</>), Parser)
+import Url.Parser as Parser exposing (Parser)
 
 
 type Route

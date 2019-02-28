@@ -13,14 +13,18 @@ now dns add crediblechoice.uk dev A 51.15.70.20
     [x] Create the pages as in the spreadsheet
     [x] Div for twitter thing in header
     [x] Just to scroll down
-    [ ] Pie-chart percentages
-    [ ] Poll new results every minute
-    [ ] text builder always stuck to the bottom
+    [x] Pie-chart percentages
+    [x] Poll new results every minute
+    [x] text builder always stuck to the bottom
     [ ] click to copy (hope that is doable in elm, probably)
-    [ ] Write choices to local storage so that it is retained if they come back.
+    [x] Write choices to local storage so that it is retained if they come back.
     [x] Search shows top 25, matching. I guess everyone matches the blank input.
     [x] Pagination of the results
-    [ ] Any added representative has to be given priority at the top of the list
-    [ ] Rep-choice not optional, there is a 'no representative' choice.
+    [x] Rep-choice not optional, there is a 'no representative' choice.
     [x] Send the pre-vote upon charity selection again.
     [x] Update the footer which will now contain the navigation element.
+    [ ] Any added representative has to be given priority at the top of the list
+    [ ] Do not fail if the 'search representative' comes back as the empty list 'null', but explain the situation.
+    [ ] Make the lookup a form so that 'Return' makes the request.
+    [ ] Set a minimum search string limit, maybe a maximum too.
+    [ ] If the representative is already there, somehow show them in the list
