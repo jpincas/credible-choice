@@ -11,9 +11,9 @@
     --color-secondary: rgba(147, 22, 33, 1);
     --color-secondary2: rgba(163, 27, 27, 1);
 
-    --color-remain: rgba(19, 60, 85, 0.95);
-    --color-may: rgba(19, 60, 85, 0.7);
-    --color-leave: rgba(19, 60, 85, 0.4);
+    --color-remain: rgb(69, 204, 69);
+    --color-may: rgb(14, 78, 173);
+    --color-leave: rgb(243, 36, 36);
 
     --sms-builder-height: 60px;
 }
@@ -23,7 +23,10 @@
 html,
 body {
     width: auto !important;
-    overflow-x: hidden !important
+    overflow-x: hidden !important;
+    max-width: 972px;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 body {
@@ -31,12 +34,11 @@ body {
     font-weight: 300;
     font-size: 16px;
     line-height: 1.25;
+    color: var(--color-text);
     margin: 0;
     background-color: rgba(225, 233, 236, 0.397);
-    color: var(--color-text);
     display: flex;
     flex-direction: column;
-
     overflow-x: hidden;
 }
 
@@ -53,9 +55,7 @@ p {
 }
 
 h1,
-h2,
-h3,
-h4 {
+h2 {
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
@@ -67,12 +67,10 @@ h2 {
 
 h3 {
     font-size: 1.1rem;
-    text-transform: uppercase;
+    margin: 0px 0px 10px 0px;
 }
 
-h4 {
-    text-transform: uppercase;
-}
+h4 {}
 
 table {
     display: block;
@@ -83,7 +81,11 @@ table {
 
 input {
     font-family: 'Roboto', sans-serif;
-    font-size: 1.1rem;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.25;
+    color: var(--color-text);
+
     margin: 0;
     padding: 5px;
     border-radius: 3px;
@@ -164,6 +166,15 @@ button:hover,
     flex-direction: column;
 }
 
+.panel.info {
+    background-color: var(--color-primary4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--color-text-inverted);
+    padding: 10px;
+}
+
 @media only screen and (max-width: 700px) {
     .panels {
         flex-direction: column;
@@ -172,11 +183,12 @@ button:hover,
 
 section>h2:first-child {
     display: block;
+    text-align: center;
     background-color: var(--color-secondary2);
     margin: 0;
-    padding: 8px;
+    padding: 4px 8px;
     color: var(--color-text-inverted);
-    box-shadow: 0px 5px 10px rgba(61, 61, 61, 0.397);
+    border-bottom: 5px solid var(--color-primary4)
 }
 
 
@@ -205,9 +217,13 @@ section>h2:first-child {
 }
 
 #presentation {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    /* align-items: center; */
     color: var(--color-text-inverted);
-    padding: 10px 20px;
-    font-size: 2rem;
+    padding: 20px;
+    font-size: 1.3rem;
     text-transform: uppercase;
     margin: 0;
     text-align: center;
@@ -220,6 +236,21 @@ section>h2:first-child {
     background-position: left,
         right,
         left;
+}
+
+#presentation #brexit {
+    font-size: 2rem;
+}
+
+
+
+#presentation #twitter-link {
+    flex-basis: 40px;
+    background-image: url(/static/img/twitter.png);
+    background-size: contain;
+    background-position-y: 50%;
+    background-repeat: no-repeat;
+    cursor: pointer;
 }
 
 /* Bottom Matter */
@@ -262,16 +293,19 @@ nav ul li.active {
 /* Section 1 : Live Results Summary */
 
 
-.main-choice-section svg path.A {
-    fill: var(--color-leave);
-}
-
-.main-choice-section svg path.B {
+.A {
     fill: var(--color-may);
+    background-color: var(--color-may);
 }
 
-.main-choice-section svg path.C {
+.B {
+    fill: var(--color-leave);
+    background-color: var(--color-leave);
+}
+
+.C {
     fill: var(--color-remain);
+    background-color: var(--color-remain);
 }
 
 .main-choice-section svg text {
@@ -330,8 +364,6 @@ ul.top-ten-representatives li:last-child {}
 
 .optional-label {
     color: var(--color-text-label);
-    text-transform: uppercase;
-    font-size: 0.8rem;
     margin-bottom: 20px;
 }
 
@@ -342,7 +374,7 @@ ul.top-ten-representatives li:last-child {}
 }
 
 .personal-information-inputs input {
-    /* width: 50%; */
+    max-width: 200px;
 }
 
 .personal-information-inputs>div {
@@ -364,7 +396,9 @@ ul.top-ten-representatives li:last-child {}
     text-transform: none;
     position: relative;
     font-size: 1.15rem;
-    margin: 10px 0px;
+    margin: 20px 0px;
+    width: 80vw;
+    max-width: 750px;
 }
 
 .main-option-button span.number-choices {
@@ -403,7 +437,8 @@ ul.top-ten-representatives li:last-child {}
 
 .main-option-totals-row {
     margin-top: 20px;
-    font-weight: 400;
+    font-size: 1rem;
+    font-weight: 300;
 }
 
 .main-option-totals-row .total-choices-value {

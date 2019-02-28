@@ -522,19 +522,19 @@ init () url key =
         mainOptions =
             [ { id = "1"
               , class = "A"
-              , name = "May agree"
+              , name = "MAY"
               , description = "We should accept whatever Theresa May is able to agree with the EU"
               , votes = 100000
               }
             , { id = "2"
               , class = "B"
-              , name = "Decisive break"
+              , name = "MOGG"
               , description = "We should have a decisive break with the EU as envisaged by Jacob Rees Mogg"
               , votes = 40000
               }
             , { id = "3"
               , class = "C"
-              , name = "Remain EU"
+              , name = "STAY"
               , description = "We should stay in the EU on the current basis"
               , votes = 200000
               }
@@ -849,15 +849,20 @@ viewHeader showBackButton =
             [ Attributes.id "presentation" ]
             [ backButton
             , div
-                [ Attributes.id "brexit"
-                , Attributes.class "bold"
+                []
+                [ div
+                    [ Attributes.id "brexit"
+                    , Attributes.class "bold"
+                    ]
+                    [ text "Brexit" ]
+                , div
+                    [ Attributes.id "slogan" ]
+                    [ text "Make your voice heard today" ]
                 ]
-                [ text "Brexit" ]
-            , div
-                [ Attributes.id "slogan" ]
-                [ text "Make your voice heard today" ]
-            , div
-                [ Attributes.id "twitter-link" ]
+            , Html.a
+                [ Attributes.href "https://twitter.com/crediblechoice"
+                , Attributes.id "twitter-link"
+                ]
                 []
             ]
         ]
@@ -1122,7 +1127,9 @@ liveResultsSection model sortedPeople =
                             ]
                         ]
             in
-            pieImage
+            div
+                [ Attributes.id "current-results-pie" ]
+                [ Html.h3 [] [ text "Current Choices", pieImage ] ]
 
         viewRep i person =
             let
@@ -1140,7 +1147,8 @@ liveResultsSection model sortedPeople =
         viewReps =
             div
                 [ Attributes.id "live-results-representatives" ]
-                [ Html.ul
+                [ Html.h3 [] [ text "Top 10 Voted Representatives" ]
+                , Html.ul
                     [ Attributes.class "top-ten-representatives" ]
                     (List.indexedMap viewRep <| List.take 10 sortedPeople)
                 , div
@@ -1174,14 +1182,17 @@ makeYourChoiceIntroduction : Model -> Html Msg
 makeYourChoiceIntroduction model =
     let
         explanation =
-            Html.p
+            Html.div
                 [ Attributes.class "introduction-explanation" ]
-                [ text """You need a UK mobile to express a choice and must be willing to donate at least 50p to a listed Charity.
-You can change your mind and make a choice as many times as you like from a single mobile.
- Only your latest choice will be shown but your total donation will be recorded.
-As you select your choice, you will see a sms build at the bottom of the screen.
-Send this text to the short number shown and your choice will shortly appear in the live results.
-                 """
+                [ Html.p
+                    []
+                    [ text "You need a UK mobile to express a choice and must be willing to donate at least £1 to a listed Charity." ]
+                , Html.p
+                    []
+                    [ text "You can change your mind and make a choice as many times as you like from a single mobile. Only your latest choice will be shown but your total donation will be recorded." ]
+                , Html.p
+                    []
+                    [ text "As you select your choice, you will see an SMS build at the bottom of the screen. Send this text to the short number shown and your choice will register within about a minute." ]
                 ]
 
         personalInfoInputs =
@@ -1220,12 +1231,11 @@ Send this text to the short number shown and your choice will shortly appear in 
                     ]
                 ]
     in
-    mainSection "Make your choice - Introduction"
+    mainSection "Your choice - Introduction"
         [ div
             [ Attributes.class "panels" ]
-            [ div [ Attributes.class "panel" ] [ explanation ]
-            , div
-                [ Attributes.class "panel" ]
+            [ div
+                [ Attributes.class "panel info" ]
                 [ div
                     [ Attributes.class "optional-label" ]
                     [ text "Information about yourself (optional)" ]
@@ -1234,6 +1244,7 @@ Send this text to the short number shown and your choice will shortly appear in 
                     [ Attributes.class "presentation-only" ]
                     [ text "Used for presentation only.  We do not collect any personal data, not even your mobile number." ]
                 ]
+            , div [ Attributes.class "panel" ] [ explanation ]
             ]
         ]
 
@@ -1249,7 +1260,7 @@ makeYourChoiceMain model =
             div
                 [ Attributes.class "main-option-button" ]
                 [ Html.button
-                    [ Attributes.class "option button"
+                    [ Attributes.class (option.class ++ " option button")
                     , selectedClass isSelected
                     , Events.onClick <| MainOptionSelected option.id
                     ]
@@ -1270,7 +1281,7 @@ makeYourChoiceMain model =
         choices =
             List.map makeChoice model.mainOptions ++ [ totals ]
     in
-    mainSection "Make your choice - What should we do?"
+    mainSection "Your choice - What should we do?"
         [ div
             [ Attributes.class "panels" ]
             [ div [ Attributes.class "panel" ] choices ]
@@ -1450,9 +1461,6 @@ makeYourChoiceRep model sortedPeople =
                 []
                 [ text "Who do you trust to represent your views on Brexit?" ]
 
-        earlyAddExplanation =
-            paragraph "You can select a person who would represent your views to parliament and the government"
-
         displaying =
             Html.p
                 []
@@ -1579,7 +1587,6 @@ makeYourChoiceRep model sortedPeople =
             [ div
                 [ Attributes.class "panel" ]
                 [ title
-                , earlyAddExplanation
                 , searchInput
                 , table
                 , pageSelector
