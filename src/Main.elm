@@ -1,15 +1,12 @@
 module Main exposing (main)
 
-import Array exposing (Array)
 import Browser
-import Browser.Dom
-import Browser.Events
 import Browser.Navigation as Nav
-import Color exposing (Color)
+import Color
 import Dict exposing (Dict)
 import FormatNumber
 import FormatNumber.Locales
-import Html exposing (Attribute, Html, div, text)
+import Html exposing (Html, div, text)
 import Html.Attributes as Attributes
 import Html.Events as Events
 import Http
@@ -87,14 +84,32 @@ type alias Model =
     , postcode : String
     , birthyear : String
     , people : List Person
+    , representativeVotes : Dict PersonCode Int
     , selectedRepresentative : Maybe PersonCode
     , searchRepresentativeInput : String
     , representativePage : Int
     , nonce : Char
     , charity : Maybe CharityId
     , charities : List Charity
+    , charityVotes : Dict CharityId Int
+    , totalVotes : Int
+    , totalDonations : Pennies
     , donation : Maybe Pennies
+    , addRepresentativeInput : ExternalId
+    , personSearchResults : RequestedInfo String (List PersonSearchResult)
+    , externalAdded : RequestedInfo ExternalId ()
     }
+
+
+type alias ExternalId =
+    String
+
+
+type RequestedInfo a b
+    = Requested a
+    | RequestFailed a
+    | RequestSucceeded a b
+    | NotRequested
 
 
 type alias SavedData =
@@ -161,6 +176,21 @@ type alias Person =
     }
 
 
+type alias PersonSearchResult =
+    { name : PersonName
+    , externalId : ExternalId
+    , description : String
+    }
+
+
+personSearchResultDecoder : Decoder PersonSearchResult
+personSearchResultDecoder =
+    Decode.succeed PersonSearchResult
+        |> Pipeline.required "title" Decode.string
+        |> Pipeline.required "pageid" Decode.string
+        |> Pipeline.required "description" Decode.string
+
+
 type alias HttpResult a =
     Result Http.Error a
 
@@ -177,6 +207,11 @@ type Msg
     | PeopleReceived (HttpResult (List Person))
     | SelectRepresentative PersonCode
     | SearchRepresentativeInput String
+    | RepresentativeSearchReceived String (HttpResult (List PersonSearchResult))
+    | AddRepresentativeClicked
+    | AddRepresentativeInput String
+    | ExternalAddPerson String
+    | ExternalAddReceived String (HttpResult ())
     | RepPageNext
     | RepPagePrev
     | SelectDonationAmount Pennies
@@ -187,9 +222,11 @@ type Msg
 
 
 type alias ResultsPayload =
-    { mainVote : Dict String Int
-    , repVote : Dict String DonateVote
-    , charity : Dict String DonateVote
+    { mainVote : Dict MainOptionId Int
+    , repVote : Dict PersonCode Int
+    , charity : Dict CharityId Int
+    , totalVotes : Int
+    , totalDonations : Pennies
     }
 
 
@@ -197,21 +234,10 @@ resultsPayloadDecoder : Decoder ResultsPayload
 resultsPayloadDecoder =
     Decode.succeed ResultsPayload
         |> Pipeline.required "MainVote" (Decode.dict Decode.int)
-        |> Pipeline.required "RepVote" (Decode.dict donateVoteDecoder)
-        |> Pipeline.required "Charity" (Decode.dict donateVoteDecoder)
-
-
-type alias DonateVote =
-    { votes : Int
-    , amountDonated : Int
-    }
-
-
-donateVoteDecoder : Decoder DonateVote
-donateVoteDecoder =
-    Decode.succeed DonateVote
-        |> Pipeline.required "chosenBy" Decode.int
-        |> Pipeline.required "amountDonated" Decode.int
+        |> Pipeline.required "RepVote" (Decode.dict Decode.int)
+        |> Pipeline.required "Charity" (Decode.dict Decode.int)
+        |> Pipeline.required "TotalVotes" Decode.int
+        |> Pipeline.required "TotalDonations" Decode.int
 
 
 getResults : Cmd Msg
@@ -268,6 +294,52 @@ getCharities =
                 |> Pipeline.required "name" Decode.string
     in
     Http.get { url = url, expect = expect }
+
+
+searchNewPerson : String -> Cmd Msg
+searchNewPerson nameInput =
+    let
+        url =
+            "/appapi/representatives/search"
+
+        body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "searchPhrase", Encode.string nameInput ) ]
+
+        toMsg =
+            RepresentativeSearchReceived nameInput
+
+        decoder =
+            Decode.list personSearchResultDecoder
+                |> Decode.at [ "results" ]
+    in
+    Http.post
+        { url = url
+        , body = body
+        , expect = Http.expectJson toMsg decoder
+        }
+
+
+externalAddPerson : String -> Cmd Msg
+externalAddPerson externalId =
+    let
+        url =
+            "/appapi/representatives"
+
+        body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "pageId", Encode.string externalId ) ]
+
+        toMsg =
+            ExternalAddReceived externalId
+    in
+    Http.post
+        { url = url
+        , body = body
+        , expect = Http.expectWhatever toMsg
+        }
 
 
 saveChoices : Model -> Cmd Msg
@@ -407,14 +479,11 @@ sendPreVote model =
 
         toMsg =
             PrevoteResponse
-
-        decoder =
-            Decode.succeed ()
     in
     Http.post
         { url = url
         , body = body
-        , expect = Http.expectJson toMsg decoder
+        , expect = Http.expectWhatever toMsg
         }
 
 
@@ -433,13 +502,20 @@ init () url key =
             , postcode = ""
             , birthyear = ""
             , people = []
+            , representativeVotes = Dict.empty
             , selectedRepresentative = Nothing
             , representativePage = 0
             , searchRepresentativeInput = ""
             , nonce = 'q'
             , charity = Nothing
             , charities = []
+            , charityVotes = Dict.empty
+            , totalVotes = 0
+            , totalDonations = 0
             , donation = Nothing
+            , addRepresentativeInput = ""
+            , personSearchResults = NotRequested
+            , externalAdded = NotRequested
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
@@ -562,8 +638,17 @@ update msg model =
 
                 newMainOptions =
                     List.map updateMainOptionVotes model.mainOptions
+
+                newModel =
+                    { model
+                        | mainOptions = newMainOptions
+                        , representativeVotes = results.repVote
+                        , charityVotes = results.charity
+                        , totalVotes = results.totalVotes
+                        , totalDonations = results.totalDonations
+                    }
             in
-            noCommand { model | mainOptions = newMainOptions }
+            noCommand newModel
 
         PeopleReceived (Err _) ->
             -- TODO: I guess we should have some kind of re-download button or something.
@@ -605,6 +690,49 @@ update msg model =
 
         SearchRepresentativeInput input ->
             noCommand { model | searchRepresentativeInput = input, representativePage = 0 }
+
+        RepresentativeSearchReceived searchTerm (Err _) ->
+            noCommand { model | personSearchResults = RequestFailed searchTerm }
+
+        RepresentativeSearchReceived searchTerm (Ok results) ->
+            noCommand { model | personSearchResults = RequestSucceeded searchTerm results }
+
+        AddRepresentativeClicked ->
+            let
+                newModel =
+                    { model
+                        | personSearchResults = Requested model.addRepresentativeInput
+
+                        -- I'm resetting this, if someone attempts to add a person, thus setting
+                        -- `externalAdded` to something other than `NotRequested`, and *then* searches
+                        -- again, presumably they are thinking of adding someone else, so we can treat them
+                        -- as if they have never added anyone.
+                        , externalAdded = NotRequested
+                    }
+
+                command =
+                    searchNewPerson model.addRepresentativeInput
+            in
+            withCommands newModel [ command ]
+
+        AddRepresentativeInput newInput ->
+            noCommand { model | addRepresentativeInput = newInput }
+
+        ExternalAddPerson externalId ->
+            let
+                newModel =
+                    { model | externalAdded = Requested externalId }
+
+                command =
+                    externalAddPerson externalId
+            in
+            withCommands newModel [ command ]
+
+        ExternalAddReceived externalId (Err _) ->
+            noCommand { model | externalAdded = RequestFailed externalId }
+
+        ExternalAddReceived externalId (Ok _) ->
+            noCommand { model | externalAdded = RequestSucceeded externalId () }
 
         SelectDonationAmount pennies ->
             let
@@ -792,6 +920,12 @@ viewTemporary model =
                 ]
 
         footer =
+            let
+                footerInformation content =
+                    div
+                        [ Attributes.class "footer-information-detail" ]
+                        content
+            in
             Html.footer
                 []
                 [ div
@@ -800,6 +934,15 @@ viewTemporary model =
                 , div
                     [ Attributes.id "footer-about" ]
                     [ text "About" ]
+                , div
+                    [ Attributes.id "footer-information" ]
+                    [ footerInformation [ text "Company Number: 11836673" ]
+                    , footerInformation [ text "Unit A, Kilbuck Lane, Haydock, St. Helens, United Kingdom, WA11 9UX" ]
+                    , footerInformation [ text "Private company limited by guarantee without share capital" ]
+                    , footerInformation [ Html.a [ Attributes.href "mailto:Info@CredibleChoice.uk" ] [ text "Info@CredibleChoice.uk" ] ]
+                    , footerInformation [ Html.a [ Attributes.href "mailto:Media@CredibleChoice.uk" ] [ text "Media@CredibleChoice.uk" ] ]
+                    , footerInformation [ text "Phone 01942  316860" ]
+                    ]
                 , navigation
                 , div
                     [ Attributes.class "footer-section" ]
@@ -861,11 +1004,19 @@ selectedClass b =
 viewChoose : Model -> Html Msg
 viewChoose model =
     let
+        numVotes person =
+            Dict.get person.code model.representativeVotes
+                |> Maybe.withDefault 0
+
+        sortedPeople =
+            model.people
+                |> List.sortBy numVotes
+
         sections =
-            [ liveResultsSection model
+            [ liveResultsSection model sortedPeople
             , makeYourChoiceIntroduction model
             , makeYourChoiceMain model
-            , makeYourChoiceRep model
+            , makeYourChoiceRep model sortedPeople
             , donationSection model
             , smsBuilder model
             ]
@@ -888,13 +1039,12 @@ mainSection titleText contents =
         (title :: contents)
 
 
-totalNumVotes : Model -> Int
-totalNumVotes model =
-    List.map .votes model.mainOptions |> List.sum
+type alias SortedPeople =
+    List Person
 
 
-liveResultsSection : Model -> Html Msg
-liveResultsSection model =
+liveResultsSection : Model -> SortedPeople -> Html Msg
+liveResultsSection model sortedPeople =
     let
         viewPie =
             let
@@ -903,7 +1053,9 @@ liveResultsSection model =
                     , endAngle = 2 * pi
                     , padAngle = 0
                     , sortingFn = Basics.compare
-                    , valueFn = identity
+
+                    -- TODO: This is just so that the part chart displays even when there are zero votes.
+                    , valueFn = max 10
                     , innerRadius = 0
                     , outerRadius = 100
                     , cornerRadius = 0
@@ -926,13 +1078,24 @@ liveResultsSection model =
                         ( labelX, labelY ) =
                             Shape.centroid { arc | innerRadius = radius, outerRadius = radius }
 
+                        percentage =
+                            (100 * mainOption.votes) // model.totalVotes
+
+                        labelText =
+                            String.join ""
+                                [ mainOption.name
+                                , "("
+                                , String.fromInt percentage
+                                , "%)"
+                                ]
+
                         label =
                             TypedSvg.text_
                                 [ SvgAttributes.transform [ SvgTypes.Translate labelX labelY ]
-                                , SvgAttributes.dy (SvgTypes.em 2.0)
+                                , SvgAttributes.dy (SvgTypes.em 1.5)
                                 , SvgAttributes.textAnchor SvgTypes.AnchorMiddle
                                 ]
-                                [ TypedSvg.Core.text mainOption.name ]
+                                [ TypedSvg.Core.text labelText ]
                     in
                     ( slice, label )
 
@@ -953,7 +1116,7 @@ liveResultsSection model =
                     TypedSvg.svg
                         [ SvgAttributes.viewBox 0 0 width height ]
                         [ TypedSvg.g
-                            [ SvgAttributes.transform [ SvgTypes.Translate (width / 2) (height / 2) ] ]
+                            [ SvgAttributes.transform [ SvgTypes.Translate (width / 2) ((height / 2) - 30) ] ]
                             [ TypedSvg.g [] slices
                             , TypedSvg.g [] labels
                             ]
@@ -962,11 +1125,16 @@ liveResultsSection model =
             pieImage
 
         viewRep i person =
+            let
+                votes =
+                    Dict.get person.code model.representativeVotes
+                        |> formatMaybeInt
+            in
             Html.li
                 [ Attributes.class "top-ten-rep" ]
                 [ Html.span [ Attributes.class "rep-position" ] [ text <| String.fromInt <| i + 1 ]
                 , Html.span [ Attributes.class "rep-name" ] [ text person.name ]
-                , Html.span [ Attributes.class "rep-score" ] [ text <| String.fromInt 1500000 ]
+                , Html.span [ Attributes.class "rep-score" ] [ votes ]
                 ]
 
         viewReps =
@@ -974,13 +1142,13 @@ liveResultsSection model =
                 [ Attributes.id "live-results-representatives" ]
                 [ Html.ul
                     [ Attributes.class "top-ten-representatives" ]
-                    (List.indexedMap viewRep <| List.take 10 model.people)
+                    (List.indexedMap viewRep <| List.take 10 sortedPeople)
                 , div
                     [ Attributes.class "total-votes" ]
                     [ Html.label
                         []
                         [ text "Total number of choices" ]
-                    , text <| formatInt <| totalNumVotes model
+                    , text <| formatInt model.totalVotes
                     ]
                 , div
                     [ Attributes.class "total-charity" ]
@@ -989,7 +1157,7 @@ liveResultsSection model =
                         [ text "Total raised for charity" ]
 
                     -- TODO: Obviously we need to get this from somewhere?
-                    , text <| formatPence 50
+                    , text <| formatPence model.totalDonations
                     ]
                 ]
     in
@@ -1096,7 +1264,7 @@ makeYourChoiceMain model =
             div
                 [ Attributes.class "main-option-totals-row" ]
                 [ Html.span [ Attributes.class "total-choices-label" ] [ text "Total choices so far" ]
-                , Html.span [ Attributes.class "total-choices-value" ] [ text <| formatInt <| totalNumVotes model ]
+                , Html.span [ Attributes.class "total-choices-value" ] [ text <| formatInt model.totalVotes ]
                 ]
 
         choices =
@@ -1116,13 +1284,21 @@ clickToChoose =
         [ text "Click to choose" ]
 
 
-makeYourChoiceRep : Model -> Html Msg
-makeYourChoiceRep model =
+makeYourChoiceRep : Model -> SortedPeople -> Html Msg
+makeYourChoiceRep model sortedPeople =
     let
         makeRepChoice person =
             let
                 isSelected =
                     model.selectedRepresentative == Just person.code
+
+                votes =
+                    case Dict.get person.code model.representativeVotes of
+                        Nothing ->
+                            text ""
+
+                        Just x ->
+                            text <| formatInt x
             in
             case person.suspended of
                 True ->
@@ -1138,6 +1314,9 @@ makeYourChoiceRep model =
                             , Events.onClick <| SelectRepresentative person.code
                             ]
                             [ text person.name ]
+                        , Html.td
+                            []
+                            [ votes ]
                         ]
 
         people =
@@ -1146,7 +1325,7 @@ makeYourChoiceRep model =
             , position = ""
             , suspended = False
             }
-                :: model.people
+                :: sortedPeople
 
         filteredRepresentatives =
             case String.isEmpty model.searchRepresentativeInput of
@@ -1243,6 +1422,9 @@ makeYourChoiceRep model =
                             , Html.br [] []
                             , clickToChoose
                             ]
+                        , Html.th
+                            []
+                            [ text "Chosen by" ]
                         ]
                     ]
                 , Html.tbody
@@ -1288,7 +1470,7 @@ makeYourChoiceRep model =
                             [ text " of "
                             , Html.span
                                 [ Attributes.class "bold" ]
-                                [ List.length model.people |> formatInt |> text ]
+                                [ List.length sortedPeople |> formatInt |> text ]
                             , text " matching "
                             , Html.span
                                 [ Attributes.class "bold" ]
@@ -1316,12 +1498,72 @@ makeYourChoiceRep model =
                 [ Html.input
                     [ Attributes.type_ "text"
                     , Attributes.placeholder "Representative name"
+                    , Attributes.value model.addRepresentativeInput
+                    , Events.onInput AddRepresentativeInput
                     ]
                     []
                 , Html.button
-                    [ Attributes.class "button" ]
-                    [ text "Add" ]
+                    [ Attributes.class "button"
+                    , Events.onClick AddRepresentativeClicked
+                    ]
+                    [ text "Lookup" ]
                 ]
+
+        representativeSearchResults =
+            case model.personSearchResults of
+                NotRequested ->
+                    text ""
+
+                Requested _ ->
+                    div
+                        [ Attributes.class "add-person-search-results" ]
+                        [ text "Waiting ..." ]
+
+                RequestFailed _ ->
+                    div
+                        [ Attributes.class "add-person-search-results" ]
+                        [ text "Request failed, please try again." ]
+
+                RequestSucceeded _ persons ->
+                    case model.externalAdded of
+                        Requested _ ->
+                            div
+                                [ Attributes.class "add-person-search-results" ]
+                                [ text "Waiting ..." ]
+
+                        RequestSucceeded _ _ ->
+                            div
+                                [ Attributes.class "add-person-search-results" ]
+                                [ text "Representative added." ]
+
+                        RequestFailed _ ->
+                            -- TODO: We could easily display *just* the button of the person they attempted to add.
+                            div
+                                [ Attributes.class "add-person-search-results" ]
+                                [ text "Request to add person failed. Try searching again." ]
+
+                        NotRequested ->
+                            let
+                                showSearchResult person =
+                                    Html.li
+                                        [ Attributes.class "add-person-search-result" ]
+                                        [ text person.name
+                                        , div
+                                            [ Attributes.class "add-person-search-result-description" ]
+                                            [ text person.description ]
+                                        , Html.button
+                                            [ Attributes.class "add-person-search-result-action"
+                                            , Events.onClick <| ExternalAddPerson person.externalId
+                                            ]
+                                            [ text "Add" ]
+                                        ]
+                            in
+                            div
+                                [ Attributes.class "add-person-search-results" ]
+                                [ Html.ul
+                                    []
+                                    (List.map showSearchResult persons)
+                                ]
 
         explanations =
             div
@@ -1344,6 +1586,7 @@ makeYourChoiceRep model =
                 , displaying
                 , totalsRow
                 , addRepresentative
+                , representativeSearchResults
                 , explanations
                 ]
             ]
@@ -1364,13 +1607,13 @@ donationSection model =
 
         makeCharityChoice charity =
             let
-                mId =
-                    case String.isEmpty charity.id of
-                        True ->
-                            Nothing
+                votes =
+                    case Dict.get charity.id model.charityVotes of
+                        Nothing ->
+                            text ""
 
-                        False ->
-                            Just charity.id
+                        Just x ->
+                            text <| formatInt x
             in
             Html.tr
                 [ Attributes.class "charity-choice-list-item" ]
@@ -1385,13 +1628,7 @@ donationSection model =
                     ]
                 , Html.td
                     []
-                    []
-                , Html.td
-                    []
-                    []
-                , Html.td
-                    []
-                    []
+                    [ votes ]
                 ]
 
         allCharitiesChoice =
@@ -1406,12 +1643,6 @@ donationSection model =
                         ]
                         [ text "Spread over all listed charities" ]
                     ]
-                , Html.td
-                    []
-                    []
-                , Html.td
-                    []
-                    []
                 , Html.td
                     []
                     []
@@ -1433,13 +1664,7 @@ donationSection model =
                             [ text "Charity name" ]
                         , Html.th
                             []
-                            [ text "Number" ]
-                        , Html.th
-                            []
-                            [ text "Link" ]
-                        , Html.th
-                            []
-                            [ text "Total donations" ]
+                            [ text "Chosen by" ]
                         ]
                     ]
                 , Html.tbody
@@ -1687,6 +1912,16 @@ formatNumberLocale =
     , positivePrefix = ""
     , positiveSuffix = ""
     }
+
+
+formatMaybeInt : Maybe Int -> Html msg
+formatMaybeInt mI =
+    case mI of
+        Nothing ->
+            text ""
+
+        Just i ->
+            text <| formatInt i
 
 
 formatInt : Int -> String

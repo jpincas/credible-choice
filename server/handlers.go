@@ -89,7 +89,7 @@ func ListRepresentatives(w http.ResponseWriter, r *http.Request) {
 	respond(w, app.Data.Representatives)
 }
 
-// The request is in the shape: { "searchTerms" : "jeremy corbyn"}
+// The request is in the shape: { "searchPhrase" : "jeremy corbyn"}
 // The response is in the shape:
 // { "results" :
 //  	[{ "title" : "Jeremy Corbyn",
