@@ -98,15 +98,20 @@ type alias Model =
     , totalVotes : Int
     , totalDonations : Pennies
     , donation : Maybe Pennies
-    , addRepresentativeInput : String
-    , personSearchResults : RequestedInfo (List PersonSearchResult)
+    , addRepresentativeInput : ExternalId
+    , personSearchResults : RequestedInfo String (List PersonSearchResult)
+    , externalAdded : RequestedInfo ExternalId ()
     }
 
 
-type RequestedInfo a
-    = Requested
-    | RequestFailed
-    | RequestSucceeded a
+type alias ExternalId =
+    String
+
+
+type RequestedInfo a b
+    = Requested a
+    | RequestFailed a
+    | RequestSucceeded a b
     | NotRequested
 
 
@@ -176,7 +181,7 @@ type alias Person =
 
 type alias PersonSearchResult =
     { name : PersonName
-    , externalId : String
+    , externalId : ExternalId
     , description : String
     }
 
@@ -205,10 +210,11 @@ type Msg
     | PeopleReceived (HttpResult (List Person))
     | SelectRepresentative PersonCode
     | SearchRepresentativeInput String
-    | RepresentativeSearchReceived (HttpResult (List PersonSearchResult))
+    | RepresentativeSearchReceived String (HttpResult (List PersonSearchResult))
     | AddRepresentativeClicked
     | AddRepresentativeInput String
     | ExternalAddPerson String
+    | ExternalAddReceived String (HttpResult ())
     | RepPageNext
     | RepPagePrev
     | SelectDonationAmount Pennies
@@ -318,7 +324,7 @@ searchNewPerson nameInput =
                     [ ( "searchPhrase", Encode.string nameInput ) ]
 
         toMsg =
-            RepresentativeSearchReceived
+            RepresentativeSearchReceived nameInput
 
         decoder =
             Decode.list personSearchResultDecoder
@@ -328,6 +334,27 @@ searchNewPerson nameInput =
         { url = url
         , body = body
         , expect = Http.expectJson toMsg decoder
+        }
+
+
+externalAddPerson : String -> Cmd Msg
+externalAddPerson externalId =
+    let
+        url =
+            "/appapi/representatives"
+
+        body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "pageId", Encode.string externalId ) ]
+
+        toMsg =
+            ExternalAddReceived externalId
+    in
+    Http.post
+        { url = url
+        , body = body
+        , expect = Http.expectWhatever toMsg
         }
 
 
@@ -468,14 +495,11 @@ sendPreVote model =
 
         toMsg =
             PrevoteResponse
-
-        decoder =
-            Decode.succeed ()
     in
     Http.post
         { url = url
         , body = body
-        , expect = Http.expectJson toMsg decoder
+        , expect = Http.expectWhatever toMsg
         }
 
 
@@ -507,6 +531,7 @@ init () url key =
             , donation = Nothing
             , addRepresentativeInput = ""
             , personSearchResults = NotRequested
+            , externalAdded = NotRequested
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
@@ -682,16 +707,24 @@ update msg model =
         SearchRepresentativeInput input ->
             noCommand { model | searchRepresentativeInput = input, representativePage = 0 }
 
-        RepresentativeSearchReceived (Err _) ->
-            noCommand { model | personSearchResults = RequestFailed }
+        RepresentativeSearchReceived searchTerm (Err _) ->
+            noCommand { model | personSearchResults = RequestFailed searchTerm }
 
-        RepresentativeSearchReceived (Ok results) ->
-            noCommand { model | personSearchResults = RequestSucceeded results }
+        RepresentativeSearchReceived searchTerm (Ok results) ->
+            noCommand { model | personSearchResults = RequestSucceeded searchTerm results }
 
         AddRepresentativeClicked ->
             let
                 newModel =
-                    { model | personSearchResults = Requested }
+                    { model
+                        | personSearchResults = Requested model.addRepresentativeInput
+
+                        -- I'm resetting this, if someone attempts to add a person, thus setting
+                        -- `externalAdded` to something other than `NotRequested`, and *then* searches
+                        -- again, presumably they are thinking of adding someone else, so we can treat them
+                        -- as if they have never added anyone.
+                        , externalAdded = NotRequested
+                    }
 
                 command =
                     searchNewPerson model.addRepresentativeInput
@@ -701,8 +734,21 @@ update msg model =
         AddRepresentativeInput newInput ->
             noCommand { model | addRepresentativeInput = newInput }
 
-        ExternalAddPerson code ->
-            noCommand model
+        ExternalAddPerson externalId ->
+            let
+                newModel =
+                    { model | externalAdded = Requested externalId }
+
+                command =
+                    externalAddPerson externalId
+            in
+            withCommands newModel [ command ]
+
+        ExternalAddReceived externalId (Err _) ->
+            noCommand { model | externalAdded = RequestFailed externalId }
+
+        ExternalAddReceived externalId (Ok _) ->
+            noCommand { model | externalAdded = RequestSucceeded externalId () }
 
         SelectDonationAmount pennies ->
             let
@@ -1474,38 +1520,56 @@ makeYourChoiceRep model sortedPeople =
                 NotRequested ->
                     text ""
 
-                Requested ->
+                Requested _ ->
                     div
                         [ Attributes.class "add-person-search-results" ]
                         [ text "Waiting ..." ]
 
-                RequestFailed ->
+                RequestFailed _ ->
                     div
                         [ Attributes.class "add-person-search-results" ]
                         [ text "Request failed, please try again." ]
 
-                RequestSucceeded persons ->
-                    let
-                        showSearchResult person =
-                            Html.li
-                                [ Attributes.class "add-person-search-result" ]
-                                [ text person.name
-                                , div
-                                    [ Attributes.class "add-person-search-result-description" ]
-                                    [ text person.description ]
-                                , Html.button
-                                    [ Attributes.class "add-person-search-result-action"
-                                    , Events.onClick <| ExternalAddPerson person.externalId
-                                    ]
-                                    [ text "Add" ]
+                RequestSucceeded _ persons ->
+                    case model.externalAdded of
+                        Requested _ ->
+                            div
+                                [ Attributes.class "add-person-search-results" ]
+                                [ text "Waiting ..." ]
+
+                        RequestSucceeded _ _ ->
+                            div
+                                [ Attributes.class "add-person-search-results" ]
+                                [ text "Representative added." ]
+
+                        RequestFailed _ ->
+                            -- TODO: We could easily display *just* the button of the person they attempted to add.
+                            div
+                                [ Attributes.class "add-person-search-results" ]
+                                [ text "Request to add person failed. Try searching again." ]
+
+                        NotRequested ->
+                            let
+                                showSearchResult person =
+                                    Html.li
+                                        [ Attributes.class "add-person-search-result" ]
+                                        [ text person.name
+                                        , div
+                                            [ Attributes.class "add-person-search-result-description" ]
+                                            [ text person.description ]
+                                        , Html.button
+                                            [ Attributes.class "add-person-search-result-action"
+                                            , Events.onClick <| ExternalAddPerson person.externalId
+                                            ]
+                                            [ text "Add" ]
+                                        ]
+                            in
+                            div
+                                [ Attributes.class "add-person-search-results" ]
+                                [ Html.ul
+                                    []
+                                    (List.map showSearchResult persons)
                                 ]
-                    in
-                    div
-                        [ Attributes.class "add-person-search-results" ]
-                        [ Html.ul
-                            []
-                            (List.map showSearchResult persons)
-                        ]
 
         explanations =
             div
