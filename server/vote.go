@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jpincas/tormenta"
@@ -16,12 +17,18 @@ import (
 type pence = uint32
 
 const (
-	// URL Paramater names - to be filled in once we have info from the gateway
-	smsValueData       = "data"
-	smsValueDonation   = "amount"
-	smsValueAnonMobile = "phone"
-	smsValueShortcode  = "shortcode"
-	smsTxIDString      = "transactionid"
+	// https://yourdomain.com/donation_alert ?transaction_id=8d0645e2-b3b4-4de2-b659-4ce7110969c2 &account_id= 8d0864af-525f-4db9-a5c2-333d27ba173e &campaign_id= 8d08670c-8d19-43c6-ba1e-45ac5e19c6b0
+	// &keyword=FOOBAR
+	// &message=FOOBAR3
+	// &tariff=300
+	// &msisdn=sbiGxgS4FSMq3t7-j-ppdA%3D%3D
+	// &mno=o2_UK
+	// &logged=2019-02-19%2015%3A04%3A57
+	smsValueMessage    = "message"
+	smsValueDonation   = "tariff"
+	smsValueAnonMobile = "msisdn"
+	smsValueShortcode  = "keyword"
+	smsTxIDString      = "transaction_id"
 )
 
 type Vote struct {
@@ -100,7 +107,7 @@ func (v Vote) subtractFromResults() {
 }
 
 func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
-	dataString := values.Get(smsValueData)
+	messageString := values.Get(smsValueMessage)
 	donationString := values.Get(smsValueDonation)
 	anonMobileString := values.Get(smsValueAnonMobile)
 	charityString := values.Get(smsValueShortcode)
@@ -110,10 +117,20 @@ func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
 	// that basically mean we can't accept the vote
 
 	// We must have all four values to continue
-	if dataString == "" || donationString == "" || anonMobileString == "" || charityString == "" {
+	if messageString == "" || donationString == "" || anonMobileString == "" || charityString == "" {
 		msg := "Missing information in the URL params"
 		return "", errors.New(msg)
 	}
+
+	// First step is to prize out OUR raw data string from the full message
+	var dataString string
+	splitMessage := strings.Split(messageString, " ")
+	if len(splitMessage) < 2 {
+		// There should be at least 2 parts to the split message
+		// e.g //DONATE1 blah, or DONATE 1 blah
+		return "", errors.New("Could not parse the sms message")
+	}
+	dataString = splitMessage[len(splitMessage)-1] // take the last string as the raw data string
 
 	// And the donation amount must be valid
 	donation, err := strconv.Atoi(donationString)

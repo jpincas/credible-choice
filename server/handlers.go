@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/go-chi/chi"
 )
 
 func ListCharities(w http.ResponseWriter, r *http.Request) {

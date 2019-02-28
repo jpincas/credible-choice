@@ -10,5 +10,5 @@ rsync -av --delete ./server $SERVER:~/
 rsync -av --delete ./data $SERVER:~/
 rm ./server/ccserver-linux
 
-ssh $SERVER 'pkill ccserver-linux'
-ssh $SERVER 'cd ~/server && ./ccserver-linux -cfg=config-dev &'
+# ssh $SERVER 'pkill ccserver-linux'
+# ssh $SERVER 'cd ~/server && ./ccserver-linux -cfg=config-dev &'
