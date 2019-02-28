@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/go-chi/chi"
 )
 
 func ListCharities(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +89,7 @@ func ListRepresentatives(w http.ResponseWriter, r *http.Request) {
 	respond(w, app.Data.Representatives)
 }
 
-// The request is in the shape: { "searchTerms" : "jeremy corbyn"}
+// The request is in the shape: { "searchPhrase" : "jeremy corbyn"}
 // The response is in the shape:
 // { "results" :
 //  	[{ "title" : "Jeremy Corbyn",

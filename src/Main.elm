@@ -98,7 +98,16 @@ type alias Model =
     , totalVotes : Int
     , totalDonations : Pennies
     , donation : Maybe Pennies
+    , addRepresentativeInput : String
+    , personSearchResults : RequestedInfo (List PersonSearchResult)
     }
+
+
+type RequestedInfo a
+    = Requested
+    | RequestFailed
+    | RequestSucceeded a
+    | NotRequested
 
 
 type alias SavedData =
@@ -165,6 +174,21 @@ type alias Person =
     }
 
 
+type alias PersonSearchResult =
+    { name : PersonName
+    , externalId : String
+    , description : String
+    }
+
+
+personSearchResultDecoder : Decoder PersonSearchResult
+personSearchResultDecoder =
+    Decode.succeed PersonSearchResult
+        |> Pipeline.required "title" Decode.string
+        |> Pipeline.required "pageid" Decode.string
+        |> Pipeline.required "description" Decode.string
+
+
 type alias HttpResult a =
     Result Http.Error a
 
@@ -181,6 +205,10 @@ type Msg
     | PeopleReceived (HttpResult (List Person))
     | SelectRepresentative PersonCode
     | SearchRepresentativeInput String
+    | RepresentativeSearchReceived (HttpResult (List PersonSearchResult))
+    | AddRepresentativeClicked
+    | AddRepresentativeInput String
+    | ExternalAddPerson String
     | RepPageNext
     | RepPagePrev
     | SelectDonationAmount Pennies
@@ -276,6 +304,31 @@ getCharities =
                 |> Pipeline.required "name" Decode.string
     in
     Http.get { url = url, expect = expect }
+
+
+searchNewPerson : String -> Cmd Msg
+searchNewPerson nameInput =
+    let
+        url =
+            "/appapi/representatives/search"
+
+        body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "searchPhrase", Encode.string nameInput ) ]
+
+        toMsg =
+            RepresentativeSearchReceived
+
+        decoder =
+            Decode.list personSearchResultDecoder
+                |> Decode.at [ "results" ]
+    in
+    Http.post
+        { url = url
+        , body = body
+        , expect = Http.expectJson toMsg decoder
+        }
 
 
 saveChoices : Model -> Cmd Msg
@@ -452,6 +505,8 @@ init () url key =
             , totalVotes = 0
             , totalDonations = 0
             , donation = Nothing
+            , addRepresentativeInput = ""
+            , personSearchResults = NotRequested
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
@@ -626,6 +681,28 @@ update msg model =
 
         SearchRepresentativeInput input ->
             noCommand { model | searchRepresentativeInput = input, representativePage = 0 }
+
+        RepresentativeSearchReceived (Err _) ->
+            noCommand { model | personSearchResults = RequestFailed }
+
+        RepresentativeSearchReceived (Ok results) ->
+            noCommand { model | personSearchResults = RequestSucceeded results }
+
+        AddRepresentativeClicked ->
+            let
+                newModel =
+                    { model | personSearchResults = Requested }
+
+                command =
+                    searchNewPerson model.addRepresentativeInput
+            in
+            withCommands newModel [ command ]
+
+        AddRepresentativeInput newInput ->
+            noCommand { model | addRepresentativeInput = newInput }
+
+        ExternalAddPerson code ->
+            noCommand model
 
         SelectDonationAmount pennies ->
             let
@@ -1381,12 +1458,54 @@ makeYourChoiceRep model sortedPeople =
                 [ Html.input
                     [ Attributes.type_ "text"
                     , Attributes.placeholder "Representative name"
+                    , Attributes.value model.addRepresentativeInput
+                    , Events.onInput AddRepresentativeInput
                     ]
                     []
                 , Html.button
-                    [ Attributes.class "button" ]
-                    [ text "Add" ]
+                    [ Attributes.class "button"
+                    , Events.onClick AddRepresentativeClicked
+                    ]
+                    [ text "Lookup" ]
                 ]
+
+        representativeSearchResults =
+            case model.personSearchResults of
+                NotRequested ->
+                    text ""
+
+                Requested ->
+                    div
+                        [ Attributes.class "add-person-search-results" ]
+                        [ text "Waiting ..." ]
+
+                RequestFailed ->
+                    div
+                        [ Attributes.class "add-person-search-results" ]
+                        [ text "Request failed, please try again." ]
+
+                RequestSucceeded persons ->
+                    let
+                        showSearchResult person =
+                            Html.li
+                                [ Attributes.class "add-person-search-result" ]
+                                [ text person.name
+                                , div
+                                    [ Attributes.class "add-person-search-result-description" ]
+                                    [ text person.description ]
+                                , Html.button
+                                    [ Attributes.class "add-person-search-result-action"
+                                    , Events.onClick <| ExternalAddPerson person.externalId
+                                    ]
+                                    [ text "Add" ]
+                                ]
+                    in
+                    div
+                        [ Attributes.class "add-person-search-results" ]
+                        [ Html.ul
+                            []
+                            (List.map showSearchResult persons)
+                        ]
 
         explanations =
             div
@@ -1409,6 +1528,7 @@ makeYourChoiceRep model sortedPeople =
                 , displaying
                 , totalsRow
                 , addRepresentative
+                , representativeSearchResults
                 , explanations
                 ]
             ]
