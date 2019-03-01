@@ -654,7 +654,7 @@ table.charity-choice-table button {
     max-width: var(--max-body-width);
     box-sizing: border-box;
     color: white;
-    font-weight: 400;
+    font-weight: 300;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -663,12 +663,20 @@ table.charity-choice-table button {
     bottom: 0;
     display: flex;
     height: var(--sms-builder-height);
-    padding: 0px 5px;
+    padding: 5px 15px;
+    text-align: center;
+    font-weight: 100;
 }
 
 #sms-builder .text-code {
     padding: 0 0.4em;
-    font-family: "Lucida Console", Monaco, monospace;
     background-color: white;
     color: black;
+    font-weight: 400;
+
+}
+
+#sms-builder .text-builder-number {
+    font-weight: 400;
+    color: white;
 }

@@ -442,15 +442,13 @@ viewTextCode model =
                                         [ Attributes.class "text-builder" ]
                                         [ Html.span
                                             [ Attributes.class "text-builder-now" ]
-                                            [ text "Now" ]
-                                        , text " "
-                                        , text "text:"
-                                        , text " "
+                                            [ text "To register your choice text " ]
                                         , code
-                                        , text " "
+                                        , Html.br [] []
+                                        , text "to "
                                         , Html.span
                                             [ Attributes.class "text-builder-number" ]
-                                            [ text "to 70085" ]
+                                            [ text "70085" ]
                                         ]
 
 
