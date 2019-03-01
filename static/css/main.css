@@ -308,6 +308,14 @@ footer #footer-title {
     font-weight: 700;
 }
 
+footer a {
+    text-decoration: underline;
+}
+
+footer .footer-company-number{
+    font-size: 0.8em;
+}
+
 nav {
     font-weight: 400;
     font-size: 0.9rem;
@@ -710,13 +718,13 @@ table.charity-choice-table button {
 
 #sms-builder ul.recent-votes {
     overflow: hidden;
-    display: block;
+    display: flex;
     align-items: center;
     width: 200%;
     overflow: hidden;
     margin: 0;
     padding: 0;
-    animation: scroll 15s linear infinite;
+    animation: scroll 60s linear infinite;
     position: relative;
     color: var(--color-text);
     list-style: none;
