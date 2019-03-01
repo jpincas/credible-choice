@@ -276,9 +276,10 @@ section>h2:first-child {
 
 
 
-#presentation .back-button{
+#presentation .back-button {
     flex-basis: 40px;
 }
+
 #presentation #twitter-link {
     flex-basis: 40px;
     background-image: url(/static/img/twitter.png);
@@ -312,11 +313,11 @@ footer nav a {
     text-decoration: underline;
 }
 
-footer nav li.active{
+footer nav li.active {
     color: var(--color-accent);
 }
 
-footer .footer-company-number{
+footer .footer-company-number {
     font-size: 0.8em;
 }
 
@@ -675,7 +676,7 @@ table.charity-choice-table button {
     font-size: 0.8rem;
     padding: 5px 8px;
     margin: 3px;
-    width: 35vw;
+    width: 60vw;
     text-align: left;
     display: flex;
     justify-content: space-between;
