@@ -417,6 +417,7 @@ viewTextCode model =
                                             codeComponents model
 
                                         code =
+                                            -- CAREFUL if you change this, you also need to change what is sent in smsString of the prevote.
                                             Html.span
                                                 [ Attributes.class "text-code" ]
                                                 [ Html.span
@@ -462,7 +463,20 @@ sendPreVote model =
             codeComponents model
 
         code =
-            String.join "" [ codeParts.nonce, codeParts.repVote, codeParts.charity ]
+            -- If you change this, you also need to change what is displayed in the sms-builder above.
+            String.join ""
+                [ codeParts.charity
+                , " "
+
+                -- Obviously dodgy, but we shouldn't be sending a prevote without a main option selected.
+                , String.fromInt <| Maybe.withDefault 0 model.donation
+                , " "
+                , codeParts.nonce
+
+                -- Obviously dodgy, but we shouldn't be sending a prevote without a main option selected.
+                , Maybe.withDefault "0" model.selectedMainOption
+                , codeParts.repVote
+                ]
 
         birthyear =
             String.toInt model.birthyear
@@ -471,14 +485,9 @@ sendPreVote model =
         body =
             Http.jsonBody <|
                 Encode.object
-                    [ ( "nonce", Encode.string codeParts.nonce )
-                    , ( "choice", Encode.string <| Maybe.withDefault "0" model.selectedMainOption )
-                    , ( "representative", Encode.string codeParts.repVote )
-                    , ( "charity", Encode.string codeParts.charity )
-                    , ( "donation", Encode.int <| Maybe.withDefault 0 model.donation )
-                    , ( "coded-part", Encode.string code )
-                    , ( "birthyear", Encode.int birthyear )
-                    , ( "postcode", Encode.string model.postcode )
+                    [ ( "postcode", Encode.string model.postcode )
+                    , ( "birthYear", Encode.int birthyear )
+                    , ( "smsString", Encode.string code )
                     ]
 
         toMsg =
