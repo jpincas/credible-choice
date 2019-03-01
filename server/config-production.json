@@ -1,0 +1,10 @@
+{
+    "testMode": false,
+    "port": 80,
+    "dbDirectory": "../db-data",
+    "dataDirectory": "../data",
+    "voteWebhook": "vote-fsd8vxcv86vn87s88",
+    "voteToBlockchain": true,
+    "blockchainHost": "http://134.209.88.159:5005",
+    "kGraphAPIKey": "AIzaSyCgELftillDzM15I2dBhVhuro7fLMBJU6A"
+}
