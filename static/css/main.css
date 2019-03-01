@@ -19,6 +19,8 @@
 
     --sms-builder-height: 60px;
     --max-body-width: 972px;
+
+    --selected-button-border-width: 5px;
 }
 
 /* Body */
@@ -108,7 +110,7 @@ button,
     margin: 0;
     padding: 7px 15px 5px 15px;
     border-radius: 3px;
-    border: none;
+    border: var(--selected-button-border-width) inset transparent;
     margin: 3px;
     color: white;
     background-color: var(--color-primary2);
@@ -125,7 +127,7 @@ button:disabled {
 
 button.selected,
 .button.selected {
-    border: 5px inset var(--color-selected);
+    border-color: var(--color-selected);
 }
 
 button.selected::after,
