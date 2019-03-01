@@ -112,7 +112,7 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	// Set up routes
 	r.Route("/appapi", func(r chi.Router) {
 		r.With(cacheFor1Hour).Get("/charities", ListCharities)
-		r.With(cacheFor1Minute).Get("/recentvotes", ListRecentVotes)
+		r.With(cacheFor15Seconds).Get("/recentvotes", ListRecentVotes)
 		r.With(cacheFor1Minute).Get("/results", GetResults)
 		r.With(cacheFor1Minute).Get("/representatives", ListRepresentatives)
 
