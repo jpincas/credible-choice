@@ -326,9 +326,13 @@ searchNewPerson nameInput =
         toMsg =
             RepresentativeSearchReceived nameInput
 
+        resultsList =
+            Decode.oneOf
+                [ Decode.null []
+                , Decode.list personSearchResultDecoder
+                ]
         decoder =
-            Decode.list personSearchResultDecoder
-                |> Decode.at [ "results" ]
+            resultsList |> Decode.at [ "results" ]
     in
     Http.post
         { url = url
@@ -1719,12 +1723,18 @@ makeYourChoiceRep model sortedPeople =
                                                 , Html.td [] []
                                                 ]
                             in
-                            div
-                                [ Attributes.class "add-person-search-results" ]
-                                [ Html.table
-                                    []
-                                    (List.map showSearchResult persons)
-                                ]
+                            case List.isEmpty persons of
+                                True ->
+                                    div
+                                        [ Attributes.class "add-person-search-results" ]
+                                        [ text "Your search returned no results." ]
+                                False ->
+                                    div
+                                        [ Attributes.class "add-person-search-results" ]
+                                        [ Html.table
+                                            []
+                                            (List.map showSearchResult persons)
+                                        ]
 
         explanations =
             div

@@ -27,4 +27,4 @@ now dns add crediblechoice.uk dev A 51.15.70.20
     [ ] Do not fail if the 'search representative' comes back as the empty list 'null', but explain the situation.
     [ ] Make the lookup a form so that 'Return' makes the request.
     [ ] Set a minimum search string limit, maybe a maximum too.
-    [ ] If the representative is already there, somehow show them in the list
+    [x] If the representative is already there, somehow show them in the list
