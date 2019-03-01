@@ -839,7 +839,7 @@ viewHeader showBackButton =
             [ Html.h2 [] [ text "Under construction" ]
             , Html.p
                 []
-                [ text "This site is in test mode.  It will go live at 01:01 on March 1st 2019 - "
+                [ text "This site is in test mode.  It will go live at 01:01 on March 7th 2019 - "
                 , Html.a
                     [ Route.href FaqPage ]
                     [ text "See FAQ " ]
