@@ -331,6 +331,7 @@ searchNewPerson nameInput =
                 [ Decode.null []
                 , Decode.list personSearchResultDecoder
                 ]
+
         decoder =
             resultsList |> Decode.at [ "results" ]
     in
@@ -1632,8 +1633,17 @@ makeYourChoiceRep model sortedPeople =
                 []
 
         addRepresentative =
-            div
-                [ Attributes.id "add-person" ]
+            let
+                inputLength =
+                    String.length model.addRepresentativeInput
+
+                invalidInput =
+                    inputLength < 5 || inputLength > 50
+            in
+            Html.form
+                [ Attributes.id "add-person"
+                , Events.onSubmit AddRepresentativeClicked
+                ]
                 [ Html.input
                     [ Attributes.type_ "text"
                     , Attributes.placeholder "Representative name"
@@ -1643,7 +1653,8 @@ makeYourChoiceRep model sortedPeople =
                     []
                 , Html.button
                     [ Attributes.class "button"
-                    , Events.onClick AddRepresentativeClicked
+                    , Attributes.type_ "submit"
+                    , Attributes.disabled invalidInput
                     ]
                     [ text "Lookup" ]
                 ]
@@ -1728,6 +1739,7 @@ makeYourChoiceRep model sortedPeople =
                                     div
                                         [ Attributes.class "add-person-search-results" ]
                                         [ text "Your search returned no results." ]
+
                                 False ->
                                     div
                                         [ Attributes.class "add-person-search-results" ]
