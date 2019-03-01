@@ -403,15 +403,15 @@ viewTextCode model =
                         Nothing ->
                             text "You must select a donation amount to vote"
 
-                        Just donationPennies ->
-                            case model.charity == Nothing of
+                        Just donationPounds ->
+                            case model.charity == Nothing || model.charity == Just "" of
                                 True ->
                                     text "You must select a charity to vote."
 
                                 False ->
                                     let
                                         donation =
-                                            String.fromInt donationPennies
+                                            String.fromInt donationPounds
 
                                         codeParts =
                                             codeComponents model
