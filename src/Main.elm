@@ -50,7 +50,7 @@ subscriptions _ =
             1000
 
         resultsTickSub =
-            Time.every minute ResultsTick
+            Time.every (15 * second) ResultsTick
 
         recentVotesTickSub =
             Time.every (15 * second) RecentVotesTick
@@ -648,7 +648,7 @@ update msg model =
             noCommand { model | nonce = char }
 
         ResultsTick _ ->
-            withCommands model [ getRecentVotes ]
+            withCommands model [ getResults ]
 
         RecentVotesTick _ ->
             withCommands model [ getRecentVotes ]
