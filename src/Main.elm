@@ -424,24 +424,33 @@ viewTextCode model =
                                                     [ text codeParts.charity ]
                                                 , text " "
                                                 , Html.span
-                                                    [ Attributes.class "text-code-main-choice" ]
-                                                    [ text option ]
+                                                    [ Attributes.class "text-code-donation" ]
+                                                    [ text donation ]
+                                                , text " "
                                                 , Html.span
                                                     [ Attributes.class "text-code-nonce" ]
                                                     [ text codeParts.nonce ]
                                                 , Html.span
+                                                    [ Attributes.class "text-code-main-choice" ]
+                                                    [ text option ]
+                                                , Html.span
                                                     [ Attributes.class "text-code-rep" ]
                                                     [ text codeParts.repVote ]
-                                                , text " "
-                                                , Html.span
-                                                    [ Attributes.class "text-code-donation" ]
-                                                    [ text donation ]
                                                 ]
                                     in
                                     div
                                         [ Attributes.class "text-builder" ]
-                                        [ text "Please text the following to <TEXTNUMBER>: "
+                                        [ Html.span
+                                            [ Attributes.class "text-builder-now" ]
+                                            [ text "Now" ]
+                                        , text " "
+                                        , text "text:"
+                                        , text " "
                                         , code
+                                        , text " "
+                                        , Html.span
+                                            [ Attributes.class "text-builder-number" ]
+                                            [ text "to 70085" ]
                                         ]
 
 
@@ -845,7 +854,7 @@ viewHeader showBackButton =
             [ Html.h2 [] [ text "Under construction" ]
             , Html.p
                 []
-                [ text "This site is in test mode.  It will go live at 01:01 on March 7th 2019 - "
+                [ text "This site is in test mode.  It will go live in the first days of March 2019 - "
                 , Html.a
                     [ Route.href FaqPage ]
                     [ text "See FAQ " ]
