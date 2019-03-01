@@ -1295,6 +1295,21 @@ clickToChoose =
         [ text "Click to choose" ]
 
 
+abbreviateRepPosition : String -> String
+abbreviateRepPosition s =
+    let
+        abbreviations =
+            [ ( "member of parliament", "MP" )
+            , ( "member of european parliament", "MP" )
+            , ( "singer-songwriter", "Musician" )
+            ]
+                |> Dict.fromList
+    in
+    abbreviations
+        |> Dict.get (String.toLower s)
+        |> Maybe.withDefault s
+
+
 makeYourChoiceRep : Model -> SortedPeople -> Html Msg
 makeYourChoiceRep model sortedPeople =
     let
@@ -1327,6 +1342,9 @@ makeYourChoiceRep model sortedPeople =
                             [ text person.name ]
                         , Html.td
                             []
+                            [ text <| abbreviateRepPosition person.position ]
+                        , Html.td
+                            [ Attributes.class "bold" ]
                             [ votes ]
                         ]
 
@@ -1435,6 +1453,9 @@ makeYourChoiceRep model sortedPeople =
                             ]
                         , Html.th
                             []
+                            [ text "Profession" ]
+                        , Html.th
+                            []
                             [ text "Chosen by" ]
                         ]
                     ]
@@ -1496,7 +1517,7 @@ makeYourChoiceRep model sortedPeople =
                 , Attributes.placeholder "Search for person"
                 , Attributes.value model.searchRepresentativeInput
                 , Events.onInput SearchRepresentativeInput
-                , Attributes.placeholder "Search"
+                , Attributes.placeholder "Search names"
                 ]
                 []
 
@@ -1592,9 +1613,15 @@ makeYourChoiceRep model sortedPeople =
                 , pageSelector
                 , displaying
                 , totalsRow
-                , addRepresentative
-                , representativeSearchResults
-                , explanations
+                , div
+                    [ Attributes.class "panel info" ]
+                    [ div
+                        [ Attributes.class "optional-label" ]
+                        [ text "Add a new representative" ]
+                    , addRepresentative
+                    , representativeSearchResults
+                    , explanations
+                    ]
                 ]
             ]
         ]
@@ -1682,7 +1709,7 @@ donationSection model =
         charityLabel =
             Html.label
                 [ Attributes.class "charity-choice-label" ]
-                [ text "Which charity would you like to donate to" ]
+                [ text "Which charity would you like to donate to?" ]
 
         makeDonationOption amount =
             let
@@ -1694,7 +1721,7 @@ donationSection model =
                 , Attributes.class "button"
                 , selectedClass selected
                 ]
-                [ text <| formatPence amount
+                [ text <| "£" ++ String.fromInt amount
                 , Html.input
                     [ Attributes.class "donation-option-input"
                     , Attributes.type_ "radio"
@@ -1708,11 +1735,11 @@ donationSection model =
             div
                 [ Attributes.class "donation-selections" ]
                 [ Html.label
-                    []
+                    [ Attributes.class "how-much-donate" ]
                     [ text "How much would you like to donate?" ]
                 , Html.div
                     [ Attributes.id "donation-amount-selector" ]
-                    (List.map makeDonationOption [ 50, 100, 500, 1000, 2000 ])
+                    (List.map makeDonationOption [ 1, 5, 10, 20 ])
                 ]
     in
     mainSection "Make a Donation"
