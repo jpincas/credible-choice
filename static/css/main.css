@@ -15,6 +15,8 @@
     --color-may: rgb(14, 78, 173);
     --color-leave: rgb(243, 36, 36);
 
+    --color-selected: rgb(32, 32, 32);
+
     --sms-builder-height: 60px;
     --max-body-width: 972px;
 }
@@ -123,8 +125,21 @@ button:disabled {
 
 button.selected,
 .button.selected {
-    background-color: var(--color-accent);
-    color: var(--color-text);
+    border: 5px inset var(--color-selected);
+}
+
+button.selected::after,
+.button.selected::after {
+    content: "✓";
+    font-weight: 700;
+    color: black;
+    margin-left: 15px;
+}
+
+
+button:hover,
+.button:hover {
+    transform: scale(1.008);
 }
 
 button.selected:hover,
@@ -132,10 +147,6 @@ button.selected:hover,
     cursor: not-allowed;
 }
 
-button:hover,
-.button:hover {
-    transform: scale(1.01);
-}
 
 th {
     font-weight: 400;
@@ -437,7 +448,7 @@ ul.top-ten-representatives li:last-child {}
 }
 
 .main-option-button button.selected::after {
-    content: none;
+    content: "Currently chosen";
 }
 
 .chosen-by-header,
@@ -654,7 +665,8 @@ table.charity-choice-table button {
     height: var(--sms-builder-height);
     padding: 0px 5px;
 }
-#sms-builder .text-code{
+
+#sms-builder .text-code {
     padding: 0 0.4em;
     font-family: "Lucida Console", Monaco, monospace;
     background-color: white;
