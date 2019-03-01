@@ -21,10 +21,10 @@
 
     --selected-button-border-width: 5px;
 
-    --text-code-height: 60px;
-    --recent-votes-height: 50px;
-    /* Cannot have a 'var' in a calc, so --sms-builder-height should = --text-code-height + --recent-votes-height. */
-    --sms-builder-height: 110px;
+    /* --text-code-height: 30px;
+    --recent-votes-container-height: 50px;
+    Cannot have a 'var' in a calc, so --sms-builder-height should = --text-code-height + --recent-votes-container-height. */
+    --sms-builder-height: 80px;
     --sms-builder-z-index: 50;
 }
 
@@ -59,7 +59,7 @@ a {
     text-decoration: none;
 }
 
-.not-found-page a{
+.not-found-page a {
     text-decoration: underline;
     color: var(--color-primary2);
 }
@@ -177,6 +177,9 @@ th {
     font-weight: 700;
 }
 
+.muted {
+    opacity: 0.6;
+}
 
 
 
@@ -658,13 +661,16 @@ table.charity-choice-table button {
     margin: 3px;
     width: 35vw;
     text-align: left;
+    display: flex;
+    justify-content: space-between;
 }
 
-.faq-list .faq-question{
+.faq-list .faq-question {
     font-size: 1.1em;
     font-weight: 500;
 }
-.faq-list .faq-answer{
+
+.faq-list .faq-answer {
     margin-bottom: 1em;
 }
 
@@ -685,34 +691,59 @@ table.charity-choice-table button {
     display: flex;
     flex-direction: column;
     height: var(--sms-builder-height);
-    padding: 5px 15px;
     text-align: center;
     font-weight: 100;
     z-index: var(--sms-builder-z-index);
     overflow-x: hidden;
 }
 
-
-#sms-builder .recent-votes {
-  overflow: hidden;
-  display: block;
-  width: 200%;
-  height: var(--recent-votes-height);
-  overflow: hidden;
-
-  animation: scroll 10s linear infinite;
-  position:relative;
+#sms-builder .recent-votes-container {
+    background-color: var(--color-text-inverted);
+    color: var(--color-text);
+    margin-top: 5px;
 }
-@keyframes scroll{
-    0% {left: 100%;}
-    100% {left:-100%;}
+
+
+#sms-builder ul.recent-votes {
+    overflow: hidden;
+    display: block;
+    align-items: center;
+    width: 200%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    animation: scroll 15s linear infinite;
+    position: relative;
+    color: var(--color-text);
+    list-style: none;
+}
+
+#sms-builder ul.recent-votes li {
+    padding: 0px 30px;
+    border-right: 1px solid var(--color-primary3);
+}
+
+#sms-builder ul.recent-votes li:last-child {
+    padding: 0px 30px;
+    border-right: none;
+}
+
+
+@keyframes scroll {
+    0% {
+        left: 100%;
+    }
+
+    100% {
+        left: -100%;
+    }
 }
 
 #sms-builder .recent-votes:hover {
     animation-play-state: paused
 }
 
-#sms-builder .recent-votes .recent-vote{
+#sms-builder .recent-votes .recent-vote {
     white-space: nowrap;
     float: left;
     margin-left: 1.5em;

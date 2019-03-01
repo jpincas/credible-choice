@@ -1207,7 +1207,7 @@ liveResultsSection model sortedPeople =
         viewReps =
             div
                 [ Attributes.id "live-results-representatives" ]
-                [ Html.h3 [] [ text "Top 10 Voted Representatives" ]
+                [ Html.h3 [] [ text "Top 10 Trusted Representatives" ]
                 , Html.ul
                     [ Attributes.class "top-ten-representatives" ]
                     (List.indexedMap viewRep <| List.take 10 sortedPeople)
@@ -1718,10 +1718,12 @@ donationSection model =
                         , Events.onClick <| MakeCharityChoice charity.id
                         , selectedClass <| model.charity == Just charity.id
                         ]
-                        [ text charity.name ]
+                        [ Html.span [] [ text charity.name ]
+                        , Html.span [ Attributes.class "muted charity-id" ] [ text charity.id ]
+                        ]
                     ]
                 , Html.td
-                    []
+                    [ Attributes.class "bold" ]
                     [ votes ]
                 ]
 
@@ -1737,7 +1739,7 @@ donationSection model =
                         []
                         [ Html.th
                             []
-                            [ text "Charity name" ]
+                            [ text "Charity name / code" ]
                         , Html.th
                             []
                             [ text "Chosen by" ]
@@ -1802,8 +1804,8 @@ smsBuilder : Model -> Html Msg
 smsBuilder model =
     div
         [ Attributes.id "sms-builder" ]
-        [ viewRecentVotes model 5
-        , viewTextCode model
+        [ viewTextCode model
+        , viewRecentVotes model 5
         ]
 
 
@@ -2175,6 +2177,9 @@ viewRecentVotes { recentVotes, mainOptions } noToShow =
         renderVote vote =
             Html.li [ Attributes.class "recent-vote" ] (formatVote vote)
     in
-    Html.ul
-        [ Attributes.class "recent-votes" ]
-        (recentVotes |> List.take noToShow |> List.map renderVote)
+    div
+        [ Attributes.class "recent-votes-container" ]
+        [ Html.ul
+            [ Attributes.class "recent-votes" ]
+            (recentVotes |> List.take noToShow |> List.map renderVote)
+        ]
