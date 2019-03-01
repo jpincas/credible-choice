@@ -185,6 +185,7 @@ type alias Person =
     , code : PersonCode
     , position : String
     , suspended : Bool
+    , externalId : ExternalId
     }
 
 
@@ -285,6 +286,7 @@ getPeople =
                 |> Pipeline.required "id" Decode.string
                 |> Pipeline.required "profession" Decode.string
                 |> Pipeline.required "suspended" Decode.bool
+                |> Pipeline.required "externalId" Decode.string
     in
     Http.get { url = url, expect = expect }
 
@@ -803,7 +805,14 @@ update msg model =
             noCommand { model | externalAdded = RequestFailed externalId }
 
         ExternalAddReceived externalId (Ok _) ->
-            noCommand { model | externalAdded = RequestSucceeded externalId () }
+            let
+                newModel =
+                    { model | externalAdded = RequestSucceeded externalId () }
+            in
+            -- For now I'm just going to download all the people again.
+            -- What we should really do is have the request respond with the new person data
+            -- and then I can just add it manually.
+            withCommands newModel [ getPeople ]
 
         SelectDonationAmount pennies ->
             let
@@ -933,7 +942,7 @@ viewHeader showBackButton =
                     [ text "Make your voice heard today" ]
                 ]
             , Html.a
-                [ Attributes.href "https://twitter.com/crediblechoice"
+                [ Attributes.href "https://twitter.com/ChoiceCredible"
                 , Attributes.id "twitter-link"
                 ]
                 []
@@ -1082,8 +1091,32 @@ viewChoose : Model -> Html Msg
 viewChoose model =
     let
         numVotes person =
-            Dict.get person.code model.representativeVotes
-                |> Maybe.withDefault 0
+            let
+                votes =
+                    Dict.get person.code model.representativeVotes
+                        |> Maybe.withDefault 0
+
+                addedWeight =
+                    case model.externalAdded of
+                        RequestSucceeded externalId _ ->
+                            case externalId == person.externalId of
+                                True ->
+                                    100000000
+
+                                False ->
+                                    0
+
+                        RequestFailed _ ->
+                            0
+
+                        Requested _ ->
+                            0
+
+                        NotRequested ->
+                            0
+            in
+            -- We do *minus* votes so that it is sorted in descending order.
+            0 - votes - addedWeight
 
         sortedPeople =
             model.people
@@ -1425,6 +1458,7 @@ makeYourChoiceRep model sortedPeople =
             , code = "XXX"
             , position = ""
             , suspended = False
+            , externalId = ""
             }
                 :: sortedPeople
 
