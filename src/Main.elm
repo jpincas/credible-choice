@@ -94,7 +94,7 @@ type alias Model =
     , charityVotes : Dict CharityId Int
     , totalVotes : Int
     , totalDonations : Pennies
-    , donation : Maybe Pennies
+    , donation : Maybe Pounds
     , addRepresentativeInput : ExternalId
     , personSearchResults : RequestedInfo String (List PersonSearchResult)
     , externalAdded : RequestedInfo ExternalId ()
@@ -141,6 +141,10 @@ type alias Charity =
     { id : CharityId
     , name : String
     }
+
+
+type alias Pounds =
+    Int
 
 
 type alias Pennies =
@@ -214,7 +218,7 @@ type Msg
     | ExternalAddReceived String (HttpResult ())
     | RepPageNext
     | RepPagePrev
-    | SelectDonationAmount Pennies
+    | SelectDonationAmount Pounds
     | PrevoteResponse (HttpResult ())
     | CharitiesReceived (HttpResult (List Charity))
     | MakeCharityChoice CharityId
