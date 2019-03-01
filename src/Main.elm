@@ -98,6 +98,7 @@ type alias Model =
     , addRepresentativeInput : ExternalId
     , personSearchResults : RequestedInfo String (List PersonSearchResult)
     , externalAdded : RequestedInfo ExternalId ()
+    , recentVotes : List RecentVote
     }
 
 
@@ -553,6 +554,14 @@ init () url key =
             , addRepresentativeInput = ""
             , personSearchResults = NotRequested
             , externalAdded = NotRequested
+            , recentVotes =
+                [ { mainVote = 1
+                  , repVote = "REP"
+                  , charity = "CHAR"
+                  , postcode = "SW19"
+                  , donation = 100
+                  }
+                ]
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
@@ -1212,6 +1221,7 @@ liveResultsSection model sortedPeople =
             [ div [ Attributes.class "panel" ] [ viewPie ]
             , div [ Attributes.class "panel" ] [ viewReps ]
             ]
+        , renderRecentVotes model 5
         ]
 
 
@@ -1987,3 +1997,60 @@ formatPence pennies =
         False ->
             String.join ""
                 [ "£", poundsString ]
+
+
+
+-- JON: RECENT VOTES
+-- {"id":"1e93c157-bebd-6ee2-8f2e-de2c184bc001","created":"2019-03-01T11:30:58.2546146Z","lastUpdated":"2019-03-01T11:30:58.254615539Z","mainVote":3,"repVote":"ACH","charity":"BL","anonMobile":"55tddfg4ed","postcode":"SW19","birthYear":1980,"donation":1000}
+
+
+type alias RecentVote =
+    { mainVote : Int
+    , repVote : String
+    , charity : String
+    , postcode : String
+    , donation : Int
+    }
+
+
+renderRecentVotes : Model -> Int -> Html Msg
+renderRecentVotes { recentVotes, mainOptions } noToShow =
+    let
+        formatVote { mainVote, repVote, charity, postcode, donation } =
+            let
+                who =
+                    case String.isEmpty postcode of
+                        True ->
+                            "Someone in the UK"
+
+                        False ->
+                            "Someone from " ++ postcode
+
+                mainChoice =
+                    mainOptions
+                        |> List.map (\{ id, name } -> ( id, name ))
+                        |> Dict.fromList
+                        |> Dict.get (String.fromInt mainVote)
+                        |> Maybe.withDefault "XXX"
+
+                donationAmount =
+                    formatPence donation
+            in
+            [ ( who, "bold" )
+            , ( " just chose ", "" )
+            , ( mainChoice, "bold" )
+            , ( "/", "" )
+            , ( repVote, "bold" )
+            , ( " and kindly donated ", "" )
+            , ( donationAmount, "bold" )
+            , ( " to ", "" )
+            , ( charity, "bold" )
+            ]
+                |> List.map (\( str, class ) -> Html.span [ Attributes.class class ] [ text str ])
+
+        renderVote vote =
+            Html.li [] (formatVote vote)
+    in
+    div
+        [ Attributes.class "recent-vote" ]
+        (recentVotes |> List.take noToShow |> List.map renderVote)
