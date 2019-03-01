@@ -416,6 +416,10 @@ viewTextCode model =
                                             Html.span
                                                 [ Attributes.class "text-code" ]
                                                 [ Html.span
+                                                    [ Attributes.class "text-code-charity" ]
+                                                    [ text codeParts.charity ]
+                                                , text " "
+                                                , Html.span
                                                     [ Attributes.class "text-code-main-choice" ]
                                                     [ text option ]
                                                 , Html.span
@@ -424,18 +428,16 @@ viewTextCode model =
                                                 , Html.span
                                                     [ Attributes.class "text-code-rep" ]
                                                     [ text codeParts.repVote ]
+                                                , text " "
                                                 , Html.span
-                                                    [ Attributes.class "text-code-charity" ]
-                                                    [ text codeParts.charity ]
+                                                    [ Attributes.class "text-code-donation" ]
+                                                    [ text donation ]
                                                 ]
                                     in
                                     div
                                         [ Attributes.class "text-builder" ]
-                                        [ text "CCH"
-                                        , text " "
+                                        [ text "Please text the following to <TEXTNUMBER>: "
                                         , code
-                                        , text " "
-                                        , text donation
                                         ]
 
 
@@ -1665,26 +1667,8 @@ donationSection model =
                     [ votes ]
                 ]
 
-        allCharitiesChoice =
-            Html.tr
-                [ Attributes.class "charity-choice-list-item" ]
-                [ Html.td
-                    []
-                    [ Html.button
-                        [ Attributes.class "charity-choice"
-                        , Events.onClick <| MakeCharityChoice ""
-                        , selectedClass <| model.charity == Just ""
-                        ]
-                        [ text "Spread over all listed charities" ]
-                    ]
-                , Html.td
-                    []
-                    []
-                ]
-
         charityChoices =
-            -- TODO: If we have the donation amount I can add a 'total donations row'.
-            allCharitiesChoice :: List.map makeCharityChoice model.charities
+            List.map makeCharityChoice model.charities
 
         table =
             Html.table

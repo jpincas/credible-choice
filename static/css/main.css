@@ -651,3 +651,9 @@ table.charity-choice-table button {
     height: var(--sms-builder-height);
     padding: 0px 5px;
 }
+#sms-builder .text-code{
+    padding: 0 0.4em;
+    font-family: "Lucida Console", Monaco, monospace;
+    background-color: white;
+    color: black;
+}
