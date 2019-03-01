@@ -308,8 +308,12 @@ footer #footer-title {
     font-weight: 700;
 }
 
-footer a {
+footer nav a {
     text-decoration: underline;
+}
+
+footer nav li.active{
+    color: var(--color-accent);
 }
 
 footer .footer-company-number{
