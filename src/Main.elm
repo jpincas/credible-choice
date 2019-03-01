@@ -923,7 +923,9 @@ viewHeader showBackButton =
                 []
                 [ text "This site is in test mode.  It will go live in the first days of March 2019 - "
                 , Html.a
-                    [ Route.href FaqPage ]
+                    [ Route.href FaqPage
+                    , Attributes.class "visible-link"
+                    ]
                     [ text "See FAQ " ]
                 ]
             ]
@@ -1841,6 +1843,16 @@ donationSection model =
                 , donationSelection
                 , charityLabel
                 , table
+                , Html.p
+                    [ Attributes.class "charity-inclusion-explanation" ]
+                    [ text "If you are a UK registered Charity and want to appear on this platform please "
+                    , Html.a
+                        [ Route.href FaqPage
+                        , Attributes.class "visible-link"
+                        ]
+                        [ text "see the FAQ" ]
+                    , text " for the procedure."
+                    ]
                 ]
             ]
         ]
@@ -1960,30 +1972,68 @@ viewFaqPage =
                 [ text question ]
             , Html.dd
                 [ Attributes.class "faq-answer" ]
-                [ text answer ]
+                answer
             ]
 
         faqs =
             [ ( "Demo Mode:  What is the basis for the order and quantities?"
-              , "These are illustrative only and will be removed for a clean launch."
+              , [ text "These are illustrative only and will be removed for a clean launch." ]
               )
             , ( "What’s the point?"
-              , "When 50 million people liked an egg, we thought maybe we could get a few million to democratically express their views about the current Brexit situation and potentially generate some substantial funds for charity.  We also think there is a chance of a non Party group emerging from this, who could constructively help to heal the societal divisions Brexit has caused."
+              , [ text "When 50 million people liked an egg, we thought maybe we could get a few million to democratically express their views about the current Brexit situation and potentially generate some substantial funds for charity.  We also think there is a chance of a non Party group emerging from this, who could constructively help to heal the societal divisions Brexit has caused." ]
               )
             , ( "What’s in this for Credible Choice and it’s promoters?"
-              , "We have created Credible Choice Ltd, a volunteer, not-for-profit, non-partisan company.  It doesn’t have any income or expenses and doesn’t pay for supplies and services."
+              , [ text "We have created Credible Choice Ltd, a volunteer, not-for-profit, non-partisan company.  It doesn’t have any income or expenses and doesn’t pay for supplies and services." ]
               )
             , ( "What’s the difference between this and a referendum?"
-              , "This has been created in a couple of weeks at no cost to HMG  A referendum will take six months and cost many millions to organise.  With this, participants can change their mind in response to changing circumstances."
+              , [ text "This has been created in a couple of weeks at no cost to HMG  A referendum will take six months and cost many millions to organise.  With this, participants can change their mind in response to changing circumstances." ]
               )
             , ( "Isn’t this just a self-selecting opinion poll?"
-              , "Polls interview supposedly representative groups of maybe 1,000 people.  Our approach enables millions to take part."
+              , [ text "Polls interview supposedly representative groups of maybe 1,000 people.  Our approach enables millions to take part." ]
               )
             , ( "Why mobile phones when anyone can buy a SIM card for a few pounds and children and foreign powers could vote?"
-              , "The honest answer is that this is the only practical way to curtail unlimited multiple voting.  Sure their may be some multiple voting but it’s not so easy to buy and register millions of SIM cards to UK mobile phone numbers.  Any large scale spoofer would also have to donate millions to charity.  We realise this doesn’t exactly align with the electoral roll but it could be argued that this is more democratic in terms of the people affected."
+              , [ text "The honest answer is that this is the only practical way to curtail unlimited multiple voting.  Sure their may be some multiple voting but it’s not so easy to buy and register millions of SIM cards to UK mobile phone numbers.  Any large scale spoofer would also have to donate millions to charity.  We realise this doesn’t exactly align with the electoral roll but it could be argued that this is more democratic in terms of the people affected." ]
               )
             , ( "Aren’t all sorts of nefarious players going to hack into this making it meaningless and maybe stealing loads of personal data?"
-              , "First of all we do not collect any personal data, not even mobile phone numbers.  Secondly, we are completely transparent, participants can see their choice tallied as they make it.  The whole process is underpinned by a distributed block chain.  Please see the technical overview."
+              , [ text "First of all we do not collect any personal data, not even mobile phone numbers.  Secondly, we are completely transparent, participants can see their choice tallied as they make it.  The whole process is underpinned by a distributed block chain.  Please see the technical overview." ]
+              )
+            , ( "What are you going to do with the data you collate?"
+              , [ text "We don't collect any personal data.  The results as completely public." ]
+              )
+            , ( "How are you going to influence the people that matter?"
+              , [ text "We are not trying to be the influencers.  We have hopefully created a platform that allows others to be influencers." ]
+              )
+            , ( "What do you see the ultimate outcome of Credible Choice?"
+              , [ text "Anyone who tries to predict anything these days is likely to be wrong." ]
+              )
+            , ( "We are a Charity, how can we sign up?"
+              , [ Html.p []
+                    [ text "Charities can sign up by registering at "
+                    , Html.a
+                        [ Attributes.href "https://donr.com/text-giving"
+                        , Attributes.class "visible-link"
+                        ]
+                        [ text "https://donr.com/text-giving" ]
+                    , text " using a 3 letter keyword and email the following to Donr:"
+                    ]
+                , div
+                    [ Attributes.class "faq-charities-donr-letter" ]
+                    [ Html.p []
+                        [ text "We hereby give permission for Donr Ltd to release to Credible Choice Ltd the API access credentials to our account with you. We understand and accept that:" ]
+                    , Html.ol []
+                        [ Html.li []
+                            [ text "Credible Choice have no contract with Donr Ltd and are acting on behalf of our organisation." ]
+                        , Html.li []
+                            [ text "We are responsible for ensuring that all text-giving keywords created by Credible Choice are marketed in accordance with all relevant industry guidelines as set out in our Service Agreement with Donr Ltd" ]
+                        , Html.li []
+                            [ text "Credible Choice provide the following service to our charity: 'A public polling platform which also generates text donations to charities'" ]
+                        , Html.li []
+                            [ text "All donations to us through keywords setup by Credible Choice will be passed directly to our charity" ]
+                        ]
+                    , paragraph "Please provide Credible Choice with API credentials to access our account with Donr. We understand that this will allow them to create text-giving keywords on our behalf, and to receive real time information (including encrypted mobile phone numbers) relating to donations taken through our account with Donr."
+                    ]
+                , paragraph "In case of difficulties contact Callum Patterson 0203 542 2807 callum@donr.com.  Inclusion on the Credible Choice platform is subject to review. Due to review and a manual process we will only add two charities per working day."
+                ]
               )
             ]
     in
