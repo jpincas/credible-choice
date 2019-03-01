@@ -173,7 +173,7 @@ func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
 
 func getRecentVotes() ([]Vote, error) {
 	var votes []Vote
-	_, err := app.DB.Find(&votes).Reverse().Limit(50).Run()
+	_, err := app.DB.Find(&votes).Reverse().Limit(5).Run()
 	return votes, err
 }
 
