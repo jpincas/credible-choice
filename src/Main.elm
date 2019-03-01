@@ -1581,7 +1581,7 @@ makeYourChoiceRep model sortedPeople =
                 , paragraph """It’s entirely up to anyone on the list if they want to take any action or organise themselves in any way but we will provide a secure and private (even from us) communication architecture between the top 25 if they provide us with their contact details."""
                 ]
     in
-    mainSection "Make your choice - Who do you trust?"
+    mainSection "Your choice - Who do you trust?"
         [ div
             [ Attributes.class "panels" ]
             [ div

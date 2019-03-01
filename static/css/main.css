@@ -437,8 +437,9 @@ ul.top-ten-representatives li:last-child {}
 
 .main-option-totals-row {
     margin-top: 20px;
-    font-size: 1rem;
+    font-size: 1.8rem;
     font-weight: 300;
+    color: var(--color-secondary2);
 }
 
 .main-option-totals-row .total-choices-value {
