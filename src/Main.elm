@@ -453,51 +453,75 @@ viewTextCode model =
                                         ]
 
 
+validYearInput : String -> Bool
+validYearInput birthyear =
+    case String.toInt birthyear of
+        Nothing ->
+            False
+
+        Just i ->
+            i >= 1900 && i <= 2003
+
+
+validPostCodeInput : String -> Bool
+validPostCodeInput postcode =
+    let
+        length =
+            String.length postcode
+    in
+    length <= 4 && length >= 3
+
+
 sendPreVote : Model -> Cmd Msg
 sendPreVote model =
-    let
-        url =
-            "/appapi/prevote"
+    case validYearInput model.birthyear && validPostCodeInput model.postcode of
+        False ->
+            Cmd.none
 
-        codeParts =
-            codeComponents model
+        True ->
+            let
+                url =
+                    "/appapi/prevote"
 
-        code =
-            -- If you change this, you also need to change what is displayed in the sms-builder above.
-            String.join ""
-                [ codeParts.charity
-                , " "
+                codeParts =
+                    codeComponents model
 
-                -- Obviously dodgy, but we shouldn't be sending a prevote without a main option selected.
-                , String.fromInt <| Maybe.withDefault 0 model.donation
-                , " "
-                , codeParts.nonce
+                code =
+                    -- If you change this, you also need to change what is displayed in the sms-builder above.
+                    String.join ""
+                        [ codeParts.charity
+                        , " "
 
-                -- Obviously dodgy, but we shouldn't be sending a prevote without a main option selected.
-                , Maybe.withDefault "0" model.selectedMainOption
-                , codeParts.repVote
-                ]
+                        -- Obviously dodgy, but we shouldn't be sending a prevote without a main option selected.
+                        , String.fromInt <| Maybe.withDefault 0 model.donation
+                        , " "
+                        , codeParts.nonce
 
-        birthyear =
-            String.toInt model.birthyear
-                |> Maybe.withDefault 0
+                        -- Obviously dodgy, but we shouldn't be sending a prevote without a main option selected.
+                        , Maybe.withDefault "0" model.selectedMainOption
+                        , codeParts.repVote
+                        ]
 
-        body =
-            Http.jsonBody <|
-                Encode.object
-                    [ ( "postcode", Encode.string model.postcode )
-                    , ( "birthYear", Encode.int birthyear )
-                    , ( "smsString", Encode.string code )
-                    ]
+                birthyear =
+                    String.toInt model.birthyear
+                        |> Maybe.withDefault 0
 
-        toMsg =
-            PrevoteResponse
-    in
-    Http.post
-        { url = url
-        , body = body
-        , expect = Http.expectWhatever toMsg
-        }
+                body =
+                    Http.jsonBody <|
+                        Encode.object
+                            [ ( "postcode", Encode.string model.postcode )
+                            , ( "birthYear", Encode.int birthyear )
+                            , ( "smsString", Encode.string code )
+                            ]
+
+                toMsg =
+                    PrevoteResponse
+            in
+            Http.post
+                { url = url
+                , body = body
+                , expect = Http.expectWhatever toMsg
+                }
 
 
 init : ProgramFlags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -1749,25 +1773,6 @@ donationSection model =
                 ]
             ]
         ]
-
-
-validYearInput : String -> Bool
-validYearInput birthyear =
-    case String.toInt birthyear of
-        Nothing ->
-            False
-
-        Just i ->
-            i >= 1900 && i <= 2003
-
-
-validPostCodeInput : String -> Bool
-validPostCodeInput postcode =
-    let
-        length =
-            String.length postcode
-    in
-    length <= 4 && length >= 3
 
 
 smsBuilder : Model -> Html Msg
