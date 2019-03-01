@@ -465,17 +465,8 @@ sendPreVote model =
             String.join "" [ codeParts.nonce, codeParts.repVote, codeParts.charity ]
 
         birthyear =
-            case String.toInt model.birthyear of
-                Nothing ->
-                    ""
-
-                Just i ->
-                    case i >= 1900 && i <= 2003 of
-                        True ->
-                            model.birthyear
-
-                        False ->
-                            ""
+            String.toInt model.birthyear
+                |> Maybe.withDefault 0
 
         body =
             Http.jsonBody <|
@@ -486,7 +477,7 @@ sendPreVote model =
                     , ( "charity", Encode.string codeParts.charity )
                     , ( "donation", Encode.int <| Maybe.withDefault 0 model.donation )
                     , ( "coded-part", Encode.string code )
-                    , ( "birthyear", Encode.string birthyear )
+                    , ( "birthyear", Encode.int birthyear )
                     , ( "postcode", Encode.string model.postcode )
                     ]
 
