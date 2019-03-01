@@ -885,11 +885,13 @@ viewHeader showBackButton =
         backButton =
             case showBackButton of
                 False ->
-                    text ""
+                    div [ Attributes.class "back-button" ] []
 
                 True ->
                     Html.a
-                        [ Route.href ChoosePage ]
+                        [ Route.href ChoosePage
+                        , Attributes.class "back-button"
+                        ]
                         [ text "Back" ]
     in
     Html.header
@@ -909,7 +911,7 @@ viewHeader showBackButton =
             [ Attributes.id "presentation" ]
             [ backButton
             , div
-                []
+                [ Attributes.class "main-title" ]
                 [ div
                     [ Attributes.id "brexit"
                     , Attributes.class "bold"

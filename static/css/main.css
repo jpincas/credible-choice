@@ -269,12 +269,16 @@ section>h2:first-child {
         left;
 }
 
+
 #presentation #brexit {
     font-size: 2rem;
 }
 
 
 
+#presentation .back-button{
+    flex-basis: 40px;
+}
 #presentation #twitter-link {
     flex-basis: 40px;
     background-image: url(/static/img/twitter.png);
