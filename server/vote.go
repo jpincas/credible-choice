@@ -154,7 +154,7 @@ func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
 	// If the parsing shows the the sms was 'complete'
 	// we'll try to do a lookup for the optional, anonymous data
 	if smsTextValues.Complete {
-		res, found := app.PreVotes.Get(dataString)
+		res, found := app.PreVotes.Get(messageString)
 		if found {
 			prevote := res.(PreVote)
 			v.PostCode = prevote.PostCode

@@ -14,5 +14,5 @@ func (p PreVote) cache() {
 }
 
 func (p PreVote) isValid() bool {
-	return p.SMSString != "" && p.PostCode != "" && p.BirthYear > 1850 && p.BirthYear < 2020
+	return p.SMSString != "" && p.PostCode != "" && p.BirthYear > 1850 && p.BirthYear < 2003
 }
