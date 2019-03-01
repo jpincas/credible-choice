@@ -54,6 +54,11 @@ a {
     text-decoration: none;
 }
 
+.not-found-page a{
+    text-decoration: underline;
+    color: var(--color-primary2);
+}
+
 p {
     margin-top: 8px;
     margin-bottom: 8px;
