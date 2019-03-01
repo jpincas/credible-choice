@@ -966,9 +966,6 @@ viewTemporary model =
                 FaqPage ->
                     viewFaqPage
 
-                CompanyInfoPage ->
-                    viewCompanyPage
-
                 TechnicalInfoPage ->
                     viewTechnicalPage
 
@@ -1005,7 +1002,7 @@ viewTemporary model =
                 []
                 [ Html.ul
                     []
-                    (List.map navItem [ TermsAndConditionsPage, FaqPage, CompanyInfoPage, TechnicalInfoPage ])
+                    (List.map navItem [ TermsAndConditionsPage, FaqPage, TechnicalInfoPage ])
                 ]
 
         footer =
@@ -1059,9 +1056,6 @@ viewTemporary model =
 
                 FaqPage ->
                     "FAQ"
-
-                CompanyInfoPage ->
-                    "Company"
 
                 TechnicalInfoPage ->
                     "Technical"
@@ -1420,11 +1414,21 @@ abbreviateRepPosition s =
 makeYourChoiceRep : Model -> SortedPeople -> Html Msg
 makeYourChoiceRep model sortedPeople =
     let
-        makeRepChoice person =
+        selectPersonButton person =
             let
                 isSelected =
                     model.selectedRepresentative == Just person.code
+            in
+            Html.td
+                [ Attributes.class "button"
+                , selectedClass isSelected
+                , Attributes.class "representative-name"
+                , Events.onClick <| SelectRepresentative person.code
+                ]
+                [ text person.name ]
 
+        makeRepChoice person =
+            let
                 votes =
                     case Dict.get person.code model.representativeVotes of
                         Nothing ->
@@ -1440,13 +1444,7 @@ makeYourChoiceRep model sortedPeople =
                 False ->
                     Html.tr
                         []
-                        [ Html.td
-                            [ Attributes.class "button"
-                            , selectedClass isSelected
-                            , Attributes.class "representative-name"
-                            , Events.onClick <| SelectRepresentative person.code
-                            ]
-                            [ text person.name ]
+                        [ selectPersonButton person
                         , Html.td
                             []
                             [ text <| abbreviateRepPosition person.position ]
@@ -1681,23 +1679,49 @@ makeYourChoiceRep model sortedPeople =
 
                         NotRequested ->
                             let
+                                addExternal person d =
+                                    case String.isEmpty person.externalId of
+                                        True ->
+                                            d
+
+                                        False ->
+                                            Dict.insert person.externalId person d
+
+                                existingExternalIds =
+                                    List.foldl addExternal Dict.empty model.people
+
                                 showSearchResult person =
-                                    Html.li
-                                        [ Attributes.class "add-person-search-result" ]
-                                        [ text person.name
-                                        , div
-                                            [ Attributes.class "add-person-search-result-description" ]
-                                            [ text person.description ]
-                                        , Html.button
-                                            [ Attributes.class "add-person-search-result-action"
-                                            , Events.onClick <| ExternalAddPerson person.externalId
-                                            ]
-                                            [ text "Add" ]
-                                        ]
+                                    case Dict.get person.externalId existingExternalIds of
+                                        Nothing ->
+                                            Html.tr
+                                                [ Attributes.class "add-person-search-result" ]
+                                                [ Html.td
+                                                    [ Attributes.class "add-person-search-result-name" ]
+                                                    [ text person.name ]
+                                                , Html.td
+                                                    [ Attributes.class "add-person-search-result-description" ]
+                                                    [ text person.description ]
+                                                , Html.td
+                                                    [ Attributes.class "add-person-search-result-action" ]
+                                                    [ Html.button
+                                                        [ Events.onClick <| ExternalAddPerson person.externalId ]
+                                                        [ text "Add" ]
+                                                    ]
+                                                ]
+
+                                        Just existingPerson ->
+                                            Html.tr
+                                                [ Attributes.class "add-person-search-result" ]
+                                                [ selectPersonButton existingPerson
+                                                , Html.td
+                                                    [ Attributes.class "add-person-search-result-description" ]
+                                                    [ text person.description ]
+                                                , Html.td [] []
+                                                ]
                             in
                             div
                                 [ Attributes.class "add-person-search-results" ]
-                                [ Html.ul
+                                [ Html.table
                                     []
                                     (List.map showSearchResult persons)
                                 ]
@@ -2046,11 +2070,6 @@ viewFaqPage =
             [ Attributes.class "faq-list" ]
             (List.concatMap faq faqs)
         ]
-
-
-viewCompanyPage : Html msg
-viewCompanyPage =
-    text "I am the company info page."
 
 
 viewTechnicalPage : Html msg

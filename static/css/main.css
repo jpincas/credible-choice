@@ -615,7 +615,7 @@ table#list-of-persons td.button {
     color: var(--color-primary);
 }
 
-.add-person-search-results ul {
+.add-person-search-results table {
     list-style: none;
     font-weight: 400;
     margin: 0;
@@ -623,15 +623,13 @@ table#list-of-persons td.button {
     color: var(--color-primary);
 }
 
-.add-person-search-results ul li {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+.add-person-search-results .add-person-search-result-name,
+.add-person-search-results .button {
+    white-space: nowrap;
 }
-
 .add-person-search-results .add-person-search-result-description {
     font-weight: 100;
+    width: 100%;
 }
 
 
