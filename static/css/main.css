@@ -655,6 +655,15 @@ table.charity-choice-table button {
     text-align: left;
 }
 
+.faq-list .faq-question{
+    font-size: 1.1em;
+    font-weight: 500;
+}
+.faq-list .faq-answer{
+    margin-bottom: 1em;
+}
+
+
 /* SMS Builder */
 #sms-builder {
     width: 100%;

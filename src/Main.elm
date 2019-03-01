@@ -1882,15 +1882,13 @@ viewFaqPage : Html msg
 viewFaqPage =
     let
         faq ( question, answer ) =
-            Html.li
-                []
-                [ div
-                    [ Attributes.class "faq-question" ]
-                    [ text question ]
-                , div
-                    [ Attributes.class "faq-answer" ]
-                    [ text answer ]
-                ]
+            [ Html.dt
+                [ Attributes.class "faq-question" ]
+                [ text question ]
+            , Html.dd
+                [ Attributes.class "faq-answer" ]
+                [ text answer ]
+            ]
 
         faqs =
             [ ( "Demo Mode:  What is the basis for the order and quantities?"
@@ -1912,13 +1910,19 @@ viewFaqPage =
               , "The honest answer is that this is the only practical way to curtail unlimited multiple voting.  Sure their may be some multiple voting but it’s not so easy to buy and register millions of SIM cards to UK mobile phone numbers.  Any large scale spoofer would also have to donate millions to charity.  We realise this doesn’t exactly align with the electoral roll but it could be argued that this is more democratic in terms of the people affected."
               )
             , ( "Aren’t all sorts of nefarious players going to hack into this making it meaningless and maybe stealing loads of personal data?"
-              , "First of all we do not collect any personal data, not even mobile phone numbers.  Secondly, we are completely transparent, participants can see their choice tallied as they make it.  The whole process is underpinned by a distributed block chain which is 100% secure.  Please see the technical overview."
+              , "First of all we do not collect any personal data, not even mobile phone numbers.  Secondly, we are completely transparent, participants can see their choice tallied as they make it.  The whole process is underpinned by a distributed block chain.  Please see the technical overview."
               )
             ]
     in
-    Html.ul
-        [ Attributes.class "faq-list" ]
-        (List.map faq faqs)
+    div
+        [ Attributes.id "faq-page" ]
+        [ Html.h1
+            []
+            [ text "Frequently Asked Questions" ]
+        , Html.dl
+            [ Attributes.class "faq-list" ]
+            (List.concatMap faq faqs)
+        ]
 
 
 viewCompanyPage : Html msg
