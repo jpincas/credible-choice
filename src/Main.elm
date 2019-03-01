@@ -224,6 +224,7 @@ type Msg
     | CharitiesReceived (HttpResult (List Charity))
     | MakeCharityChoice CharityId
     | ChoicesRestored (Result String SavedData)
+    | RecentVotesReceived (HttpResult (List RecentVote))
 
 
 type alias ResultsPayload =
@@ -559,6 +560,12 @@ init () url key =
                   , repVote = "REP"
                   , charity = "CHAR"
                   , postcode = "SW19"
+                  , donation = 1000
+                  }
+                , { mainVote = 2
+                  , repVote = "TMA"
+                  , charity = "CHAR"
+                  , postcode = "SW1"
                   , donation = 100
                   }
                 ]
@@ -598,6 +605,7 @@ init () url key =
         commands =
             [ getResults
             , getPeople
+            , getRecentVotes
             , initNonce
             , getCharities
             , Ports.restoreChoices ()
@@ -632,7 +640,7 @@ update msg model =
             noCommand { model | nonce = char }
 
         ResultsTick _ ->
-            withCommands model [ getResults ]
+            withCommands model [ getResults, getRecentVotes ]
 
         ChoicesRestored (Err _) ->
             noCommand model
@@ -695,6 +703,12 @@ update msg model =
                     }
             in
             noCommand newModel
+
+        RecentVotesReceived (Err _) ->
+            noCommand model
+
+        RecentVotesReceived (Ok recentVotes) ->
+            noCommand { model | recentVotes = recentVotes }
 
         PeopleReceived (Err _) ->
             -- TODO: I guess we should have some kind of re-download button or something.
@@ -1221,7 +1235,6 @@ liveResultsSection model sortedPeople =
             [ div [ Attributes.class "panel" ] [ viewPie ]
             , div [ Attributes.class "panel" ] [ viewReps ]
             ]
-        , renderRecentVotes model 5
         ]
 
 
@@ -1789,7 +1802,9 @@ smsBuilder : Model -> Html Msg
 smsBuilder model =
     div
         [ Attributes.id "sms-builder" ]
-        [ viewTextCode model ]
+        [ viewRecentVotes model 5
+        , viewTextCode model
+        ]
 
 
 viewTermsAndConditions : Html msg
@@ -2102,8 +2117,28 @@ type alias RecentVote =
     }
 
 
-renderRecentVotes : Model -> Int -> Html Msg
-renderRecentVotes { recentVotes, mainOptions } noToShow =
+getRecentVotes : Cmd Msg
+getRecentVotes =
+    let
+        url =
+            "/appapi/recentvotes"
+
+        expect =
+            Http.expectJson RecentVotesReceived <| Decode.list recentVoteDecoder
+
+        recentVoteDecoder =
+            Decode.succeed RecentVote
+                |> Pipeline.required "mainVote" Decode.int
+                |> Pipeline.required "repVote" Decode.string
+                |> Pipeline.required "charity" Decode.string
+                |> Pipeline.required "postcode" Decode.string
+                |> Pipeline.required "donation" Decode.int
+    in
+    Http.get { url = url, expect = expect }
+
+
+viewRecentVotes : Model -> Int -> Html Msg
+viewRecentVotes { recentVotes, mainOptions } noToShow =
     let
         formatVote { mainVote, repVote, charity, postcode, donation } =
             let
@@ -2138,8 +2173,8 @@ renderRecentVotes { recentVotes, mainOptions } noToShow =
                 |> List.map (\( str, class ) -> Html.span [ Attributes.class class ] [ text str ])
 
         renderVote vote =
-            Html.li [] (formatVote vote)
+            Html.li [ Attributes.class "recent-vote" ] (formatVote vote)
     in
-    div
-        [ Attributes.class "recent-vote" ]
+    Html.ul
+        [ Attributes.class "recent-votes" ]
         (recentVotes |> List.take noToShow |> List.map renderVote)

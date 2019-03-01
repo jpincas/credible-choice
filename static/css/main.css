@@ -17,10 +17,15 @@
 
     --color-selected: rgb(32, 32, 32);
 
-    --sms-builder-height: 60px;
     --max-body-width: 972px;
 
     --selected-button-border-width: 5px;
+
+    --text-code-height: 60px;
+    --recent-votes-height: 50px;
+    /* Cannot have a 'var' in a calc, so --sms-builder-height should = --text-code-height + --recent-votes-height. */
+    --sms-builder-height: 110px;
+    --sms-builder-z-index: 50;
 }
 
 /* Body */
@@ -678,10 +683,39 @@ table.charity-choice-table button {
     position: fixed;
     bottom: 0;
     display: flex;
+    flex-direction: column;
     height: var(--sms-builder-height);
     padding: 5px 15px;
     text-align: center;
     font-weight: 100;
+    z-index: var(--sms-builder-z-index);
+    overflow-x: hidden;
+}
+
+
+#sms-builder .recent-votes {
+  overflow: hidden;
+  display: block;
+  width: 200%;
+  height: var(--recent-votes-height);
+  overflow: hidden;
+
+  animation: scroll 10s linear infinite;
+  position:relative;
+}
+@keyframes scroll{
+    0% {left: 100%;}
+    100% {left:-100%;}
+}
+
+#sms-builder .recent-votes:hover {
+    animation-play-state: paused
+}
+
+#sms-builder .recent-votes .recent-vote{
+    white-space: nowrap;
+    float: left;
+    margin-left: 1.5em;
 }
 
 #sms-builder .text-code {
