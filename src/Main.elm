@@ -1928,12 +1928,97 @@ viewCompanyPage =
 
 viewTechnicalPage : Html msg
 viewTechnicalPage =
-    text "I am the technical info page."
+    div
+        [ Attributes.id "technical-page" ]
+        [ Html.h1
+            []
+            [ text "Technical Document" ]
+        , Html.h2
+            []
+            [ text "1. Objective" ]
+        , paragraph "To rapidly build a system from scratch using the latest technology to create secure, scalable, auditable mass polling system.  The system should:"
+        , Html.ul
+            []
+            [ Html.li []
+                [ text "Be as simple as realistically possibly in order to be understandable to third parties;" ]
+            , Html.li []
+                [ text "Involve the minimum number of steps possible in order to register a choice;" ]
+            , Html.li []
+                [ text "Scale to support incoming choices from potentially millions of people;" ]
+            , Html.li []
+                [ text "Allow only choices from users with a valid UK mobile phone number;" ]
+            , Html.li []
+                [ text "Only allow ‘real’ choices.  No bots, invalid choices, hacks, or choices registered in any other way other than through the valid choice system and disallow multiple choices for a single mobile number;"
+                ]
+            , Html.li []
+                [ text "Be able to cross-validate totals against a publicly verifiable source of truth." ]
+            ]
+        , Html.h2 [] [ text "2. Solution" ]
+        , Html.h3 [] [ text "2.1. Web App" ]
+        , paragraph """ The user-facing component of the system is a Javascript web app, written in the
+Elm programming language.  The App is served from a worldwide CDN,
+disconnected from our own server, making delivery of the app to millions of
+users a non-issue and alleviating load on our main server."""
+        , Html.h3 [] [ text "2.2. Pre-Choice" ]
+        , paragraph """ Users make their selection of: main choice, representative choice, charity to
+donate to and donation amount, as well as optionally providing a birth date and
+postcode (for statistical purposes, no personal details are recorded).  To this
+combination of factors we apply a unique ‘nonce’ and transmit everything to our
+server as a ‘pre-choice’."""
+        , paragraph """A ‘pre-choice’ does not constitute a valid entry, but a simple store of information that we cross-reference against incoming choices from the SMS gateway.  Even if this server endpoint was maliciously attacked, there would be no possibility of recording invalid choices through this mechanism."""
+        , Html.h3 [] [ text "2.3. Making a choice" ]
+        , paragraph """Users transmit their final choices by sending an SMS to a premium charity
+number.  We have partnered with a mature charity donation SMS gateway that
+has the capacity to process millions of incoming text messages.  The gateway
+identifies the incoming messages as pertaining to ‘Credible Choice’ charities
+from simple shortcodes that uniquely identify each charity.  The gateway reads
+the donation amount and takes care of the financial side of the transaction and
+final charity distribution. No money ever touches our systems.  There is no
+payment processing or financial risk whatsoever on our side."""
+        , paragraph """ The gateway also applies the technology to filter to valid UK phone numbers,
+since they partner directly with UK mobile networks and cannot accept donations
+from outside those networks."""
+        , Html.h3 [] [ text "2.4. Transmission of choices to Credible Choice" ]
+        , paragraph """ Having processed a valid ‘choice’, the gateway transmits, in a secure, encrypted
+text string, the pertinent elements of the choice (main choice, representative
+choice, charity choice), as well as hashed, unique but encrypted version of the
+participants’ mobile number, to the Credible Choice server.  We use a highly
+randomised server URL (e.g. credible-choice-sdfnsd897ydfshdjbsnbdf) to avoid
+malicious choice attempts, as well as public key cryptographic techniques to
+ensure the validity of the incoming choice."""
+        , Html.h3 [] [ text "2.5. Processing of Choices" ]
+        , paragraph """The Credible Choice server is responsible for finding repeat choices by matching
+anonymous mobile phone hashes.  Although donations will count in these cases,
+we will simply change the choices made by the user, rather than tallying
+additional choices."""
+        , paragraph """All choices are recoded in a server-embedded database, completely inaccessible
+from the outside internet, with no attack vectors.
+A real-time tally of choices is kept, which can be recalculated at any time from
+the source database of choices."""
+        , Html.h3 [] [ text "2.6. Audit Ledger" ]
+        , paragraph """As well as the server’s own internal database, we will be running a Tendermint
+blockchain.  Tendermint is a proof-of-authority blockchain technology that allows
+for a scalability far in excess of traditional blockchains like Bitcoin or Ethereum.
+All choices will be written and validated to this private, immutable ledger in real
+time, providing a publicly verifiable audit chain where totals could be traced back
+to individual choices in an anonymous fashion."""
+        ]
 
 
 viewNotFound : Html msg
 viewNotFound =
-    text "I am the 404 page."
+    div
+        [ Attributes.class "not-found-page" ]
+        [ paragraph """I'm sorry but I cannot find what you are looking for."""
+        , Html.p
+            []
+            [ text "This is a pretty simple site to navigate so you're probably best just to "
+            , Html.a
+                [ Route.href Route.homeRoute ]
+                [ text "go to the home page" ]
+            , text "."
+            ]
+        ]
 
 
 formatNumberLocale : FormatNumber.Locales.Locale
