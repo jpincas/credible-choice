@@ -16,6 +16,7 @@
     --color-leave: rgb(243, 36, 36);
 
     --sms-builder-height: 60px;
+    --max-body-width: 972px;
 }
 
 /* Body */
@@ -23,8 +24,8 @@
 html,
 body {
     width: auto !important;
+    max-width: var(--max-body-width);
     overflow-x: hidden !important;
-    max-width: 972px;
     margin-right: auto;
     margin-left: auto;
 }
@@ -638,16 +639,24 @@ table.charity-choice-table button {
 
 /* SMS Builder */
 #sms-builder {
+    width: 100%;
+    max-width: var(--max-body-width);
+    box-sizing: border-box;
     color: white;
     font-weight: 400;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100vw;
     background-color: var(--color-primary3);
     position: fixed;
     bottom: 0;
     display: flex;
     height: var(--sms-builder-height);
     padding: 0px 5px;
+}
+#sms-builder .text-code{
+    padding: 0 0.4em;
+    font-family: "Lucida Console", Monaco, monospace;
+    background-color: white;
+    color: black;
 }
