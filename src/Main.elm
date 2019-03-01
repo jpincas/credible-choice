@@ -988,9 +988,11 @@ viewTemporary model =
 
         footer =
             let
-                footerInformation content =
+                footerInformation className content =
                     div
-                        [ Attributes.class "footer-information-detail" ]
+                        [ Attributes.class "footer-information-detail"
+                        , Attributes.class className
+                        ]
                         content
             in
             Html.footer
@@ -999,16 +1001,13 @@ viewTemporary model =
                     [ Attributes.id "footer-title" ]
                     [ text "Credible Choice Ltd" ]
                 , div
-                    [ Attributes.id "footer-about" ]
-                    [ text "About" ]
-                , div
                     [ Attributes.id "footer-information" ]
-                    [ footerInformation [ text "Company Number: 11836673" ]
-                    , footerInformation [ text "Unit A, Kilbuck Lane, Haydock, St. Helens, United Kingdom, WA11 9UX" ]
-                    , footerInformation [ text "Private company limited by guarantee without share capital" ]
-                    , footerInformation [ Html.a [ Attributes.href "mailto:Info@CredibleChoice.uk" ] [ text "Info@CredibleChoice.uk" ] ]
-                    , footerInformation [ Html.a [ Attributes.href "mailto:Media@CredibleChoice.uk" ] [ text "Media@CredibleChoice.uk" ] ]
-                    , footerInformation [ text "Phone 01942  316860" ]
+                    [ footerInformation "footer-company-number" [ text "Company Number: 11836673" ]
+                    , footerInformation "" [ text "Unit A, Kilbuck Lane, Haydock, St. Helens, United Kingdom, WA11 9UX" ]
+                    , footerInformation "" [ text "Private company limited by guarantee without share capital" ]
+                    , footerInformation "" [ Html.a [ Attributes.href "mailto:Info@CredibleChoice.uk" ] [ text "Info@CredibleChoice.uk" ] ]
+                    , footerInformation "" [ Html.a [ Attributes.href "mailto:Media@CredibleChoice.uk" ] [ text "Media@CredibleChoice.uk" ] ]
+                    , footerInformation "" [ text "Phone 01942  316860" ]
                     ]
                 , navigation
                 , div
