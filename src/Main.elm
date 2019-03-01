@@ -49,8 +49,11 @@ subscriptions _ =
         second =
             1000
 
-        tickSub =
+        resultsTickSub =
             Time.every minute ResultsTick
+
+        recentVotesTickSub =
+            Time.every (15 * second) RecentVotesTick
 
         restoreSavedData mValue =
             case mValue of
@@ -68,7 +71,11 @@ subscriptions _ =
         getChoicesSub =
             Ports.getChoices restoreSavedData
     in
-    Sub.batch [ tickSub, getChoicesSub ]
+    Sub.batch
+        [ resultsTickSub
+        , recentVotesTickSub
+        , getChoicesSub
+        ]
 
 
 type alias ProgramFlags =
@@ -205,6 +212,7 @@ type Msg
     | UrlChanged Url.Url
     | NonceGenerated Char
     | ResultsTick Time.Posix
+    | RecentVotesTick Time.Posix
     | MainOptionSelected MainOptionId
     | PostCodeInput String
     | BirthYearInput String
@@ -640,7 +648,10 @@ update msg model =
             noCommand { model | nonce = char }
 
         ResultsTick _ ->
-            withCommands model [ getResults, getRecentVotes ]
+            withCommands model [ getRecentVotes ]
+
+        RecentVotesTick _ ->
+            withCommands model [ getRecentVotes ]
 
         ChoicesRestored (Err _) ->
             noCommand model
