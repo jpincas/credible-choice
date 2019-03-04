@@ -1,7 +1,9 @@
 port module Ports exposing
-    ( getChoices
+    ( clipboardSet
+    , getChoices
     , putCurrentChoices
     , restoreChoices
+    , setClipboard
     )
 
 import Json.Encode as Encode
@@ -14,3 +16,9 @@ port restoreChoices : () -> Cmd msg
 
 
 port getChoices : (Maybe Encode.Value -> msg) -> Sub msg
+
+
+port setClipboard : Encode.Value -> Cmd msg
+
+
+port clipboardSet : (Encode.Value -> msg) -> Sub msg

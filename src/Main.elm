@@ -70,11 +70,23 @@ subscriptions _ =
 
         getChoicesSub =
             Ports.getChoices restoreSavedData
+
+        textCopyResponse value =
+            case Decode.decodeValue Decode.bool value of
+                Err _ ->
+                    TextCodeCopyResponse False
+
+                Ok b ->
+                    TextCodeCopyResponse b
+
+        textCopyResponseSub =
+            Ports.clipboardSet textCopyResponse
     in
     Sub.batch
         [ resultsTickSub
         , recentVotesTickSub
         , getChoicesSub
+        , textCopyResponseSub
         ]
 
 
@@ -234,6 +246,8 @@ type Msg
     | MakeCharityChoice CharityId
     | ChoicesRestored (Result String SavedData)
     | RecentVotesReceived (HttpResult (List RecentVote))
+    | CopyTextCodeClicked String
+    | TextCodeCopyResponse Bool
 
 
 type alias ResultsPayload =
@@ -404,7 +418,7 @@ codeComponents model =
     }
 
 
-viewTextCode : Model -> Html msg
+viewTextCode : Model -> Html Msg
 viewTextCode model =
     case model.selectedMainOption of
         Nothing ->
@@ -455,6 +469,17 @@ viewTextCode model =
                                                     [ Attributes.class "text-code-rep" ]
                                                     [ text codeParts.repVote ]
                                                 ]
+
+                                        codeString =
+                                            String.join ""
+                                                [ codeParts.charity
+                                                , " "
+                                                , donation
+                                                , " "
+                                                , codeParts.nonce
+                                                , option
+                                                , codeParts.repVote
+                                                ]
                                     in
                                     div
                                         [ Attributes.class "text-builder" ]
@@ -462,6 +487,11 @@ viewTextCode model =
                                             [ Attributes.class "text-builder-now" ]
                                             [ text "To register your choice text " ]
                                         , code
+                                        , Html.button
+                                            [ Attributes.class "copy-text-to-clipboard "
+                                            , Events.onClick <| CopyTextCodeClicked codeString
+                                            ]
+                                            [ text "Copy" ]
                                         , Html.br [] []
                                         , text "to "
                                         , Html.span
@@ -834,6 +864,17 @@ update msg model =
             noCommand model
 
         PrevoteResponse (Ok ()) ->
+            noCommand model
+
+        CopyTextCodeClicked textCode ->
+            withCommands model [ Ports.setClipboard <| Encode.string textCode ]
+
+        TextCodeCopyResponse False ->
+            -- TODO: Some kind of alert would be nice.
+            noCommand model
+
+        TextCodeCopyResponse True ->
+            -- TODO: Some kind of alert/notification would be nice.
             noCommand model
 
 
