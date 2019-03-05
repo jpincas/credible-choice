@@ -99,6 +99,8 @@ func (v Vote) addToResults() {
 	app.Results.MainVote[v.MainVote] = app.Results.MainVote[v.MainVote] + 1
 	app.Results.RepVote[v.RepVote] = app.Results.RepVote[v.RepVote] + 1
 	app.Results.Charity[v.Charity] = app.Results.Charity[v.Charity] + 1
+	app.Results.TotalDonations = app.Results.TotalDonations + v.Donation
+	app.Results.TotalVotes = app.Results.TotalVotes + 1
 }
 
 func (v Vote) subtractFromResults() {
@@ -106,6 +108,8 @@ func (v Vote) subtractFromResults() {
 	app.Results.MainVote[v.MainVote] = app.Results.MainVote[v.MainVote] - 1
 	app.Results.RepVote[v.RepVote] = app.Results.RepVote[v.RepVote] - 1
 	app.Results.Charity[v.Charity] = app.Results.Charity[v.Charity] - 1
+	app.Results.TotalDonations = app.Results.TotalDonations - v.Donation
+	app.Results.TotalVotes = app.Results.TotalVotes - 1
 }
 
 func (v *Vote) buildFromVoteNotification(vn VoteNotification) (string, error) {
