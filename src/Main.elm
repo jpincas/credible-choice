@@ -1213,9 +1213,9 @@ liveResultsSection model sortedPeople =
                         labelText =
                             String.join ""
                                 [ mainOption.name
-                                , "("
+                                , " "
                                 , String.fromInt percentage
-                                , "%)"
+                                , "%"
                                 ]
 
                         label =
@@ -1389,6 +1389,12 @@ makeYourChoiceMain model =
                     , Events.onClick <| MainOptionSelected option.id
                     ]
                     [ text option.description
+                    , Html.span
+                        [ Attributes.class "main-option-key" ]
+                        [ text " (\""
+                        , text option.name
+                        , text "\")"
+                        ]
                     , Html.span
                         [ Attributes.class "number-choices" ]
                         [ text <| "Chosen by " ++ formatInt option.votes ]
