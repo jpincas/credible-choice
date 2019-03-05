@@ -647,10 +647,6 @@ table#list-of-persons td.button {
     padding: 0 5vw;
 }
 
-.charity-choice {
-    box-sizing: border-box;
-}
-
 #donation-amount-selector input[type="radio"] {
     display: none;
 }
@@ -675,10 +671,20 @@ table.charity-choice-table button {
     font-size: 0.8rem;
     padding: 5px 8px;
     margin: 3px;
-    width: 60vw;
+    min-width: 40vw;
     text-align: left;
-    display: flex;
-    justify-content: space-between;
+}
+
+table.charity-choice-table button .charity-name{
+    float:left;
+}
+
+table.charity-choice-table button .charity-id{
+    float:right;
+}
+
+table.charity-choice-table td.chosen-by{
+    text-align: right;
 }
 
 .faq-list .faq-question {
@@ -719,10 +725,19 @@ table.charity-choice-table button {
     overflow-x: hidden;
 }
 
+#sms-builder .copy-text-to-clipboard{
+    font-size: 0.6em;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0 0 0 1em;
+    vertical-align: middle;
+}
+
 #sms-builder .recent-votes-container {
     background-color: var(--color-text-inverted);
     color: var(--color-text);
     margin-top: 5px;
+    width: 100%;
 }
 
 

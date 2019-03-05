@@ -454,7 +454,6 @@ viewTextCode model =
                                                 [ Html.span
                                                     [ Attributes.class "text-code-charity" ]
                                                     [ text codeParts.charity ]
-                                                , text " "
                                                 , Html.span
                                                     [ Attributes.class "text-code-donation" ]
                                                     [ text donation ]
@@ -473,7 +472,6 @@ viewTextCode model =
                                         codeString =
                                             String.join ""
                                                 [ codeParts.charity
-                                                , " "
                                                 , donation
                                                 , " "
                                                 , codeParts.nonce
@@ -496,7 +494,7 @@ viewTextCode model =
                                         , text "to "
                                         , Html.span
                                             [ Attributes.class "text-builder-number" ]
-                                            [ text "70085" ]
+                                            [ text "70300" ]
                                         ]
 
 
@@ -537,7 +535,6 @@ sendPreVote model =
                     -- If you change this, you also need to change what is displayed in the sms-builder above.
                     String.join ""
                         [ codeParts.charity
-                        , " "
 
                         -- Obviously dodgy, but we shouldn't be sending a prevote without a main option selected.
                         , String.fromInt <| Maybe.withDefault 0 model.donation
@@ -885,23 +882,6 @@ noCommand model =
     ( model, Cmd.none )
 
 
-view : Model -> Browser.Document Msg
-view model =
-    let
-        displayConstruction =
-            model.route /= FaqPage && constructionUrl
-
-        constructionUrl =
-            String.startsWith "www" model.url.host || String.startsWith "crediblechoice.uk" model.url.host
-    in
-    case displayConstruction of
-        True ->
-            viewUnderConstructionPage
-
-        False ->
-            viewTemporary model
-
-
 viewUnderConstructionPage : Browser.Document Msg
 viewUnderConstructionPage =
     let
@@ -995,8 +975,8 @@ viewHeader showBackButton =
         ]
 
 
-viewTemporary : Model -> Browser.Document Msg
-viewTemporary model =
+view : Model -> Browser.Document Msg
+view model =
     let
         contents =
             case model.route of
@@ -1844,18 +1824,20 @@ donationSection model =
             Html.tr
                 [ Attributes.class "charity-choice-list-item" ]
                 [ Html.td
-                    []
+                    [ Attributes.class "charity-choice-cell" ]
                     [ Html.button
                         [ Attributes.class "charity-choice"
                         , Events.onClick <| MakeCharityChoice charity.id
                         , selectedClass <| model.charity == Just charity.id
                         ]
-                        [ Html.span [] [ text charity.name ]
+                        [ Html.span [ Attributes.class "charity-name" ] [ text charity.name ]
                         , Html.span [ Attributes.class "muted charity-id" ] [ text charity.id ]
                         ]
                     ]
                 , Html.td
-                    [ Attributes.class "bold" ]
+                    [ Attributes.class "bold"
+                    , Attributes.class "chosen-by"
+                    ]
                     [ votes ]
                 ]
 
@@ -2090,7 +2072,7 @@ viewFaqPage =
             , ( "What do you see the ultimate outcome of Credible Choice?"
               , [ text "Anyone who tries to predict anything these days is likely to be wrong." ]
               )
-            , ( "We are a Charity, how can we sign up?"
+            , ( "What are the charitable donation arrangements and how can a Charity participate?"
               , charityAnswer
               )
             ]
