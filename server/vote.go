@@ -139,7 +139,7 @@ func (v *Vote) buildFromVoteNotification(vn VoteNotification) (string, error) {
 	// Step 2) Get the datastring
 	// Start by trimming the keyword/donation string,
 	// then cleaninig up
-	messageNoPrefix := strings.TrimPrefix(vn.MessageText, vn.KeywordAndDonationAmount)
+	messageNoPrefix := strings.TrimPrefix(strings.ToUpper(vn.MessageText), vn.KeywordAndDonationAmount)
 	if err != nil {
 		log.Fatal(err)
 	}
