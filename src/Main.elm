@@ -454,7 +454,6 @@ viewTextCode model =
                                                 [ Html.span
                                                     [ Attributes.class "text-code-charity" ]
                                                     [ text codeParts.charity ]
-                                                , text " "
                                                 , Html.span
                                                     [ Attributes.class "text-code-donation" ]
                                                     [ text donation ]
@@ -473,7 +472,6 @@ viewTextCode model =
                                         codeString =
                                             String.join ""
                                                 [ codeParts.charity
-                                                , " "
                                                 , donation
                                                 , " "
                                                 , codeParts.nonce
@@ -537,7 +535,6 @@ sendPreVote model =
                     -- If you change this, you also need to change what is displayed in the sms-builder above.
                     String.join ""
                         [ codeParts.charity
-                        , " "
 
                         -- Obviously dodgy, but we shouldn't be sending a prevote without a main option selected.
                         , String.fromInt <| Maybe.withDefault 0 model.donation
