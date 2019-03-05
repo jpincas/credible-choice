@@ -1824,18 +1824,20 @@ donationSection model =
             Html.tr
                 [ Attributes.class "charity-choice-list-item" ]
                 [ Html.td
-                    []
+                    [ Attributes.class "charity-choice-cell" ]
                     [ Html.button
                         [ Attributes.class "charity-choice"
                         , Events.onClick <| MakeCharityChoice charity.id
                         , selectedClass <| model.charity == Just charity.id
                         ]
-                        [ Html.span [] [ text charity.name ]
+                        [ Html.span [ Attributes.class "charity-name" ] [ text charity.name ]
                         , Html.span [ Attributes.class "muted charity-id" ] [ text charity.id ]
                         ]
                     ]
                 , Html.td
-                    [ Attributes.class "bold" ]
+                    [ Attributes.class "bold"
+                    , Attributes.class "chosen-by"
+                    ]
                     [ votes ]
                 ]
 
