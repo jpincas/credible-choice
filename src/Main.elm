@@ -882,23 +882,6 @@ noCommand model =
     ( model, Cmd.none )
 
 
-view : Model -> Browser.Document Msg
-view model =
-    let
-        displayConstruction =
-            model.route /= FaqPage && constructionUrl
-
-        constructionUrl =
-            String.startsWith "www" model.url.host || String.startsWith "crediblechoice.uk" model.url.host
-    in
-    case displayConstruction of
-        True ->
-            viewUnderConstructionPage
-
-        False ->
-            viewTemporary model
-
-
 viewUnderConstructionPage : Browser.Document Msg
 viewUnderConstructionPage =
     let
@@ -992,8 +975,8 @@ viewHeader showBackButton =
         ]
 
 
-viewTemporary : Model -> Browser.Document Msg
-viewTemporary model =
+view : Model -> Browser.Document Msg
+view model =
     let
         contents =
             case model.route of
