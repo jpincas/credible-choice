@@ -2087,7 +2087,7 @@ viewFaqPage =
             , ( "What do you see the ultimate outcome of Credible Choice?"
               , [ text "Anyone who tries to predict anything these days is likely to be wrong." ]
               )
-            , ( "We are a Charity, how can we sign up?"
+            , ( "What are the charitable donation arrangements and how can a Charity participate?"
               , charityAnswer
               )
             ]
