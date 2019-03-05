@@ -638,11 +638,8 @@ init () url key =
               }
             ]
 
-        numbers =
-            Random.Char.char 48 57
-
         generator =
-            Random.Extra.choices Random.Char.lowerCaseLatin [ Random.Char.upperCaseLatin, numbers ]
+            Random.Extra.choices Random.Char.lowerCaseLatin [ Random.Char.upperCaseLatin ]
 
         initNonce =
             Random.generate NonceGenerated generator
