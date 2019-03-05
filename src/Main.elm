@@ -1792,6 +1792,7 @@ makeYourChoiceRep model sortedPeople =
                 [ Attributes.class "panel" ]
                 [ title
                 , searchInput
+                , paragraph "You can add others below."
                 , table
                 , pageSelector
                 , displaying
