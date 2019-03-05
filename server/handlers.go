@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -55,26 +56,49 @@ func RegisterPreVote(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReceiveVote(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	var vote Vote
-
-	// buildFromURLParams will only return an error if there is actually
-	// something wrong with the params being sent by the gatweay,
-	// not if there's some internal issue parsing the data string
-	rawDataString, err := vote.buildFromURLParams(query)
+	b, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
-		Log(LogModuleHandlers, false, "Error building vote from incoming notification", err)
-		respondWithError(w, errorTypeBadRequest, err)
+		Log(LogModuleHandlers, false, "Error opening post request body from gateway", err)
+		respondWithError(w, errorTypeBodyRead, err)
 		return
 	}
 
-	// We'll try to save, but if we can't, the most we can do is log it
-	// as there's no point reporting that to the gatweay
-	if err := vote.save(rawDataString); err != nil {
-		Log(LogModuleHandlers, false, fmt.Sprintf("Error saving vote %v to DB", vote), err)
+	var vnw VoteNotificationWrapper
+	err = xml.Unmarshal(b, &vnw)
+	if err != nil {
+		Log(LogModuleHandlers, false, "Error unmarshalling notification from gateway", err)
+		respondWithError(w, errorTypeInvalidBody, err)
+		return
 	}
 
-	respondOK(w)
+	vn := vnw.VoteNotification
+
+	// Check gateway credentials
+	if vn.Username != app.Config.SMSGatewayUsername ||
+		vn.Password != app.Config.SMSGatewayPassword {
+		Log(LogModuleHandlers, false, "Invalid credentials from gateway", err)
+		respondWithError(w, errorTypeInvalidLoginCredentials, err)
+		return
+	}
+
+	// Any errors that happen from now will not be returned to the gatway
+	var vote Vote
+	rawDataString, err := vote.buildFromVoteNotification(vn)
+	if err != nil {
+		Log(LogModuleHandlers, false, "Error building vote from incoming notification", err)
+	} else {
+		if err := vote.save(rawDataString); err != nil {
+			Log(LogModuleHandlers, false, fmt.Sprintf("Error saving vote %v to DB", vote), err)
+		}
+	}
+
+	if app.Config.LogVotes {
+		Log(LogModuleVote, true, fmt.Sprintf("%s", vote), nil)
+	}
+
+	respond(w, vote)
+	return
 }
 
 // The response is in the shape:
