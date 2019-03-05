@@ -16,7 +16,6 @@ type Route
     = ChoosePage
     | TermsAndConditionsPage
     | FaqPage
-    | CompanyInfoPage
     | TechnicalInfoPage
     | NotFoundPage
 
@@ -36,7 +35,6 @@ parse url =
                 , Parser.map ChoosePage <| Parser.s "choose"
                 , Parser.map TermsAndConditionsPage <| Parser.s "terms"
                 , Parser.map FaqPage <| Parser.s "faq"
-                , Parser.map CompanyInfoPage <| Parser.s "company"
                 , Parser.map TechnicalInfoPage <| Parser.s "technical"
                 ]
     in
@@ -62,9 +60,6 @@ unparse route =
 
                 FaqPage ->
                     [ "faq" ]
-
-                CompanyInfoPage ->
-                    [ "company" ]
 
                 TechnicalInfoPage ->
                     [ "technical" ]

@@ -35,6 +35,22 @@
       app.ports.getChoices.send(JSON.parse(localStorage.getItem(choices_key)));
     });
 
+    function updateClipboard(newClip) {
+      navigator.clipboard.writeText(newClip).then(function () {
+        /* clipboard successfully set */
+        // port clipboardSet : (Encode.Value -> msg) -> Sub ms
+        app.ports.clipboardSet.send(true);
+      }, function () {
+        /* clipboard failed to set */
+        // port clipboardSet : (Encode.Value -> msg) -> Sub ms
+        app.ports.clipboardSet.send(false);
+      });
+    }
+
+    app.ports.setClipboard.subscribe(function (text) {
+      // port setClipboard : Encode.Value -> Cmd Msg
+      updateClipboard(text);
+    });
 
   </script>
 </body>

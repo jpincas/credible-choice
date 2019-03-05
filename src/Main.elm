@@ -70,11 +70,23 @@ subscriptions _ =
 
         getChoicesSub =
             Ports.getChoices restoreSavedData
+
+        textCopyResponse value =
+            case Decode.decodeValue Decode.bool value of
+                Err _ ->
+                    TextCodeCopyResponse False
+
+                Ok b ->
+                    TextCodeCopyResponse b
+
+        textCopyResponseSub =
+            Ports.clipboardSet textCopyResponse
     in
     Sub.batch
         [ resultsTickSub
         , recentVotesTickSub
         , getChoicesSub
+        , textCopyResponseSub
         ]
 
 
@@ -185,6 +197,7 @@ type alias Person =
     , code : PersonCode
     , position : String
     , suspended : Bool
+    , externalId : ExternalId
     }
 
 
@@ -233,6 +246,8 @@ type Msg
     | MakeCharityChoice CharityId
     | ChoicesRestored (Result String SavedData)
     | RecentVotesReceived (HttpResult (List RecentVote))
+    | CopyTextCodeClicked String
+    | TextCodeCopyResponse Bool
 
 
 type alias ResultsPayload =
@@ -285,6 +300,7 @@ getPeople =
                 |> Pipeline.required "id" Decode.string
                 |> Pipeline.required "profession" Decode.string
                 |> Pipeline.required "suspended" Decode.bool
+                |> Pipeline.required "externalId" Decode.string
     in
     Http.get { url = url, expect = expect }
 
@@ -324,9 +340,14 @@ searchNewPerson nameInput =
         toMsg =
             RepresentativeSearchReceived nameInput
 
+        resultsList =
+            Decode.oneOf
+                [ Decode.null []
+                , Decode.list personSearchResultDecoder
+                ]
+
         decoder =
-            Decode.list personSearchResultDecoder
-                |> Decode.at [ "results" ]
+            resultsList |> Decode.at [ "results" ]
     in
     Http.post
         { url = url
@@ -397,7 +418,7 @@ codeComponents model =
     }
 
 
-viewTextCode : Model -> Html msg
+viewTextCode : Model -> Html Msg
 viewTextCode model =
     case model.selectedMainOption of
         Nothing ->
@@ -448,6 +469,17 @@ viewTextCode model =
                                                     [ Attributes.class "text-code-rep" ]
                                                     [ text codeParts.repVote ]
                                                 ]
+
+                                        codeString =
+                                            String.join ""
+                                                [ codeParts.charity
+                                                , " "
+                                                , donation
+                                                , " "
+                                                , codeParts.nonce
+                                                , option
+                                                , codeParts.repVote
+                                                ]
                                     in
                                     div
                                         [ Attributes.class "text-builder" ]
@@ -455,6 +487,11 @@ viewTextCode model =
                                             [ Attributes.class "text-builder-now" ]
                                             [ text "To register your choice text " ]
                                         , code
+                                        , Html.button
+                                            [ Attributes.class "copy-text-to-clipboard "
+                                            , Events.onClick <| CopyTextCodeClicked codeString
+                                            ]
+                                            [ text "Copy" ]
                                         , Html.br [] []
                                         , text "to "
                                         , Html.span
@@ -601,11 +638,8 @@ init () url key =
               }
             ]
 
-        numbers =
-            Random.Char.char 48 57
-
         generator =
-            Random.Extra.choices Random.Char.lowerCaseLatin [ Random.Char.upperCaseLatin, numbers ]
+            Random.Extra.choices Random.Char.lowerCaseLatin [ Random.Char.upperCaseLatin ]
 
         initNonce =
             Random.generate NonceGenerated generator
@@ -803,7 +837,14 @@ update msg model =
             noCommand { model | externalAdded = RequestFailed externalId }
 
         ExternalAddReceived externalId (Ok _) ->
-            noCommand { model | externalAdded = RequestSucceeded externalId () }
+            let
+                newModel =
+                    { model | externalAdded = RequestSucceeded externalId () }
+            in
+            -- For now I'm just going to download all the people again.
+            -- What we should really do is have the request respond with the new person data
+            -- and then I can just add it manually.
+            withCommands newModel [ getPeople ]
 
         SelectDonationAmount pennies ->
             let
@@ -820,6 +861,17 @@ update msg model =
             noCommand model
 
         PrevoteResponse (Ok ()) ->
+            noCommand model
+
+        CopyTextCodeClicked textCode ->
+            withCommands model [ Ports.setClipboard <| Encode.string textCode ]
+
+        TextCodeCopyResponse False ->
+            -- TODO: Some kind of alert would be nice.
+            noCommand model
+
+        TextCodeCopyResponse True ->
+            -- TODO: Some kind of alert/notification would be nice.
             noCommand model
 
 
@@ -914,7 +966,9 @@ viewHeader showBackButton =
                 []
                 [ text "This site is in test mode.  It will go live in the first days of March 2019 - "
                 , Html.a
-                    [ Route.href FaqPage ]
+                    [ Route.href FaqPage
+                    , Attributes.class "visible-link"
+                    ]
                     [ text "See FAQ " ]
                 ]
             ]
@@ -933,7 +987,7 @@ viewHeader showBackButton =
                     [ text "Make your voice heard today" ]
                 ]
             , Html.a
-                [ Attributes.href "https://twitter.com/crediblechoice"
+                [ Attributes.href "https://twitter.com/ChoiceCredible"
                 , Attributes.id "twitter-link"
                 ]
                 []
@@ -954,9 +1008,6 @@ viewTemporary model =
 
                 FaqPage ->
                     viewFaqPage
-
-                CompanyInfoPage ->
-                    viewCompanyPage
 
                 TechnicalInfoPage ->
                     viewTechnicalPage
@@ -994,7 +1045,7 @@ viewTemporary model =
                 []
                 [ Html.ul
                     []
-                    (List.map navItem [ TermsAndConditionsPage, FaqPage, CompanyInfoPage, TechnicalInfoPage ])
+                    (List.map navItem [ TermsAndConditionsPage, FaqPage, TechnicalInfoPage ])
                 ]
 
         footer =
@@ -1049,9 +1100,6 @@ viewTemporary model =
                 FaqPage ->
                     "FAQ"
 
-                CompanyInfoPage ->
-                    "Company"
-
                 TechnicalInfoPage ->
                     "Technical"
 
@@ -1082,8 +1130,32 @@ viewChoose : Model -> Html Msg
 viewChoose model =
     let
         numVotes person =
-            Dict.get person.code model.representativeVotes
-                |> Maybe.withDefault 0
+            let
+                votes =
+                    Dict.get person.code model.representativeVotes
+                        |> Maybe.withDefault 0
+
+                addedWeight =
+                    case model.externalAdded of
+                        RequestSucceeded externalId _ ->
+                            case externalId == person.externalId of
+                                True ->
+                                    100000000
+
+                                False ->
+                                    0
+
+                        RequestFailed _ ->
+                            0
+
+                        Requested _ ->
+                            0
+
+                        NotRequested ->
+                            0
+            in
+            -- We do *minus* votes so that it is sorted in descending order.
+            0 - votes - addedWeight
 
         sortedPeople =
             model.people
@@ -1385,11 +1457,21 @@ abbreviateRepPosition s =
 makeYourChoiceRep : Model -> SortedPeople -> Html Msg
 makeYourChoiceRep model sortedPeople =
     let
-        makeRepChoice person =
+        selectPersonButton person =
             let
                 isSelected =
                     model.selectedRepresentative == Just person.code
+            in
+            Html.td
+                [ Attributes.class "button"
+                , selectedClass isSelected
+                , Attributes.class "representative-name"
+                , Events.onClick <| SelectRepresentative person.code
+                ]
+                [ text person.name ]
 
+        makeRepChoice person =
+            let
                 votes =
                     case Dict.get person.code model.representativeVotes of
                         Nothing ->
@@ -1405,13 +1487,7 @@ makeYourChoiceRep model sortedPeople =
                 False ->
                     Html.tr
                         []
-                        [ Html.td
-                            [ Attributes.class "button"
-                            , selectedClass isSelected
-                            , Attributes.class "representative-name"
-                            , Events.onClick <| SelectRepresentative person.code
-                            ]
-                            [ text person.name ]
+                        [ selectPersonButton person
                         , Html.td
                             []
                             [ text <| abbreviateRepPosition person.position ]
@@ -1425,6 +1501,7 @@ makeYourChoiceRep model sortedPeople =
             , code = "XXX"
             , position = ""
             , suspended = False
+            , externalId = ""
             }
                 :: sortedPeople
 
@@ -1594,8 +1671,17 @@ makeYourChoiceRep model sortedPeople =
                 []
 
         addRepresentative =
-            div
-                [ Attributes.id "add-person" ]
+            let
+                inputLength =
+                    String.length model.addRepresentativeInput
+
+                invalidInput =
+                    inputLength < 5 || inputLength > 50
+            in
+            Html.form
+                [ Attributes.id "add-person"
+                , Events.onSubmit AddRepresentativeClicked
+                ]
                 [ Html.input
                     [ Attributes.type_ "text"
                     , Attributes.placeholder "Representative name"
@@ -1605,7 +1691,8 @@ makeYourChoiceRep model sortedPeople =
                     []
                 , Html.button
                     [ Attributes.class "button"
-                    , Events.onClick AddRepresentativeClicked
+                    , Attributes.type_ "submit"
+                    , Attributes.disabled invalidInput
                     ]
                     [ text "Lookup" ]
                 ]
@@ -1645,26 +1732,59 @@ makeYourChoiceRep model sortedPeople =
 
                         NotRequested ->
                             let
+                                addExternal person d =
+                                    case String.isEmpty person.externalId of
+                                        True ->
+                                            d
+
+                                        False ->
+                                            Dict.insert person.externalId person d
+
+                                existingExternalIds =
+                                    List.foldl addExternal Dict.empty model.people
+
                                 showSearchResult person =
-                                    Html.li
-                                        [ Attributes.class "add-person-search-result" ]
-                                        [ text person.name
-                                        , div
-                                            [ Attributes.class "add-person-search-result-description" ]
-                                            [ text person.description ]
-                                        , Html.button
-                                            [ Attributes.class "add-person-search-result-action"
-                                            , Events.onClick <| ExternalAddPerson person.externalId
-                                            ]
-                                            [ text "Add" ]
-                                        ]
+                                    case Dict.get person.externalId existingExternalIds of
+                                        Nothing ->
+                                            Html.tr
+                                                [ Attributes.class "add-person-search-result" ]
+                                                [ Html.td
+                                                    [ Attributes.class "add-person-search-result-name" ]
+                                                    [ text person.name ]
+                                                , Html.td
+                                                    [ Attributes.class "add-person-search-result-description" ]
+                                                    [ text person.description ]
+                                                , Html.td
+                                                    [ Attributes.class "add-person-search-result-action" ]
+                                                    [ Html.button
+                                                        [ Events.onClick <| ExternalAddPerson person.externalId ]
+                                                        [ text "Add" ]
+                                                    ]
+                                                ]
+
+                                        Just existingPerson ->
+                                            Html.tr
+                                                [ Attributes.class "add-person-search-result" ]
+                                                [ selectPersonButton existingPerson
+                                                , Html.td
+                                                    [ Attributes.class "add-person-search-result-description" ]
+                                                    [ text person.description ]
+                                                , Html.td [] []
+                                                ]
                             in
-                            div
-                                [ Attributes.class "add-person-search-results" ]
-                                [ Html.ul
-                                    []
-                                    (List.map showSearchResult persons)
-                                ]
+                            case List.isEmpty persons of
+                                True ->
+                                    div
+                                        [ Attributes.class "add-person-search-results" ]
+                                        [ text "Your search returned no results." ]
+
+                                False ->
+                                    div
+                                        [ Attributes.class "add-person-search-results" ]
+                                        [ Html.table
+                                            []
+                                            (List.map showSearchResult persons)
+                                        ]
 
         explanations =
             div
@@ -1807,6 +1927,16 @@ donationSection model =
                 , donationSelection
                 , charityLabel
                 , table
+                , Html.p
+                    [ Attributes.class "charity-inclusion-explanation" ]
+                    [ text "If you are a UK registered Charity and want to appear on this platform please "
+                    , Html.a
+                        [ Route.href FaqPage
+                        , Attributes.class "visible-link"
+                        ]
+                        [ text "see the FAQ" ]
+                    , text " for the procedure."
+                    ]
                 ]
             ]
         ]
@@ -1926,31 +2056,68 @@ viewFaqPage =
                 [ text question ]
             , Html.dd
                 [ Attributes.class "faq-answer" ]
-                [ text answer ]
+                answer
             ]
 
         faqs =
             [ ( "Demo Mode:  What is the basis for the order and quantities?"
-              , "These are illustrative only and will be removed for a clean launch."
+              , [ text "These are illustrative only and will be removed for a clean launch." ]
               )
             , ( "What’s the point?"
-              , "When 50 million people liked an egg, we thought maybe we could get a few million to democratically express their views about the current Brexit situation and potentially generate some substantial funds for charity.  We also think there is a chance of a non Party group emerging from this, who could constructively help to heal the societal divisions Brexit has caused."
+              , [ text "When 50 million people liked an egg, we thought maybe we could get a few million to democratically express their views about the current Brexit situation and potentially generate some substantial funds for charity.  We also think there is a chance of a non Party group emerging from this, who could constructively help to heal the societal divisions Brexit has caused." ]
               )
             , ( "What’s in this for Credible Choice and it’s promoters?"
-              , "We have created Credible Choice Ltd, a volunteer, not-for-profit, non-partisan company.  It doesn’t have any income or expenses and doesn’t pay for supplies and services."
+              , [ text "We have created Credible Choice Ltd, a volunteer, not-for-profit, non-partisan company.  It doesn’t have any income or expenses and doesn’t pay for supplies and services." ]
               )
             , ( "What’s the difference between this and a referendum?"
-              , "This has been created in a couple of weeks at no cost to HMG  A referendum will take six months and cost many millions to organise.  With this, participants can change their mind in response to changing circumstances."
+              , [ text "This has been created in a couple of weeks at no cost to HMG  A referendum will take six months and cost many millions to organise.  With this, participants can change their mind in response to changing circumstances." ]
               )
             , ( "Isn’t this just a self-selecting opinion poll?"
-              , "Polls interview supposedly representative groups of maybe 1,000 people.  Our approach enables millions to take part."
+              , [ text "Polls interview supposedly representative groups of maybe 1,000 people.  Our approach enables millions to take part." ]
               )
             , ( "Why mobile phones when anyone can buy a SIM card for a few pounds and children and foreign powers could vote?"
-              , "The honest answer is that this is the only practical way to curtail unlimited multiple voting.  Sure their may be some multiple voting but it’s not so easy to buy and register millions of SIM cards to UK mobile phone numbers.  Any large scale spoofer would also have to donate millions to charity.  We realise this doesn’t exactly align with the electoral roll but it could be argued that this is more democratic in terms of the people affected."
+              , [ text "The honest answer is that this is the only practical way to curtail unlimited multiple voting.  Sure their may be some multiple voting but it’s not so easy to buy and register millions of SIM cards to UK mobile phone numbers.  Any large scale spoofer would also have to donate millions to charity.  We realise this doesn’t exactly align with the electoral roll but it could be argued that this is more democratic in terms of the people affected." ]
               )
             , ( "Aren’t all sorts of nefarious players going to hack into this making it meaningless and maybe stealing loads of personal data?"
-              , "First of all we do not collect any personal data, not even mobile phone numbers.  Secondly, we are completely transparent, participants can see their choice tallied as they make it.  The whole process is underpinned by a distributed block chain.  Please see the technical overview."
+              , [ text "First of all we do not collect any personal data, not even mobile phone numbers.  Secondly, we are completely transparent, participants can see their choice tallied as they make it.  The whole process is underpinned by a distributed block chain.  Please see the technical overview." ]
               )
+            , ( "What are you going to do with the data you collate?"
+              , [ text "We don't collect any personal data.  The results as completely public." ]
+              )
+            , ( "How are you going to influence the people that matter?"
+              , [ text "We are not trying to be the influencers.  We have hopefully created a platform that allows others to be influencers." ]
+              )
+            , ( "What do you see the ultimate outcome of Credible Choice?"
+              , [ text "Anyone who tries to predict anything these days is likely to be wrong." ]
+              )
+            , ( "We are a Charity, how can we sign up?"
+              , charityAnswer
+              )
+            ]
+
+        charityAnswer =
+            [ Html.p
+                []
+                [ text "The Credible Choice uses a text donation service called "
+                , Html.em [] [ text "Vir2" ]
+                , text " from "
+                , Html.em [] [ text "RSM 2000 Ltd" ]
+                , text ". RSM 2000 Ltd are contracted with the charities to act as their agent to collect donations by text on behalf of each charity and pay them to the charity concerned. RSM 2000 notifies Credible Choice of each vote. Credible Choice does not retain any data that would allow it to identify or text voters in future. The amount retained by RSM 2000 from each donation will vary between charities, but it is never more than 4% and often 100% is paid to the charity."
+                ]
+            , Html.p
+                []
+                [ text "If you represent a charity wishing to use this service or you are a donor who has a problem with a text donation as a result of using the Credible Choice service please contact "
+                , Html.em [] [ text "RSM 2000 Ltd" ]
+                , text " on "
+                , Html.a [ Attributes.href "sms@rsm2000.co.uk" ] [ text "sms@rsm2000.co.uk" ]
+                , text " or call "
+                , Html.em [] [ text "03306600425" ]
+                , text "."
+                ]
+            , Html.p
+                []
+                [ text "The charities that benefit from the Credible Choice service and RSM 2000 Ltd are not connected to the organisers of the Credible Choice service and are not expressing a political opinion by allowing potential donors to give them money to use the Credible Choice platform."
+                ]
             ]
     in
     div
@@ -1962,11 +2129,6 @@ viewFaqPage =
             [ Attributes.class "faq-list" ]
             (List.concatMap faq faqs)
         ]
-
-
-viewCompanyPage : Html msg
-viewCompanyPage =
-    text "I am the company info page."
 
 
 viewTechnicalPage : Html msg

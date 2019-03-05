@@ -23,8 +23,8 @@ now dns add crediblechoice.uk dev A 51.15.70.20
     [x] Rep-choice not optional, there is a 'no representative' choice.
     [x] Send the pre-vote upon charity selection again.
     [x] Update the footer which will now contain the navigation element.
-    [ ] Any added representative has to be given priority at the top of the list
-    [ ] Do not fail if the 'search representative' comes back as the empty list 'null', but explain the situation.
-    [ ] Make the lookup a form so that 'Return' makes the request.
-    [ ] Set a minimum search string limit, maybe a maximum too.
-    [ ] If the representative is already there, somehow show them in the list
+    [x] Any added representative has to be given priority at the top of the list
+    [x] Do not fail if the 'search representative' comes back as the empty list 'null', but explain the situation.
+    [x] Make the lookup a form so that 'Return' makes the request.
+    [x] Set a minimum search string limit, maybe a maximum too.
+    [x] If the representative is already there, somehow show them in the list
