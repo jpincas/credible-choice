@@ -2091,34 +2091,33 @@ viewFaqPage =
               , [ text "Anyone who tries to predict anything these days is likely to be wrong." ]
               )
             , ( "We are a Charity, how can we sign up?"
-              , [ Html.p []
-                    [ text "Charities can sign up by registering at "
-                    , Html.a
-                        [ Attributes.href "https://donr.com/text-giving"
-                        , Attributes.class "visible-link"
-                        ]
-                        [ text "https://donr.com/text-giving" ]
-                    , text " using a 3 letter keyword and email the following to Donr:"
-                    ]
-                , div
-                    [ Attributes.class "faq-charities-donr-letter" ]
-                    [ Html.p []
-                        [ text "We hereby give permission for Donr Ltd to release to Credible Choice Ltd the API access credentials to our account with you. We understand and accept that:" ]
-                    , Html.ol []
-                        [ Html.li []
-                            [ text "Credible Choice have no contract with Donr Ltd and are acting on behalf of our organisation." ]
-                        , Html.li []
-                            [ text "We are responsible for ensuring that all text-giving keywords created by Credible Choice are marketed in accordance with all relevant industry guidelines as set out in our Service Agreement with Donr Ltd" ]
-                        , Html.li []
-                            [ text "Credible Choice provide the following service to our charity: 'A public polling platform which also generates text donations to charities'" ]
-                        , Html.li []
-                            [ text "All donations to us through keywords setup by Credible Choice will be passed directly to our charity" ]
-                        ]
-                    , paragraph "Please provide Credible Choice with API credentials to access our account with Donr. We understand that this will allow them to create text-giving keywords on our behalf, and to receive real time information (including encrypted mobile phone numbers) relating to donations taken through our account with Donr."
-                    ]
-                , paragraph "In case of difficulties contact Callum Patterson 0203 542 2807 callum@donr.com.  Inclusion on the Credible Choice platform is subject to review. Due to review and a manual process we will only add two charities per working day."
-                ]
+              , charityAnswer
               )
+            ]
+
+        charityAnswer =
+            [ Html.p
+                []
+                [ text "The Credible Choice uses a text donation service called "
+                , Html.em [] [ text "Vir2" ]
+                , text " from "
+                , Html.em [] [ text "RSM 2000 Ltd" ]
+                , text ". RSM 2000 Ltd are contracted with the charities to act as their agent to collect donations by text on behalf of each charity and pay them to the charity concerned. RSM 2000 notifies Credible Choice of each vote. Credible Choice does not retain any data that would allow it to identify or text voters in future. The amount retained by RSM 2000 from each donation will vary between charities, but it is never more than 4% and often 100% is paid to the charity."
+                ]
+            , Html.p
+                []
+                [ text "If you represent a charity wishing to use this service or you are a donor who has a problem with a text donation as a result of using the Credible Choice service please contact "
+                , Html.em [] [ text "RSM 2000 Ltd" ]
+                , text " on "
+                , Html.a [ Attributes.href "sms@rsm2000.co.uk" ] [ text "sms@rsm2000.co.uk" ]
+                , text " or call "
+                , Html.em [] [ text "03306600425" ]
+                , text "."
+                ]
+            , Html.p
+                []
+                [ text "The charities that benefit from the Credible Choice service and RSM 2000 Ltd are not connected to the organisers of the Credible Choice service and are not expressing a political opinion by allowing potential donors to give them money to use the Credible Choice platform."
+                ]
             ]
     in
     div
