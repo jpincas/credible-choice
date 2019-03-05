@@ -64,6 +64,10 @@ func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if app.Config.LogVotes {
+		Log(LogModuleHandlers, true, fmt.Sprintf("%s", b), nil)
+	}
+
 	var vnw VoteNotificationWrapper
 	err = xml.Unmarshal(b, &vnw)
 	if err != nil {
@@ -87,10 +91,14 @@ func ReceiveVote(w http.ResponseWriter, r *http.Request) {
 	rawDataString, err := vote.buildFromVoteNotification(vn)
 	if err != nil {
 		Log(LogModuleHandlers, false, "Error building vote from incoming notification", err)
-	} else {
-		if err := vote.save(rawDataString); err != nil {
-			Log(LogModuleHandlers, false, fmt.Sprintf("Error saving vote %v to DB", vote), err)
-		}
+		respondOK(w)
+		return
+	}
+
+	if err := vote.save(rawDataString); err != nil {
+		Log(LogModuleHandlers, false, fmt.Sprintf("Error saving vote %v to DB", vote), err)
+		respondOK(w)
+		return
 	}
 
 	if app.Config.LogVotes {

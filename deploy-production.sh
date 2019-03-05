@@ -10,4 +10,4 @@ rsync -av --delete ./server $SERVER:~/
 rsync -av --delete ./data $SERVER:~/
 rm ./server/ccserver-linux
 
-# 'cd ~/server && ./ccserver-linux -cfg=config-production &'
+ssh $SERVER 'supervisorctl restart all'

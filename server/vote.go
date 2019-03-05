@@ -123,6 +123,10 @@ func (v *Vote) buildFromVoteNotification(vn VoteNotification) (string, error) {
 	// Remove all whitespace
 	keywordAndDonationAmount := strings.ToUpper(strings.Replace(vn.KeywordAndDonationAmount, " ", "", -1))
 	firstNumberIndex := strings.IndexAny(keywordAndDonationAmount, "0123456789")
+	if firstNumberIndex == -1 {
+		return "", errors.New("Could not find a donation amount")
+	}
+
 	keyword := keywordAndDonationAmount[:firstNumberIndex]
 	donation := keywordAndDonationAmount[firstNumberIndex:]
 
