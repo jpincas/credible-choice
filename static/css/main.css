@@ -719,6 +719,14 @@ table.charity-choice-table button {
     overflow-x: hidden;
 }
 
+#sms-builder .copy-text-to-clipboard{
+    font-size: 0.6em;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0 0 0 1em;
+    vertical-align: middle;
+}
+
 #sms-builder .recent-votes-container {
     background-color: var(--color-text-inverted);
     color: var(--color-text);
