@@ -4,12 +4,12 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"time"
 
+	"github.com/fvbock/endless"
 	"github.com/patrickmn/go-cache"
 
 	"github.com/go-chi/chi"
@@ -102,7 +102,7 @@ func runApplication(configFile string) {
 
 	// Run the server
 	Log(LogModuleStartup, true, fmt.Sprintf("Starting server on port %v", app.Config.Port), nil)
-	http.ListenAndServe(fmt.Sprintf(":%v", app.Config.Port), app.Router)
+	endless.ListenAndServe(fmt.Sprintf(":%v", app.Config.Port), app.Router)
 }
 
 func (a *Application) applyConfig(configFileName string) {
