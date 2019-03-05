@@ -731,6 +731,7 @@ table.charity-choice-table button {
     background-color: var(--color-text-inverted);
     color: var(--color-text);
     margin-top: 5px;
+    width: 100%;
 }
 
 
