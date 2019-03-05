@@ -1609,6 +1609,9 @@ makeYourChoiceRep model sortedPeople =
                 [ Attributes.class "bold" ]
                 [ text <| String.fromInt i ]
 
+        numPeople =
+            List.length people
+
         displaying =
             Html.p
                 []
@@ -1621,7 +1624,7 @@ makeYourChoiceRep model sortedPeople =
                         Html.span
                             []
                             [ text " of a total of "
-                            , showNumber <| List.length people
+                            , showNumber numPeople
                             , text " representatives"
                             ]
 
@@ -1640,6 +1643,13 @@ makeYourChoiceRep model sortedPeople =
                             ]
                 ]
 
+        searchPlaceholder =
+            String.join ""
+                [ "Search names from "
+                , String.fromInt numPeople
+                , " currently listed"
+                ]
+
         searchInput =
             Html.input
                 [ Attributes.type_ "text"
@@ -1647,7 +1657,7 @@ makeYourChoiceRep model sortedPeople =
                 , Attributes.placeholder "Search for person"
                 , Attributes.value model.searchRepresentativeInput
                 , Events.onInput SearchRepresentativeInput
-                , Attributes.placeholder "Search names"
+                , Attributes.placeholder searchPlaceholder
                 ]
                 []
 
