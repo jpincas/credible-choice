@@ -75,7 +75,7 @@ func (incomingVote Vote) save(rawDataString string) error {
 	vote.AnonMobile = incomingVote.AnonMobile
 	vote.PostCode = incomingVote.PostCode
 	vote.BirthYear = incomingVote.BirthYear
-	vote.Donation = incomingVote.Donation
+	vote.Donation = vote.Donation + incomingVote.Donation
 
 	// Save (will either create new or update)
 	// Note - save and result impacting should really be atomic,
