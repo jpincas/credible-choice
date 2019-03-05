@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -21,6 +22,9 @@ import (
 // Create an app instance
 var app Application
 
+// Regex for cleaning up strings
+var cleanStrings *regexp.Regexp
+
 type Application struct {
 	Config    Config
 	Router    *chi.Mux
@@ -32,14 +36,17 @@ type Application struct {
 }
 
 type Config struct {
-	Port             int    `json:"port"`
-	TestMode         bool   `json:"testMode"`
-	DBDirectory      string `json:"dbDirectory"`
-	DataDirectory    string `json:"dataDirectory"`
-	VoteWebhook      string `json:"voteWebhook"`
-	VoteToBlockchain bool   `json:"voteToBlockchain"`
-	BlockchainHost   string `json:"blockchainHost"`
-	KGraphAPIKey     string `json:"kGraphAPIKey"`
+	Port               int    `json:"port"`
+	TestMode           bool   `json:"testMode"`
+	DBDirectory        string `json:"dbDirectory"`
+	DataDirectory      string `json:"dataDirectory"`
+	VoteWebhook        string `json:"voteWebhook"`
+	VoteToBlockchain   bool   `json:"voteToBlockchain"`
+	BlockchainHost     string `json:"blockchainHost"`
+	KGraphAPIKey       string `json:"kGraphAPIKey"`
+	SMSGatewayUsername string `json:"smsGatewayUsername"`
+	SMSGatewayPassword string `json:"smsGatewayPassword"`
+	LogVotes           bool   `json:"logVotes"`
 }
 
 type Data struct {
@@ -85,6 +92,14 @@ func runApplication(configFile string) {
 	// Job Scheduler
 	app.scheduleJobs()
 
+	// Compile regex
+	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+	if err != nil {
+		LogFatal(LogModuleStartup, false, "Error compiling regex", err)
+	} else {
+		cleanStrings = reg
+	}
+
 	// Run the server
 	Log(LogModuleStartup, true, fmt.Sprintf("Starting server on port %v", app.Config.Port), nil)
 	http.ListenAndServe(fmt.Sprintf(":%v", app.Config.Port), app.Router)
@@ -123,7 +138,7 @@ func (a *Application) initRouter(tokenAuth *jwtauth.JWTAuth) {
 	})
 
 	r.Route("/webhooks", func(r chi.Router) {
-		r.Get("/"+a.Config.VoteWebhook, ReceiveVote)
+		r.Post("/"+a.Config.VoteWebhook, ReceiveVote)
 	})
 
 	// Log and apply to application

@@ -27,7 +27,7 @@ func updateResults() {
 	// Main vote
 	const mainVotesPossible = uint8(3)
 	for i := uint8(0); i <= mainVotesPossible; i++ {
-		c, err := app.DB.Find(&votes).Match("mainvote", uint8(i)).Count()
+		c, err := app.DB.Find(&votes).Match("MainVote", uint8(i)).Count()
 		if err != nil {
 			Log(LogModuleResults, false, "Error counting main votes", err)
 		} else {
@@ -38,7 +38,7 @@ func updateResults() {
 	// Rep vote
 	for repID := range app.Data.Representatives {
 		// First count
-		c, err := app.DB.Find(&votes).Match("repvote", repID).Count()
+		c, err := app.DB.Find(&votes).Match("RepVote", repID).Count()
 		if err != nil {
 			Log(LogModuleResults, false, "Error counting rep votes", err)
 		} else {
@@ -49,7 +49,7 @@ func updateResults() {
 	// Charity choice
 	for charityID := range app.Data.Charities {
 		// First count
-		c, err := app.DB.Find(&votes).Match("charity", charityID).Count()
+		c, err := app.DB.Find(&votes).Match("Charity", charityID).Count()
 		if err != nil {
 			Log(LogModuleResults, false, "Error counting charity votes", err)
 		} else {
@@ -59,7 +59,7 @@ func updateResults() {
 
 	// Totals
 	var totalDonations uint32
-	totalVotes, err := app.DB.Find(&votes).OrderBy("donation").QuickSum(&totalDonations)
+	totalVotes, err := app.DB.Find(&votes).Sum(&totalDonations, "Donation")
 	if err != nil {
 		Log(LogModuleResults, false, "Error counting total donations", err)
 	} else {

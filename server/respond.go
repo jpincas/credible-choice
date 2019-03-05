@@ -15,7 +15,7 @@ const (
 	errorTypeBadRequest                             = "Bad request"
 	errorTypeEntityNotFound                         = "Requested entity not found"
 	errorTypeBodyRead                               = "Could not read request body"
-	errorTypeInvalidBody                            = "Request body invalid JSON"
+	errorTypeInvalidBody                            = "Request body invalid"
 	errorTypeMarshall                               = "Could not create JSON"
 	errorTypeNoTokenPresent                         = "no jwt present"
 	errorTypeInvalidToken                           = "invalid jwt"

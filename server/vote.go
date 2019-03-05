@@ -2,11 +2,12 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -44,9 +45,10 @@ type Vote struct {
 	PostCode   string `json:"postcode"`
 	BirthYear  uint16 `json:"birthYear"`
 	Donation   pence  `json:"donation"`
+}
 
-	// Gateway meta data
-	TransactionID string `tormenta:"noindex" json:"-"`
+func (v Vote) String() string {
+	return fmt.Sprintf("%s | %v | %s | %s | %v | %s | %v", v.AnonMobile, v.MainVote, v.RepVote, v.Charity, v.Donation, v.PostCode, v.BirthYear)
 }
 
 func (incomingVote Vote) save(rawDataString string) error {
@@ -55,7 +57,7 @@ func (incomingVote Vote) save(rawDataString string) error {
 	// If there is already a vote there, then we'll work off that as a base
 	// and overwrite
 	var vote Vote
-	n, err := app.DB.First(&vote).Match("anonmobile", incomingVote.AnonMobile).Run()
+	n, err := app.DB.First(&vote).Match("AnonMobile", incomingVote.AnonMobile).Run()
 	if err != nil {
 		return err
 	}
@@ -106,37 +108,38 @@ func (v Vote) subtractFromResults() {
 	app.Results.Charity[v.Charity] = app.Results.Charity[v.Charity] - 1
 }
 
-func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
-	messageString := values.Get(smsValueMessage)
-	donationString := values.Get(smsValueDonation)
-	anonMobileString := values.Get(smsValueAnonMobile)
-	charityString := values.Get(smsValueShortcode)
-	transactionIDString := values.Get(smsTxIDString)
-
-	// We will only return an error under very restricted circumstances
-	// that basically mean we can't accept the vote
-
-	// We must have all four values to continue
-	if messageString == "" || donationString == "" || anonMobileString == "" || charityString == "" {
-		msg := "Missing information in the URL params"
-		return "", errors.New(msg)
+func (v *Vote) buildFromVoteNotification(vn VoteNotification) (string, error) {
+	if vn.MessageText == "" || vn.KeywordAndDonationAmount == "" || vn.MobileNumber == "" {
+		return "", errors.New("Missing information in the URL params")
 	}
 
-	// First step is to prize out OUR raw data string from the full message
-	var dataString string
-	splitMessage := strings.Split(messageString, " ")
-	if len(splitMessage) < 2 {
-		// There should be at least 2 parts to the split message
-		// e.g //DONATE1 blah, or DONATE 1 blah
-		return "", errors.New("Could not parse the sms message")
+	h := sha256.New()
+	if _, err := h.Write([]byte(vn.MobileNumber)); err != nil {
+		return "", errors.New("Could not hash mobile phone number")
 	}
-	dataString = splitMessage[len(splitMessage)-1] // take the last string as the raw data string
+	anonMobileString := fmt.Sprintf("%x", h.Sum(nil))
 
-	// And the donation amount must be valid
-	donation, err := strconv.Atoi(donationString)
+	// Step 1) Get the charity and donation amount
+	// Remove all whitespace
+	keywordAndDonationAmount := strings.ToUpper(strings.Replace(vn.KeywordAndDonationAmount, " ", "", -1))
+	firstNumberIndex := strings.IndexAny(keywordAndDonationAmount, "0123456789")
+	keyword := keywordAndDonationAmount[:firstNumberIndex]
+	donation := keywordAndDonationAmount[firstNumberIndex:]
+
+	donationAmount, err := strconv.Atoi(donation)
 	if err != nil {
-		return "", errors.New("Donation amount is invalid format")
+		return "", errors.New("Could not convert donation amount into number")
 	}
+	donationAmountPence := donationAmount * 100
+
+	// Step 2) Get the datastring
+	// Start by trimming the keyword/donation string,
+	// then cleaninig up
+	messageNoPrefix := strings.TrimPrefix(vn.MessageText, vn.KeywordAndDonationAmount)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dataString := cleanStrings.ReplaceAllString(messageNoPrefix, "")
 
 	// Attempt to parse the concatenated data string from the SMS
 	// Parsing must be 'succesful' - that's to say, we are going to
@@ -154,7 +157,7 @@ func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
 	// If the parsing shows the the sms was 'complete'
 	// we'll try to do a lookup for the optional, anonymous data
 	if smsTextValues.Complete {
-		res, found := app.PreVotes.Get(messageString)
+		res, found := app.PreVotes.Get(vn.MessageText)
 		if found {
 			prevote := res.(PreVote)
 			v.PostCode = prevote.PostCode
@@ -164,9 +167,8 @@ func (v *Vote) buildFromURLParams(values url.Values) (string, error) {
 
 	// Set the other stuff
 	v.AnonMobile = anonMobileString
-	v.Donation = uint32(donation)
-	v.Charity = charityString
-	v.TransactionID = transactionIDString
+	v.Donation = uint32(donationAmountPence)
+	v.Charity = keyword
 
 	return dataString, nil
 }
@@ -188,10 +190,9 @@ func (v Vote) sendToBlockchain(rawDataString string) {
 			BirthYear: v.BirthYear,
 			Donation:  v.Donation,
 		},
-		AnonMobile:    v.AnonMobile,
-		SMSCode:       rawDataString,
-		TransactionID: v.TransactionID,
-		VotedAt:       time.Now().UTC(),
+		AnonMobile: v.AnonMobile,
+		SMSCode:    rawDataString,
+		VotedAt:    time.Now().UTC(),
 	}
 
 	// Marshall blockchain vote to JSON
