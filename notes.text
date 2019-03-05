@@ -16,7 +16,7 @@ now dns add crediblechoice.uk dev A 51.15.70.20
     [x] Pie-chart percentages
     [x] Poll new results every minute
     [x] text builder always stuck to the bottom
-    [ ] click to copy (hope that is doable in elm, probably)
+    [x] click to copy (hope that is doable in elm, probably)
     [x] Write choices to local storage so that it is retained if they come back.
     [x] Search shows top 25, matching. I guess everyone matches the blank input.
     [x] Pagination of the results
@@ -28,3 +28,36 @@ now dns add crediblechoice.uk dev A 51.15.70.20
     [x] Make the lookup a form so that 'Return' makes the request.
     [x] Set a minimum search string limit, maybe a maximum too.
     [x] If the representative is already there, somehow show them in the list
+
+
+Peter todos:
+
+1. Can one individual (with a bot) add thousands of names to the rep list. If so, how to limit this - one per day per device or something?
+    [x] I think we're okay, and in a position (by disabling) to respond in the case of an attack.
+2. Perhaps "LOOKUP" should say:- "Look up in Wikipedia"  to make it clear
+    [ ] Hmmm, that would make the button pretty long, which might not work on mobile.
+3. I guess we are auto generating and deduping the 3 letter representative abbreviation, should we show it in brackets after the name?
+    [ ]
+4. What does "Showing 72" mean?
+    [x] Updated.
+5. Not sure what the total donated is doing here.  It made sense when we were showing a donation associated with each rep but not is we aren't
+    [x] I agree, updated.
+6  Maybe "Search names" should say "Search names from xx currently listed" and underneath it could say "You can add others below"
+    [x] Done. (Note: I disagree with the 'You can add others below' but I've added it in, if others also disgree it's easy enough to remove).
+7. Maybe change case to "Who do you trust to represent your view on BREXIT"
+    [ ] Leave this one to Jon, who I suspect will disagree.
+8 "(MAY)" "(MOGG)" and ("STAY") should be in brackets on the choice buttons
+    [x] Done (Jon, I've put it in a span with the class .main-option-key in case you want to style it differently).
+9. The MOGG on  the pie is low for some reason and I don't think we need the bracket ie jus  MOGG 30%
+    [ ] Yeah, I don't have time for the low label right now, and I'd like to see some results first, it might not be low depending on the angle of the slice.
+    [x] No brackets, done.
+10. Change donatiion amounts to 1, 3,  5
+    [ ]
+11 After ...charity distributer.  "See FAQ for details.
+    [ ]
+12 we need to check we are only using one short number, I think it may change for different charities?
+    [ ]
+13. To register your choice, txt .......
+    [ ]
+14 "You may be charged your standard connection fee.  You will receive a txt confirmation reply from Vir2 - see FAQ "
+    [ ]

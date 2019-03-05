@@ -1213,9 +1213,9 @@ liveResultsSection model sortedPeople =
                         labelText =
                             String.join ""
                                 [ mainOption.name
-                                , "("
+                                , " "
                                 , String.fromInt percentage
-                                , "%)"
+                                , "%"
                                 ]
 
                         label =
@@ -1390,6 +1390,12 @@ makeYourChoiceMain model =
                     ]
                     [ text option.description
                     , Html.span
+                        [ Attributes.class "main-option-key" ]
+                        [ text " (\""
+                        , text option.name
+                        , text "\")"
+                        ]
+                    , Html.span
                         [ Attributes.class "number-choices" ]
                         [ text <| "Chosen by " ++ formatInt option.votes ]
                     ]
@@ -1541,7 +1547,7 @@ makeYourChoiceRep model sortedPeople =
                         nextButton =
                             let
                                 attribute =
-                                    case model.representativePage * repsPerPage >= List.length filteredRepresentatives of
+                                    case highestShown >= numFiltered of
                                         True ->
                                             Attributes.disabled True
 
@@ -1560,12 +1566,18 @@ makeYourChoiceRep model sortedPeople =
                         , Html.span
                             [ Attributes.class "rep-page-numbers" ]
                             -- TODO: These numbers may not be correct if we're filtering etc.
-                            [ text <| String.fromInt <| model.representativePage * repsPerPage
+                            [ text <| String.fromInt lowestShown
                             , text " - "
-                            , text <| String.fromInt <| (model.representativePage + 1) * repsPerPage
+                            , text <| String.fromInt highestShown
                             ]
                         , nextButton
                         ]
+
+        lowestShown =
+            model.representativePage * repsPerPage
+
+        highestShown =
+            min numFiltered ((model.representativePage + 1) * repsPerPage)
 
         table =
             Html.table
@@ -1593,42 +1605,40 @@ makeYourChoiceRep model sortedPeople =
                     (List.map makeRepChoice selectedRepresentatives)
                 ]
 
-        totalsRow =
-            -- Might need to make this a row in the table.
-            Html.div
-                [ Attributes.class "representatives-totals-row" ]
-                [ Html.span
-                    [ Attributes.class "representatives-totals-label" ]
-                    [ text "Total donated" ]
-                , Html.span
-                    [ Attributes.class "representatives-totals-value" ]
-                    -- TODO: Again we need this from the backend.
-                    [ text <| formatPence <| 50 ]
-                ]
-
         title =
             Html.h2
                 []
                 [ text "Who do you trust to represent your views on Brexit?" ]
 
+        showNumber i =
+            Html.span
+                [ Attributes.class "bold" ]
+                [ text <| String.fromInt i ]
+
+        numPeople =
+            List.length people
+
         displaying =
             Html.p
                 []
                 [ text "Showing "
-                , Html.span
-                    [ Attributes.class "bold" ]
-                    [ List.length filteredRepresentatives |> formatInt |> text ]
+                , showNumber lowestShown
+                , text " to "
+                , showNumber highestShown
                 , case String.isEmpty model.searchRepresentativeInput of
                     True ->
-                        text ""
+                        Html.span
+                            []
+                            [ text " of a total of "
+                            , showNumber numPeople
+                            , text " representatives"
+                            ]
 
                     False ->
                         Html.span
                             []
                             [ text " of "
-                            , Html.span
-                                [ Attributes.class "bold" ]
-                                [ List.length sortedPeople |> formatInt |> text ]
+                            , showNumber numFiltered
                             , text " matching "
                             , Html.span
                                 [ Attributes.class "bold" ]
@@ -1639,6 +1649,13 @@ makeYourChoiceRep model sortedPeople =
                             ]
                 ]
 
+        searchPlaceholder =
+            String.join ""
+                [ "Search names from "
+                , String.fromInt numPeople
+                , " currently listed"
+                ]
+
         searchInput =
             Html.input
                 [ Attributes.type_ "text"
@@ -1646,7 +1663,7 @@ makeYourChoiceRep model sortedPeople =
                 , Attributes.placeholder "Search for person"
                 , Attributes.value model.searchRepresentativeInput
                 , Events.onInput SearchRepresentativeInput
-                , Attributes.placeholder "Search names"
+                , Attributes.placeholder searchPlaceholder
                 ]
                 []
 
@@ -1781,10 +1798,10 @@ makeYourChoiceRep model sortedPeople =
                 [ Attributes.class "panel" ]
                 [ title
                 , searchInput
+                , paragraph "You can add others below."
                 , table
                 , pageSelector
                 , displaying
-                , totalsRow
                 , div
                     [ Attributes.class "panel info" ]
                     [ div
