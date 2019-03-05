@@ -592,6 +592,10 @@ table#list-of-persons td.button {
     border: 1px solid var(--color-primary);
 }
 
+.rep-page-numbers{
+    white-space: nowrap;
+}
+
 .representatives-totals-row {
     font-weight: 400px;
     border-top: 1px solid var(--color-primary4);
