@@ -1599,19 +1599,6 @@ makeYourChoiceRep model sortedPeople =
                     (List.map makeRepChoice selectedRepresentatives)
                 ]
 
-        totalsRow =
-            -- Might need to make this a row in the table.
-            Html.div
-                [ Attributes.class "representatives-totals-row" ]
-                [ Html.span
-                    [ Attributes.class "representatives-totals-label" ]
-                    [ text "Total donated" ]
-                , Html.span
-                    [ Attributes.class "representatives-totals-value" ]
-                    -- TODO: Again we need this from the backend.
-                    [ text <| formatPence <| 50 ]
-                ]
-
         title =
             Html.h2
                 []
@@ -1798,7 +1785,6 @@ makeYourChoiceRep model sortedPeople =
                 , table
                 , pageSelector
                 , displaying
-                , totalsRow
                 , div
                     [ Attributes.class "panel info" ]
                     [ div
