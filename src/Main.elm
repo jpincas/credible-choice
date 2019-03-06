@@ -1430,6 +1430,14 @@ makeYourChoiceRep model sortedPeople =
             let
                 isSelected =
                     model.selectedRepresentative == Just person.code
+
+                name =
+                    case String.isEmpty person.name of
+                        True ->
+                            "No representative"
+
+                        False ->
+                            person.name
             in
             Html.td
                 [ Attributes.class "button"
@@ -1437,7 +1445,7 @@ makeYourChoiceRep model sortedPeople =
                 , Attributes.class "representative-name"
                 , Events.onClick <| SelectRepresentative person.code
                 ]
-                [ text person.name
+                [ text name
                 , text " "
                 , Html.span
                     [ Attributes.class "representative-code" ]
