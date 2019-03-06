@@ -168,7 +168,7 @@ func (v *Vote) buildFromVoteNotification(vn VoteNotification) (string, error) {
 		res, found := app.PreVotes.Get(vn.MessageText)
 		if found {
 			prevote := res.(PreVote)
-			v.PostCode = prevote.PostCode
+			v.PostCode = strings.ToUpper(prevote.PostCode)
 			v.BirthYear = prevote.BirthYear
 		}
 	}
