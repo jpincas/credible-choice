@@ -597,20 +597,7 @@ init () url key =
             , addRepresentativeInput = ""
             , personSearchResults = NotRequested
             , externalAdded = NotRequested
-            , recentVotes =
-                [ { mainVote = 1
-                  , repVote = "REP"
-                  , charity = "CHAR"
-                  , postcode = "SW19"
-                  , donation = 1000
-                  }
-                , { mainVote = 2
-                  , repVote = "TMA"
-                  , charity = "CHAR"
-                  , postcode = "SW1"
-                  , donation = 100
-                  }
-                ]
+            , recentVotes = []
             }
 
         -- Ultimately we may download these, or include them in the index.html and hence the program flags.
@@ -922,6 +909,15 @@ viewUnderConstructionPage =
     }
 
 
+faqLink : String -> Html msg
+faqLink linkText =
+    Html.a
+        [ Route.href FaqPage
+        , Attributes.class "visible-link"
+        ]
+        [ text linkText ]
+
+
 viewHeader : Bool -> Html Msg
 viewHeader showBackButton =
     let
@@ -945,11 +941,7 @@ viewHeader showBackButton =
             , Html.p
                 []
                 [ text "This site is in test mode.  It will go live in the first days of March 2019 - "
-                , Html.a
-                    [ Route.href FaqPage
-                    , Attributes.class "visible-link"
-                    ]
-                    [ text "See FAQ " ]
+                , faqLink "See FAQ"
                 ]
             ]
         , div
@@ -1822,7 +1814,12 @@ donationSection model =
         explanations =
             div
                 [ Attributes.class "donation-explanation" ]
-                [ paragraph """Credible Choice does not receive any money whatsoever from your donation.  It goes directly from your mobile provider to the charity distributor. You will be charged your standard connection Fee."""
+                [ Html.p
+                    []
+                    [ text "Credible Choice does not receive any money whatsoever from your donation.  It goes directly from your mobile provider to the charity distributor "
+                    , faqLink "see FAQ for details"
+                    , text ". You will be charged your standard connection Fee."
+                    ]
                 , Html.p
                     [ Attributes.class "donation-permission" ]
                     [ text "You need permission of whoever pays the mobile bill to donate." ]
