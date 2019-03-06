@@ -1122,6 +1122,7 @@ viewChoose model =
 
         sortedPeople =
             model.people
+                |> List.filter (\p -> not <| String.isEmpty p.name)
                 |> List.sortBy numVotes
 
         sections =
@@ -1251,13 +1252,16 @@ liveResultsSection model sortedPeople =
                 , Html.span [ Attributes.class "rep-score" ] [ votes ]
                 ]
 
+        topTenReps =
+                List.take 10 sortedPeople
+
         viewReps =
             div
                 [ Attributes.id "live-results-representatives" ]
                 [ Html.h3 [] [ text "Top 10 Trusted Representatives" ]
                 , Html.ul
                     [ Attributes.class "top-ten-representatives" ]
-                    (List.indexedMap viewRep <| List.take 10 sortedPeople)
+                    (List.indexedMap viewRep topTenReps)
                 , div
                     [ Attributes.class "total-votes" ]
                     [ Html.label
