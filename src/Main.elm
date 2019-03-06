@@ -1648,15 +1648,23 @@ makeYourChoiceRep model sortedPeople =
                 ]
 
         searchInput =
-            Html.input
-                [ Attributes.type_ "text"
-                , Attributes.class "rep-search"
-                , Attributes.placeholder "Search for person"
-                , Attributes.value model.searchRepresentativeInput
-                , Events.onInput SearchRepresentativeInput
-                , Attributes.placeholder searchPlaceholder
+            div
+                [ Attributes.class "rep-search-container" ]
+                [ Html.input
+                    [ Attributes.type_ "text"
+                    , Attributes.class "rep-search"
+                    , Attributes.placeholder "Search for person"
+                    , Attributes.value model.searchRepresentativeInput
+                    , Events.onInput SearchRepresentativeInput
+                    , Attributes.placeholder searchPlaceholder
+                    ]
+                    []
+                , Html.button
+                    [ Attributes.class "rep-search-clear"
+                    , Events.onClick <| SearchRepresentativeInput ""
+                    ]
+                    [ text "Clear" ]
                 ]
-                []
 
         addRepresentative =
             let

@@ -509,6 +509,16 @@ ul.top-ten-representatives li:last-child {}
 /* Section 4: Who do you trust */
 
 
+.rep-search-container{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.rep-search-container .rep-search{
+    flex-grow: 1;
+}
+
 #list-of-persons-container {
     max-height: 60vh;
     min-height: 60vh;
