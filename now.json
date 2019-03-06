@@ -7,7 +7,7 @@
         },
         {
             "src": "/appapi/(.*)",
-            "dest": "http://51.15.70.20/appapi/$1"
+            "dest": "http://51.15.211.123/appapi/$1"
         },
         {
             "src": "/(.*)",
