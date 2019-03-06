@@ -1914,7 +1914,7 @@ donationSection model =
                     [ text "How much would you like to donate?" ]
                 , Html.div
                     [ Attributes.id "donation-amount-selector" ]
-                    (List.map makeDonationOption [ 1, 5, 10, 20 ])
+                    (List.map makeDonationOption [ 1, 3, 5 ])
                 ]
     in
     mainSection "Make a Donation"
