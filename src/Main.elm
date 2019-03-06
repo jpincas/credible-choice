@@ -936,15 +936,6 @@ viewHeader showBackButton =
     Html.header
         []
         [ div
-            [ Attributes.id "under-construction" ]
-            [ Html.h2 [] [ text "Under construction" ]
-            , Html.p
-                []
-                [ text "This site is in test mode.  It will go live in the first days of March 2019 - "
-                , faqLink "See FAQ"
-                ]
-            ]
-        , div
             [ Attributes.id "presentation" ]
             [ backButton
             , div
