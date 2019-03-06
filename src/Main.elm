@@ -1374,9 +1374,9 @@ makeYourChoiceMain model =
                     [ text option.description
                     , Html.span
                         [ Attributes.class "main-option-key" ]
-                        [ text " (\""
+                        [ text " ("
                         , text option.name
-                        , text "\")"
+                        , text ")"
                         ]
                     , Html.span
                         [ Attributes.class "number-choices" ]
