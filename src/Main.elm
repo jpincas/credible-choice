@@ -483,7 +483,7 @@ viewTextCode model =
                                         [ Attributes.class "text-builder" ]
                                         [ Html.span
                                             [ Attributes.class "text-builder-now" ]
-                                            [ text "To register your choice text " ]
+                                            [ text "To register your choice, txt " ]
                                         , code
                                         , Html.button
                                             [ Attributes.class "copy-text-to-clipboard "
@@ -1807,9 +1807,10 @@ donationSection model =
                 [ Attributes.class "donation-explanation" ]
                 [ Html.p
                     []
-                    [ text "Credible Choice does not receive any money whatsoever from your donation.  It goes directly from your mobile provider to the charity distributor "
+                    [ text "Credible Choice does not receive any money whatsoever from your donation. It goes directly from your mobile provider to the charity distributor, "
                     , faqLink "see FAQ for details"
-                    , text ". You will be charged your standard connection Fee."
+                    , text ". You may be charged your standard connection fee. You will receive a txt confirmation reply from Vir2, "
+                    , faqLink "see FAQ."
                     ]
                 , Html.p
                     [ Attributes.class "donation-permission" ]
