@@ -494,7 +494,7 @@ viewTextCode model =
                                         , text "to "
                                         , Html.span
                                             [ Attributes.class "text-builder-number" ]
-                                            [ text "70300" ]
+                                            [ text "70500" ]
                                         ]
 
 
@@ -1437,7 +1437,15 @@ makeYourChoiceRep model sortedPeople =
                 , Attributes.class "representative-name"
                 , Events.onClick <| SelectRepresentative person.code
                 ]
-                [ text person.name ]
+                [ text person.name
+                , text " "
+                , Html.span
+                    [ Attributes.class "representative-code" ]
+                    [ text "("
+                    , text person.code
+                    , text ")"
+                    ]
+                ]
 
         makeRepChoice person =
             let
