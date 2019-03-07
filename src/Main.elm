@@ -947,7 +947,7 @@ viewHeader showBackButton =
                     [ text "Brexit" ]
                 , div
                     [ Attributes.id "slogan" ]
-                    [ text "Make your voice heard today" ]
+                    [ text "\u{201C}State and Donate\u{201D}" ]
                 ]
             , Html.a
                 [ Attributes.href "https://twitter.com/ChoiceCredible"
@@ -1914,7 +1914,6 @@ donationSection model =
                 , Html.p
                     [ Attributes.class "charity-to-be-added-explanation" ]
                     [ text "More charities will be added shortly." ]
-
                 , Html.p
                     [ Attributes.class "charity-inclusion-explanation" ]
                     [ text "If you are a UK registered Charity and want to appear on this platform please "
