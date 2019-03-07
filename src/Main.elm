@@ -947,7 +947,7 @@ viewHeader showBackButton =
                     [ text "Brexit" ]
                 , div
                     [ Attributes.id "slogan" ]
-                    [ text "\u{201C}State and Donate\u{201D}" ]
+                    [ text "“State and Donate”" ]
                 ]
             , Html.a
                 [ Attributes.href "https://twitter.com/ChoiceCredible"
@@ -1122,7 +1122,7 @@ viewChoose model =
 
         sortedPeople =
             model.people
-                |> List.filter (\p -> not <| String.isEmpty p.name)
+                |> List.filter (\p -> not <| String.isEmpty p.name && not p.suspended)
                 |> List.sortBy numVotes
 
         sections =
