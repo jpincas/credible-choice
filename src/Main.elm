@@ -1301,7 +1301,8 @@ makeYourChoiceIntroduction model =
                     [ text "You can change your mind and make a choice as many times as you like from a single mobile. Only your latest choice will be shown but your total donation will be recorded." ]
                 , Html.p
                     []
-                    [ text "As you select your choice, you will see an SMS build at the bottom of the screen. Send this text to the short number shown and your choice will register within about a minute." ]
+                    [ text "As you select your choice, you will see an Txt build at the bottom of the screen. Send this txt to the short number shown and your choice will register within about a minute."
+                    ]
                 ]
 
         personalInfoInputs =
@@ -1910,6 +1911,10 @@ donationSection model =
                 , donationSelection
                 , charityLabel
                 , table
+                , Html.p
+                    [ Attributes.class "charity-to-be-added-explanation" ]
+                    [ text "More charities will be added shortly." ]
+
                 , Html.p
                     [ Attributes.class "charity-inclusion-explanation" ]
                     [ text "If you are a UK registered Charity and want to appear on this platform please "
