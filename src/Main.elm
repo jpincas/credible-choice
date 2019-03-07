@@ -1120,9 +1120,12 @@ viewChoose model =
             -- We do *minus* votes so that it is sorted in descending order.
             0 - votes - addedWeight
 
+        notExcludedPerson person =
+            not person.suspended && (not <| String.isEmpty person.name)
+
         sortedPeople =
             model.people
-                |> List.filter (\p -> not <| String.isEmpty p.name && not p.suspended)
+                |> List.filter notExcludedPerson
                 |> List.sortBy numVotes
 
         sections =
