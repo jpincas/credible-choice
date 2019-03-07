@@ -1166,9 +1166,7 @@ liveResultsSection model sortedPeople =
                     , endAngle = 2 * pi
                     , padAngle = 0
                     , sortingFn = Basics.compare
-
-                    -- TODO: This is just so that the part chart displays even when there are zero votes.
-                    , valueFn = max 10
+                    , valueFn = identity
                     , innerRadius = 0
                     , outerRadius = 100
                     , cornerRadius = 0
