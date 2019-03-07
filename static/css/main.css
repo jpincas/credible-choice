@@ -11,15 +11,15 @@
     --color-secondary: rgba(147, 22, 33, 1);
     --color-secondary2: rgba(163, 27, 27, 1);
 
-    --color-remain: rgb(69, 204, 69);
-    --color-may: rgb(14, 78, 173);
-    --color-leave: rgb(243, 36, 36);
+    --color-remain: #3D9970;
+    --color-may: #0074D9;
+    --color-leave: #FF4136;
 
     --color-selected: rgb(32, 32, 32);
 
     --max-body-width: 972px;
 
-    --selected-button-border-width: 5px;
+    --selected-button-border-width: 3px;
 
     /* --text-code-height: 30px;
     --recent-votes-container-height: 50px;
@@ -136,18 +136,19 @@ button:disabled {
     opacity: 0.4;
 }
 
-button.selected,
+/* button.selected,
 .button.selected {
     border-color: var(--color-selected);
-}
+} */
 
-button.selected::after,
+/* button.selected::after,
 .button.selected::after {
     content: "✓";
     font-weight: 700;
     color: black;
     margin-left: 15px;
-}
+    text-decoration: none;
+} */
 
 
 button:hover,
@@ -214,13 +215,15 @@ th {
 }
 
 section>h2:first-child {
+    font-weight: 700;
     display: block;
     text-align: center;
-    background-color: var(--color-secondary2);
+    /* background-color: var(--color-secondary2); */
     margin: 0;
+    margin-top: 20px;
     padding: 4px 8px;
-    color: var(--color-text-inverted);
-    border-bottom: 5px solid var(--color-primary4)
+    color: var(--color-text);
+    border-bottom: 3px solid var(--color-secondary2);
 }
 
 
@@ -457,18 +460,19 @@ ul.top-ten-representatives li:last-child {}
     margin: 20px 0px;
     width: 80vw;
     max-width: 750px;
+    font-weight: 300;
 }
 
 .main-option-button span.number-choices {
     position: absolute;
     bottom: -10px;
-    left: -5px;
-    background-color: var(--color-secondary2);
+    left: -10px;
+    background-color: var(--color-accent);
     border-radius: 10px;
     padding: 5px 10px;
-    font-size: 1rem;
-    font-weight: 300;
-    color: white;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--color-text);
 }
 
 .main-option-button button::after {
@@ -480,8 +484,17 @@ ul.top-ten-representatives li:last-child {}
     bottom: 10px
 }
 
+.main-option-button button.selected {
+    background-color: var(--color-text);
+    font-weight: 400;
+    color: white;
+}
+
+
 .main-option-button button.selected::after {
     content: "Currently chosen";
+    color: white;
+    opacity: 1;
 }
 
 .chosen-by-header,
@@ -509,13 +522,13 @@ ul.top-ten-representatives li:last-child {}
 /* Section 4: Who do you trust */
 
 
-.rep-search-container{
+.rep-search-container {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-.rep-search-container .rep-search{
+.rep-search-container .rep-search {
     flex-grow: 1;
 }
 
@@ -531,52 +544,76 @@ table#list-of-persons {
     margin: 10px 0px;
     border-collapse: collapse;
     width: 100%;
+    table-layout: fixed;
 }
 
+table#list-of-persons td:nth-child(1) {
+    width: 220px;
+}
 
-table#list-of-persons th,
 table#list-of-persons td {
     text-align: left;
     box-sizing: border-box;
-    padding: 3px 10px 3px 3px;
-
+    padding: 3px 8px;
 }
 
-table#list-of-persons td.representative-name {
+/* table#list-of-persons td.representative-name {
     /* width: calc(100% - 1em); */
-}
+/* } */
 
-table#list-of-persons thead {
+/* table#list-of-persons thead {
     position: sticky;
     top: 0;
     z-index: 20;
-}
+} */
 
-table#list-of-persons thead tr th {
+/* table#list-of-persons thead tr th {
     /* Required to make the list of representatives scroll 'under' the headings.*/
-    /* background-color: white; */
-}
+/* background-color: white; */
+/* } */
 
-table#list-of-persons th {
+/* table#list-of-persons th {
     white-space: nowrap;
     vertical-align: top;
-}
+    color: black;
+    font-weight: 700;
+} */
 
-table#list-of-persons th .help-text {
+/* table#list-of-persons th .help-text {
     font-size: 0.6em;
     font-weight: normal;
     color: var(--dark-grey);
-}
+} */
 
-table#list-of-persons td {
+table#list-of-persons {
     font-size: 0.9rem;
 }
 
-table#list-of-persons td.button {
+table#list-of-persons button {
     font-size: 0.8rem;
     padding: 5px 8px;
-    margin: 3px;
-    width: 35vw;
+    margin: 3px 3px 3px 0px;
+    background-color: transparent;
+    font-weight: 400;
+    color: black;
+    text-decoration: underline;
+    text-align: left;
+}
+
+table#list-of-persons button.selected {
+    background-color: var(--color-text);
+    color: white;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+table#list-of-persons button.selected::after {
+    content: "SELECTED";
+    color: white;
+    opacity: 1;
+    font-size: 0.6rem;
+    opacity: 0.6;
+    margin-left: 5px;
 }
 
 .rep-page-selector {
@@ -602,7 +639,7 @@ table#list-of-persons td.button {
     border: 1px solid var(--color-primary);
 }
 
-.rep-page-numbers{
+.rep-page-numbers {
     white-space: nowrap;
 }
 
@@ -641,6 +678,7 @@ table#list-of-persons td.button {
 .add-person-search-results .button {
     white-space: nowrap;
 }
+
 .add-person-search-results .add-person-search-result-description {
     font-weight: 100;
     width: 100%;
@@ -666,7 +704,16 @@ table#list-of-persons td.button {
 }
 
 #donation-amount-selector .button {
+    border: 1px solid var(--color-text);
+    background-color: transparent;
+    color: var(--color-text);
     text-transform: lowercase;
+}
+
+#donation-amount-selector .button.selected {
+    background-color: var(--color-text);
+    color: white;
+    font-weight: 400;
 }
 
 .charity-choice-label,
@@ -681,25 +728,64 @@ table#list-of-persons td.button {
     font-weight: 700;
 }
 
+table.charity-choice-table {
+    margin: 10px 0px;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+}
+
+table.charity-choice-table td {
+    text-align: left;
+    box-sizing: border-box;
+    padding: 3px 8px;
+}
+
+table.charity-choice-table td:first-child {
+    width: 220px;
+}
+
+
+
 table.charity-choice-table button {
     font-size: 0.8rem;
     padding: 5px 8px;
-    margin: 3px;
-    min-width: 40vw;
+    margin: 3px 3px 3px 0px;
+    background-color: transparent;
+    font-weight: 400;
+    color: black;
+    text-decoration: underline;
     text-align: left;
 }
 
-table.charity-choice-table button .charity-name{
-    float:left;
+table.charity-choice-table button.selected {
+    background-color: var(--color-text);
+    color: white;
+    font-weight: 400;
+    text-decoration: none;
 }
 
-table.charity-choice-table button .charity-id{
-    float:right;
+table.charity-choice-table button.selected::after {
+    content: "SELECTED";
+    color: white;
+    opacity: 1;
+    font-size: 0.6rem;
+    opacity: 0.6;
+    margin-left: 5px;
 }
 
-table.charity-choice-table td.chosen-by{
+/* 
+table.charity-choice-table button .charity-name {
+    float: left;
+}
+
+table.charity-choice-table button .charity-id {
+    float: right;
+} */
+
+/* table.charity-choice-table td.chosen-by {
     text-align: right;
-}
+} */
 
 .faq-list .faq-question {
     font-size: 1.1em;
@@ -710,7 +796,7 @@ table.charity-choice-table td.chosen-by{
     margin-bottom: 1em;
 }
 
-.faq-charities-donr-letter{
+.faq-charities-donr-letter {
     margin-left: 1.5em;
     padding: 0.8em;
     border: 1px solid var(--color-text-label);
@@ -739,7 +825,7 @@ table.charity-choice-table td.chosen-by{
     overflow-x: hidden;
 }
 
-#sms-builder .copy-text-to-clipboard{
+#sms-builder .copy-text-to-clipboard {
     font-size: 0.6em;
     box-sizing: border-box;
     padding: 0;

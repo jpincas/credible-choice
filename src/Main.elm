@@ -1251,7 +1251,7 @@ liveResultsSection model sortedPeople =
                 ]
 
         topTenReps =
-                List.take 10 sortedPeople
+            List.take 10 sortedPeople
 
         viewReps =
             div
@@ -1343,7 +1343,8 @@ makeYourChoiceIntroduction model =
     mainSection "Your choice - Introduction"
         [ div
             [ Attributes.class "panels" ]
-            [ div
+            [ div [ Attributes.class "panel" ] [ explanation ]
+            , div
                 [ Attributes.class "panel info" ]
                 [ div
                     [ Attributes.class "optional-label" ]
@@ -1353,7 +1354,6 @@ makeYourChoiceIntroduction model =
                     [ Attributes.class "presentation-only" ]
                     [ text "Used for presentation only.  We do not collect any personal data, not even your mobile number." ]
                 ]
-            , div [ Attributes.class "panel" ] [ explanation ]
             ]
         ]
 
@@ -1442,18 +1442,20 @@ makeYourChoiceRep model sortedPeople =
                             person.name
             in
             Html.td
-                [ Attributes.class "button"
-                , selectedClass isSelected
-                , Attributes.class "representative-name"
-                , Events.onClick <| SelectRepresentative person.code
-                ]
-                [ text name
-                , text " "
-                , Html.span
-                    [ Attributes.class "representative-code" ]
-                    [ text "("
-                    , text person.code
-                    , text ")"
+                []
+                [ Html.button
+                    [ selectedClass isSelected
+                    , Attributes.class "representative-name"
+                    , Events.onClick <| SelectRepresentative person.code
+                    ]
+                    [ text name
+                    , text " "
+                    , Html.span
+                        [ Attributes.class "representative-code" ]
+                        [ text "("
+                        , text person.code
+                        , text ")"
+                        ]
                     ]
                 ]
 
@@ -1583,28 +1585,7 @@ makeYourChoiceRep model sortedPeople =
         table =
             Html.table
                 [ Attributes.id "list-of-persons" ]
-                [ Html.thead
-                    []
-                    [ Html.tr
-                        []
-                        [ Html.th
-                            []
-                            [ text "Name"
-                            , Html.br [] []
-                            , clickToChoose
-                            ]
-                        , Html.th
-                            []
-                            [ text "Profession" ]
-                        , Html.th
-                            []
-                            [ text "Chosen by" ]
-                        ]
-                    ]
-                , Html.tbody
-                    []
-                    (List.map makeRepChoice selectedRepresentatives)
-                ]
+                (List.map makeRepChoice selectedRepresentatives)
 
         title =
             Html.h2
@@ -1807,7 +1788,7 @@ makeYourChoiceRep model sortedPeople =
                 [ Attributes.class "panel" ]
                 [ title
                 , searchInput
-                , paragraph "You can add others below."
+                , paragraph "Click on the representatives name to choose. New representatives can be added below."
                 , table
                 , pageSelector
                 , displaying
@@ -1863,7 +1844,7 @@ donationSection model =
                         , selectedClass <| model.charity == Just charity.id
                         ]
                         [ Html.span [ Attributes.class "charity-name" ] [ text charity.name ]
-                        , Html.span [ Attributes.class "muted charity-id" ] [ text charity.id ]
+                        , Html.span [ Attributes.class "charity-id" ] [ text <| " (" ++ charity.id ++ ")" ]
                         ]
                     ]
                 , Html.td
@@ -1879,19 +1860,7 @@ donationSection model =
         table =
             Html.table
                 [ Attributes.class "charity-choice-table" ]
-                [ Html.thead
-                    []
-                    [ Html.tr
-                        []
-                        [ Html.th
-                            []
-                            [ text "Charity name / code" ]
-                        , Html.th
-                            []
-                            [ text "Chosen by" ]
-                        ]
-                    ]
-                , Html.tbody
+                [ Html.tbody
                     []
                     charityChoices
                 ]
