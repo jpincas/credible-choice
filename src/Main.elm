@@ -1821,7 +1821,7 @@ donationSection model =
                     ]
                 , Html.p
                     [ Attributes.class "donation-permission" ]
-                    [ text "You need permission of whoever pays the mobile bill to donate." ]
+                    [ text "You need permission from whomever pays the mobile bill to donate." ]
                 ]
 
         makeCharityChoice charity =
