@@ -427,17 +427,17 @@ viewTextCode model =
         Just option ->
             case model.selectedRepresentative == Nothing of
                 True ->
-                    text "You must make a representative choice to vote. No representative is an option"
+                    text "Please make a representative choice to vote. No representative is an option"
 
                 False ->
                     case model.donation of
                         Nothing ->
-                            text "You must select a donation amount to vote"
+                            text "Please select a donation amount to vote"
 
                         Just donationPounds ->
                             case model.charity == Nothing || model.charity == Just "" of
                                 True ->
-                                    text "You must select a charity to vote."
+                                    text "Please select a charity to vote."
 
                                 False ->
                                     let
@@ -1792,7 +1792,7 @@ makeYourChoiceRep model sortedPeople =
                 [ Attributes.class "panel" ]
                 [ title
                 , searchInput
-                , paragraph "Click on the representatives name to choose. New representatives can be added below."
+                , paragraph "Click on the representatives name to choose. New representatives can be added below. You may only select one representative."
                 , table
                 , pageSelector
                 , displaying
@@ -2050,13 +2050,10 @@ viewFaqPage =
             ]
 
         faqs =
-            [ ( "Demo Mode:  What is the basis for the order and quantities?"
-              , [ text "These are illustrative only and will be removed for a clean launch." ]
-              )
-            , ( "What’s the point?"
+            [ ( "What’s the point?"
               , [ text "When 50 million people liked an egg, we thought maybe we could get a few million to democratically express their views about the current Brexit situation and potentially generate some substantial funds for charity.  We also think there is a chance of a non Party group emerging from this, who could constructively help to heal the societal divisions Brexit has caused." ]
               )
-            , ( "What’s in this for Credible Choice and it’s promoters?"
+            , ( "What’s in this for Credible Choice and its promoters?"
               , [ text "We have created Credible Choice Ltd, a volunteer, not-for-profit, non-partisan company.  It doesn’t have any income or expenses and doesn’t pay for supplies and services." ]
               )
             , ( "What’s the difference between this and a referendum?"
@@ -2072,7 +2069,7 @@ viewFaqPage =
               , [ text "First of all we do not collect any personal data, not even mobile phone numbers.  Secondly, we are completely transparent, participants can see their choice tallied as they make it.  The whole process is underpinned by a distributed block chain.  Please see the technical overview." ]
               )
             , ( "What are you going to do with the data you collate?"
-              , [ text "We don't collect any personal data.  The results as completely public." ]
+              , [ text "We don't collect any personal data.  The results are completely public." ]
               )
             , ( "How are you going to influence the people that matter?"
               , [ text "We are not trying to be the influencers.  We have hopefully created a platform that allows others to be influencers." ]
