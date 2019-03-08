@@ -950,7 +950,7 @@ viewHeader showBackButton =
                     [ text "“State and Donate”" ]
                 ]
             , Html.a
-                [ Attributes.href "https://twitter.com/ChoiceCredible"
+                [ Attributes.href "https://twitter.com/Credible_Choice"
                 , Attributes.id "twitter-link"
                 ]
                 []
