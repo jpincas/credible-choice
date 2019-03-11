@@ -1134,7 +1134,7 @@ viewChoose model =
                 [ Attributes.class "initial-explanation-section" ]
                 [ Html.p
                     []
-                    [ text "This website is a platform to record the current views of the British population. Each user is able to"
+                    [ text "This website is a secure platform to record the current views of the British population. Each user is able to"
                     , text " "
                     , Html.span
                         [ Attributes.class "bold" ]
