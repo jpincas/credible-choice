@@ -1129,8 +1129,30 @@ viewChoose model =
                 |> List.filter notExcludedPerson
                 |> List.sortBy numVotes
 
+        initialExplanation =
+            Html.section
+                [ Attributes.class "initial-explanation-section" ]
+                [ Html.p
+                    []
+                    [ text "This website is a platform to record the current views of the British population. Each user is able to"
+                    , text " "
+                    , Html.span
+                        [ Attributes.class "bold" ]
+                        [ text "STATE" ]
+                    , text " "
+                    , text "their current view on Brexit, and optionally choose a public figure who they trust to generally represent their Brexit related views. The only requirements are a UK mobile phone number and to"
+                    , text " "
+                    , Html.span
+                        [ Attributes.class "bold" ]
+                        [ text "DONATE" ]
+                    , text " "
+                    , text "£1 to a participating charity of their choice."
+                    ]
+                ]
+
         sections =
-            [ liveResultsSection model sortedPeople
+            [ initialExplanation
+            , liveResultsSection model sortedPeople
             , makeYourChoiceIntroduction model
             , makeYourChoiceMain model
             , makeYourChoiceRep model sortedPeople
