@@ -1035,15 +1035,16 @@ view model =
                     , footerInformation "" [ text "Phone 01942  316860" ]
                     ]
                 , navigation
-                , div
-                    [ Attributes.class "footer-section" ]
-                    [ Html.h2
-                        [ Attributes.class "footer-section-title" ]
-                        [ text "Sponsers and Contributors" ]
-                    ]
+
+                -- , div
+                --     [ Attributes.class "footer-section" ]
+                --     [ Html.h2
+                --         [ Attributes.class "footer-section-title" ]
+                --         [ text "Sponsers and Contributors" ]
+                --     ]
                 , div
                     [ Attributes.id "footer-copyright" ]
-                    [ text "Credible Choice Ltd 2019" ]
+                    [ text "©Credible Choice Ltd 2019" ]
                 ]
 
         body =
