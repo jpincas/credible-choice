@@ -241,6 +241,16 @@ section>h2:first-child {
     text-align: center;
 }
 
+.initial-explanation-section {
+    font-size: 0.9rem;
+    padding: 10px;
+    color: var(--color-primary);
+    text-align: center;
+    background-color: var(--color-accent);
+    opacity: 0.9;
+}
+
+
 #under-construction h2,
 #under-construction p {
     margin: 5px 0px;
