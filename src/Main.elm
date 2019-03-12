@@ -160,6 +160,7 @@ type alias CharityId =
 type alias Charity =
     { id : CharityId
     , name : String
+    , description : String
     }
 
 
@@ -322,6 +323,7 @@ getCharities =
             Decode.succeed Charity
                 |> Pipeline.required "id" Decode.string
                 |> Pipeline.required "name" Decode.string
+                |> Pipeline.required "description" Decode.string
     in
     Http.get { url = url, expect = expect }
 
@@ -1870,15 +1872,20 @@ donationSection model =
                         , Events.onClick <| MakeCharityChoice charity.id
                         , selectedClass <| model.charity == Just charity.id
                         ]
-                        [ Html.span [ Attributes.class "charity-name" ] [ text charity.name ]
+                        [ Html.span [ Attributes.class "chosen-by" ] [ votes ]
+                        , Html.span [ Attributes.class "charity-name" ] [ text charity.name ]
                         , Html.span [ Attributes.class "charity-id" ] [ text <| " (" ++ charity.id ++ ")" ]
                         ]
                     ]
+
+                -- , Html.td
+                --     [ Attributes.class "bold"
+                --     , Attributes.class "chosen-by"
+                --     ]
+                --     [ votes ]
                 , Html.td
-                    [ Attributes.class "bold"
-                    , Attributes.class "chosen-by"
-                    ]
-                    [ votes ]
+                    [ Attributes.class "charity-description" ]
+                    [ text charity.description ]
                 ]
 
         charityChoices =

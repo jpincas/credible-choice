@@ -733,16 +733,17 @@ table.charity-choice-table {
     border-collapse: collapse;
     width: 100%;
     table-layout: fixed;
+    overflow: visible;
 }
 
 table.charity-choice-table td {
     text-align: left;
     box-sizing: border-box;
-    padding: 3px 8px;
+    padding-bottom: 15px;
 }
 
 table.charity-choice-table td:first-child {
-    width: 220px;
+    width: 150px;
 }
 
 
@@ -756,6 +757,20 @@ table.charity-choice-table button {
     color: black;
     text-decoration: underline;
     text-align: left;
+    position: relative;
+}
+
+table.charity-choice-table .chosen-by {
+    position: absolute;
+    top: -10px;
+    right: 0px;
+    background-color: var(--color-accent);
+    border-radius: 10px;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--color-text);
+    opacity: 0.9;
 }
 
 table.charity-choice-table button.selected {
@@ -769,9 +784,13 @@ table.charity-choice-table button.selected::after {
     content: "SELECTED";
     color: white;
     opacity: 1;
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     opacity: 0.6;
     margin-left: 5px;
+}
+
+table.charity-choice-table .charity-description {
+    font-size: 0.6rem;
 }
 
 /* 
@@ -783,9 +802,7 @@ table.charity-choice-table button .charity-id {
     float: right;
 } */
 
-/* table.charity-choice-table td.chosen-by {
-    text-align: right;
-} */
+
 
 .faq-list .faq-question {
     font-size: 1.1em;

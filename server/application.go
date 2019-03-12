@@ -176,8 +176,9 @@ func (a *Application) readCharities() error {
 
 		id := record[0]
 		name := record[1]
+		description := record[2]
 
-		charities[id] = Charity{id, name}
+		charities[id] = Charity{id, name, description}
 	}
 
 	Log(LogModuleStartup, true, "Read in list of charities OK", nil)
