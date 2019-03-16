@@ -1,0 +1,1 @@
+rm elm-stuff/0.19.0/*.elm[io] && ./compile-elm.sh --optimize && now && ./alias.sh
