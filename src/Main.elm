@@ -1255,7 +1255,7 @@ liveResultsSection model sortedPeople =
                     TypedSvg.svg
                         [ SvgAttributes.viewBox 0 0 width height ]
                         [ TypedSvg.g
-                            [ SvgAttributes.transform [ SvgTypes.Translate (width / 2) ((height / 2) - 30) ] ]
+                            [ SvgAttributes.transform [ SvgTypes.Translate (width / 2) (height / 2) ] ]
                             [ TypedSvg.g [] slices
                             , TypedSvg.g [] labels
                             ]
